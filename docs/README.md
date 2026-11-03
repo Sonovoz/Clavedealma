@@ -6,6 +6,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 
 - [Instalación de pruebas en Hostinger](instalacion-hostinger.md)
 - [Despliegue con Docker en OVH](despliegue-docker.md)
+- [Prototipos de diseño: matriz y tienda Farruquito](diseno/README.md)
 
 ## Decisiones técnicas (ADR)
 
