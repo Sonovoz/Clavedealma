@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Jost:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Cinzel:wght@400;500;600&family=Permanent+Marker&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Jost:wght@400;500;600&display=swap">
 <style>
 /* Layout: un muro de piedra iluminado por un foco cálido; cada diseño se presenta como una pieza enmarcada en oro. */
 :root {
@@ -22,6 +22,8 @@
   --f-grabado: "Cinzel", "Trajan Pro", "Times New Roman", serif;
   --f-voz: "Cormorant Garamond", Garamond, "Times New Roman", serif;
   --f-ui: "Jost", "Futura", "Helvetica Neue", Arial, sans-serif;
+  --f-cartel: "Anton", "Impact", "Arial Narrow", sans-serif;
+  --f-spray: "Permanent Marker", "Comic Sans MS", cursive;
   --gl: max(16px, env(safe-area-inset-left, 0px));
   --gr: max(16px, env(safe-area-inset-right, 0px));
   --ease: cubic-bezier(.22, .8, .2, 1);
@@ -51,8 +53,8 @@ button { font: inherit; color: inherit; }
 .ornamento.on path { stroke-dashoffset: 0; }
 
 /* Grano y cursor */
-.grano { position: fixed; inset: -50%; z-index: 90; pointer-events: none; opacity: .06; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); animation: grano 1.1s steps(5) infinite; }
-@keyframes grano { 0%{transform:translate(0,0)} 25%{transform:translate(-3%,2%)} 50%{transform:translate(2%,-3%)} 75%{transform:translate(-2%,-2%)} 100%{transform:translate(0,0)} }
+.grano { position: fixed; inset: 0; z-index: 90; pointer-events: none; opacity: .06; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); animation: grano 1.1s steps(5) infinite; }
+@keyframes grano { 0%{background-position:0 0} 25%{background-position:-40px 30px} 50%{background-position:30px -50px} 75%{background-position:-25px -30px} 100%{background-position:0 0} }
 .anillo { position: fixed; z-index: 85; left: 0; top: 0; width: 34px; height: 34px; margin: -17px 0 0 -17px; border: 1px solid rgba(234,210,160,.7); border-radius: 50%; pointer-events: none; opacity: 0; transition: width .35s var(--ease), height .35s var(--ease), margin .35s var(--ease), background .35s, opacity .3s; mix-blend-mode: difference; }
 .anillo.grande { width: 74px; height: 74px; margin: -37px 0 0 -37px; background: rgba(234,210,160,.12); }
 
@@ -220,6 +222,7 @@ button { font: inherit; color: inherit; }
 .nota-precios { text-align: center; margin-top: 36px; font: 400 12px/1.4 var(--f-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--sepia); }
 
 /* ---------- Compás: anillo que gira ---------- */
+#compas { overflow-x: clip; }
 .compas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(30px, 6vw, 90px); align-items: center; }
 .disco { position: relative; aspect-ratio: 1; max-width: 560px; width: 100%; margin-inline: auto; }
 .disco__img { position: absolute; inset: 15%; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 1px rgba(201,161,91,.35), 0 0 80px rgba(201,161,91,.12); }
@@ -288,9 +291,12 @@ button { font: inherit; color: inherit; }
 .pie__legal { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-top: 44px; padding-top: 20px; border-top: 1px solid rgba(201,161,91,.15); color: var(--sepia); font-size: 13px; }
 
 /* ---------- Ficha de producto (modal) ---------- */
-.velo { position: fixed; inset: 0; z-index: 95; background: rgba(0,0,0,.7); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); opacity: 0; pointer-events: none; transition: opacity .4s; }
+.capas { position: fixed; inset: 0; z-index: 95; overflow: hidden; pointer-events: none; }
+.capas > * { pointer-events: auto; }
+.capas > :not(.on) { pointer-events: none; }
+.velo { position: absolute; inset: 0; z-index: 95; background: rgba(0,0,0,.7); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); opacity: 0; pointer-events: none; transition: opacity .4s; }
 .velo.on { opacity: 1; pointer-events: auto; }
-.ficha { position: fixed; z-index: 96; inset: max(3vh, env(safe-area-inset-top, 0px)) max(3vw, env(safe-area-inset-right, 0px)) max(3vh, env(safe-area-inset-bottom, 0px)) max(3vw, env(safe-area-inset-left, 0px)); max-width: 1180px; margin-inline: auto; background: #0d0a07; border: 1px solid rgba(201,161,91,.45); display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); overflow: hidden; opacity: 0; transform: translateY(24px) scale(.98); pointer-events: none; transition: opacity .45s, transform .6s var(--ease); }
+.ficha { position: absolute; z-index: 96; inset: max(3vh, env(safe-area-inset-top, 0px)) max(3vw, env(safe-area-inset-right, 0px)) max(3vh, env(safe-area-inset-bottom, 0px)) max(3vw, env(safe-area-inset-left, 0px)); max-width: 1180px; margin-inline: auto; background: #0d0a07; border: 1px solid rgba(201,161,91,.45); display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); overflow: hidden; opacity: 0; transform: translateY(24px) scale(.98); pointer-events: none; transition: opacity .45s, transform .6s var(--ease); }
 .ficha.on { opacity: 1; transform: none; pointer-events: auto; }
 .ficha__galeria { position: relative; display: grid; grid-template-rows: 1fr auto; gap: 10px; padding: 16px; min-height: 0; background: #080605; }
 .ficha__principal { position: relative; overflow: hidden; min-height: 0; }
@@ -317,7 +323,7 @@ button { font: inherit; color: inherit; }
 .aviso { font: 500 12px/1.4 var(--f-ui); letter-spacing: .08em; color: var(--sepia); margin: 0; }
 
 /* ---------- Carrito ---------- */
-.carrito { position: fixed; z-index: 97; top: 0; right: 0; bottom: 0; width: min(430px, 100%); background: #0d0a07; border-left: 1px solid rgba(201,161,91,.35); transform: translateX(102%); transition: transform .6s var(--ease); display: flex; flex-direction: column; padding: calc(22px + env(safe-area-inset-top, 0px)) max(22px, env(safe-area-inset-right, 0px)) calc(22px + env(safe-area-inset-bottom, 0px)) 22px; }
+.carrito { position: absolute; z-index: 97; top: 0; right: 0; bottom: 0; width: min(430px, 100%); background: #0d0a07; border-left: 1px solid rgba(201,161,91,.35); transform: translateX(102%); transition: transform .6s var(--ease); display: flex; flex-direction: column; padding: calc(22px + env(safe-area-inset-top, 0px)) max(22px, env(safe-area-inset-right, 0px)) calc(22px + env(safe-area-inset-bottom, 0px)) 22px; }
 .carrito.on { transform: none; }
 .carrito__cab { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid rgba(201,161,91,.2); }
 .carrito__cab h2 { font-size: 24px; letter-spacing: .14em; }
@@ -339,8 +345,109 @@ button { font: inherit; color: inherit; }
 .menu-movil.on { clip-path: circle(150% at 50% 40px); }
 .menu-movil a { font: 400 34px/1.2 var(--f-grabado); letter-spacing: .14em; text-transform: uppercase; text-decoration: none; color: var(--crema); }
 
+
+/* ---------- Tres colecciones ---------- */
+.hub__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.hub__card { --rx: 0deg; --ry: 0deg; position: relative; min-height: 520px; overflow: hidden; text-decoration: none; display: grid; align-content: end; gap: 10px; padding: 26px; border: 1px solid rgba(201,161,91,.28); isolation: isolate; transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry)); transition: transform .6s var(--ease), border-color .4s; }
+.hub__card img { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; transition: transform 1.4s var(--ease), filter .8s; filter: saturate(.85) brightness(.75); }
+.hub__card::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(to top, rgba(8,6,4,.96) 12%, rgba(8,6,4,.25) 60%, rgba(8,6,4,.45)); }
+.hub__card:hover img { transform: scale(1.07); filter: saturate(1) brightness(.9); }
+.hub__card:hover { border-color: var(--oro); }
+.hub__n { font: 500 12px/1 var(--f-ui); letter-spacing: .3em; color: var(--oro); }
+.hub__t { font-size: clamp(40px, 4.4vw, 64px); line-height: .95; color: var(--crema); transition: letter-spacing .6s var(--ease); }
+.hub__card:hover .hub__t { letter-spacing: .04em; }
+.hub__t--os { font-family: var(--f-grabado); text-transform: uppercase; letter-spacing: .06em; font-size: clamp(34px, 3.6vw, 52px); }
+.hub__t--av { font-family: var(--f-cartel); text-transform: uppercase; }
+.hub__t--ic { font-family: var(--f-cartel); text-transform: uppercase; color: #ece3d0; }
+.hub__s { font: 400 19px/1.3 var(--f-voz); font-style: italic; color: #d6c6ad; }
+.hub__go { justify-self: start; margin-top: 8px; font: 500 11px/1 var(--f-ui); letter-spacing: .28em; text-transform: uppercase; color: var(--oro-claro); padding-bottom: 6px; border-bottom: 1px solid var(--oro); }
+.hub--av:hover { border-color: #d6222a; }
+.hub--av .hub__n, .hub--av .hub__go { color: #ff4b52; border-color: #d6222a; }
+
+/* ---------- Artist Voice: muro urbano ---------- */
+.av { --av-rojo: #d6222a; --av-blanco: #f3f1ec; position: relative; background: #0b0b0b; color: var(--av-blanco); overflow: hidden; }
+.av__banda { position: relative; min-height: min(92vh, 820px); display: grid; align-items: end; isolation: isolate; clip-path: polygon(0 0, 100% 0, 100% 96%, 92% 99%, 81% 95.5%, 66% 99.5%, 52% 96%, 38% 99%, 22% 95.8%, 9% 99.2%, 0 96.5%); }
+.av__fondo { position: absolute; inset: 0; z-index: -1; }
+.av__fondo img { width: 100%; height: 100%; object-fit: cover; object-position: 70% 30%; transform: translateY(var(--avp, 0)) scale(1.12); filter: grayscale(.25) contrast(1.1) brightness(.6); }
+.av__fondo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(11,11,11,.94) 18%, rgba(11,11,11,.35) 60%, rgba(11,11,11,.6)), radial-gradient(60% 40% at 20% 80%, rgba(214,34,42,.35), transparent 70%); }
+.av__banda > .wrap { width: 100%; }
+.av__cab { display: grid; gap: 16px; padding-block: 120px 96px; justify-items: start; }
+.av__etq { font: 500 12px/1 var(--f-ui); letter-spacing: .32em; text-transform: uppercase; color: #ff4b52; }
+.av__titulo { margin: 0; font: 400 clamp(84px, 13vw, 200px)/.82 var(--f-cartel); text-transform: uppercase; letter-spacing: -.01em; position: relative; }
+.av__titulo span { display: block; color: var(--av-blanco); text-shadow: 3px 3px 0 rgba(0,0,0,.5); }
+.av__titulo span:first-child { -webkit-text-stroke: 2px var(--av-blanco); color: transparent; }
+.av__titulo em { position: absolute; right: -6%; bottom: -12%; font: 400 .42em/1 var(--f-spray); text-transform: none; color: var(--av-rojo); transform: rotate(-8deg); text-shadow: 0 0 22px rgba(214,34,42,.45); }
+.av__lema { margin: 40px 0 0; font: 400 clamp(15px, 1.4vw, 18px)/1.4 var(--f-ui); letter-spacing: .26em; text-transform: uppercase; color: #e9e4dc; max-width: 40ch; }
+.av__btn { border-color: var(--av-rojo); color: var(--av-blanco); }
+.av__btn::before { background: var(--av-rojo); }
+.av__btn:hover { color: var(--av-blanco); border-color: var(--av-rojo); }
+.av__marq { background: var(--av-rojo); transform: rotate(-1.4deg); margin: -10px -2% 0; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.6); }
+.av__pista { display: flex; width: max-content; animation: marq 32s linear infinite; }
+.av__pista span { font: 400 clamp(26px, 3vw, 40px)/1 var(--f-cartel); text-transform: uppercase; padding: 16px 30px; white-space: nowrap; color: #0b0b0b; display: inline-flex; align-items: center; gap: 60px; }
+.av__pista span::after { content: "✱"; color: var(--av-blanco); }
+.av__muro-wrap { padding-block: clamp(80px, 10vw, 140px); }
+.av__intro { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 30px; align-items: end; margin-bottom: 56px; }
+.av__intro h3 { margin: 0; font: 400 clamp(40px, 5vw, 76px)/.92 var(--f-cartel); text-transform: uppercase; }
+.av__intro p { margin: 0; color: #c9c3ba; font-size: 17px; max-width: 54ch; }
+.av__muro { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 34px 26px; padding: 20px; background: radial-gradient(120% 120% at 30% 20%, #1c1b1a, #0e0e0e 70%); border: 1px solid #222; }
+.cartel { position: relative; padding: 10px 10px 40px; background: #f2efe9; border: 0; cursor: pointer; transform: rotate(var(--r)); transition: transform .5s var(--ease), box-shadow .5s; box-shadow: 0 14px 30px rgba(0,0,0,.55); }
+.cartel::before, .cartel::after { content: ""; position: absolute; top: -12px; width: 64px; height: 22px; background: rgba(230,226,214,.62); backdrop-filter: blur(1px); box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.cartel::before { left: 14%; transform: rotate(-8deg); }
+.cartel::after { right: 14%; transform: rotate(7deg); }
+.cartel img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; background: #000; transition: filter .5s; }
+.cartel span { position: absolute; left: 10px; right: 10px; bottom: 11px; font: 400 14px/1.1 var(--f-spray); color: #111; text-align: left; }
+.cartel:hover, .cartel:focus-visible { transform: rotate(0deg) scale(1.06) translateY(-6px); box-shadow: 0 30px 60px rgba(0,0,0,.7), 0 0 0 3px var(--av-rojo); z-index: 2; }
+.cartel:hover img { filter: contrast(1.08) saturate(1.1); }
+
+/* ---------- Iconic: el emblema bordado ---------- */
+.ic { --ic-crema: #ece3d0; --ic-arena: #b9a27f; position: relative; overflow: hidden; background: radial-gradient(70% 60% at 70% 30%, #26221c, #0c0b0a 70%); color: var(--ic-crema); padding-block: clamp(90px, 12vw, 170px); border-top: 1px solid rgba(236,227,208,.12); }
+.ic__fondo { position: absolute; left: -2%; top: 4%; font: 400 clamp(180px, 30vw, 460px)/.8 var(--f-cartel); text-transform: uppercase; color: transparent; -webkit-text-stroke: 1px rgba(236,227,208,.09); letter-spacing: -.01em; pointer-events: none; user-select: none; white-space: nowrap; }
+.ic__grid { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(30px, 6vw, 90px); align-items: center; }
+.ic__txt { display: grid; gap: 18px; min-width: 0; }
+.ic__etq { font: 500 12px/1 var(--f-ui); letter-spacing: .32em; text-transform: uppercase; color: var(--ic-arena); }
+.ic__titulo { margin: 0; font: 400 clamp(90px, 12vw, 180px)/.82 var(--f-cartel); text-transform: uppercase; color: var(--ic-crema); }
+.ic__lema { margin: 0; font: 500 clamp(14px, 1.3vw, 17px)/1.4 var(--f-ui); letter-spacing: .3em; text-transform: uppercase; }
+.ic__desc { margin: 0; color: #cbbfab; font-size: 17px; max-width: 48ch; }
+.ic__valores { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 26px; }
+.ic__valores li { font: 500 11px/1 var(--f-ui); letter-spacing: .26em; text-transform: uppercase; color: var(--ic-arena); display: inline-flex; gap: 10px; align-items: center; }
+.ic__valores li::before { content: ""; width: 7px; height: 7px; transform: rotate(45deg); background: var(--ic-arena); }
+.ic__btn { border-color: var(--ic-crema); color: var(--ic-crema); }
+.ic__btn::before { background: var(--ic-crema); }
+.ic__btn:hover { color: #0c0b0a; border-color: var(--ic-crema); }
+.ic__escena { position: relative; aspect-ratio: 1; max-width: 520px; width: 100%; margin-inline: auto; display: grid; place-items: center; perspective: 1100px; }
+.ic__hilo { position: absolute; inset: 0; width: 100%; height: 100%; animation: girar 40s linear infinite; }
+.ic__hilo circle { fill: none; stroke: var(--ic-crema); stroke-width: 1.6; stroke-dasharray: 6 7; opacity: .55; }
+.ic__hilo circle + circle { stroke: var(--ic-arena); stroke-dasharray: 2 9; opacity: .5; }
+@keyframes girar { to { transform: rotate(360deg); } }
+.moneda { --mrx: 0deg; --mry: 0deg; --vuelta: 0deg; position: relative; width: 76%; aspect-ratio: 1; border: 0; padding: 0; background: none; cursor: pointer; transform-style: preserve-3d; transform: rotateX(var(--mrx)) rotateY(calc(var(--mry) + var(--vuelta))); transition: transform 1s var(--ease); }
+.moneda__cara { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 0 0 1px rgba(236,227,208,.25), 0 30px 70px rgba(0,0,0,.75), inset 0 0 40px rgba(0,0,0,.6); background: #0a0a0a; }
+.moneda__cara img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); }
+.moneda__cara--dorso { transform: rotateY(180deg); }
+.moneda::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at var(--bx, 30%) var(--by, 25%), rgba(255,248,232,.28), transparent 45%); pointer-events: none; transform: translateZ(1px); }
+.ic__pista { position: absolute; bottom: -6px; font: 500 11px/1 var(--f-ui); letter-spacing: .22em; text-transform: uppercase; color: var(--ic-arena); }
+.codigos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-top: clamp(70px, 9vw, 120px); }
+.codigo { position: relative; display: grid; gap: 10px; align-content: start; padding: 16px 16px 22px; border: 1px solid rgba(236,227,208,.16); background: rgba(12,11,10,.6); transition: border-color .4s, transform .6s var(--ease); }
+.codigo:hover { border-color: var(--ic-arena); transform: translateY(-6px); }
+.codigo__img { aspect-ratio: 1; overflow: hidden; background: #000; }
+.codigo__img img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--ease); }
+.codigo:hover .codigo__img img { transform: scale(1.08) rotate(-3deg); }
+.codigo__n { font: 400 34px/1 var(--f-cartel); color: transparent; -webkit-text-stroke: 1px var(--ic-arena); }
+.codigo h3 { margin: 0; font: 400 24px/1 var(--f-cartel); text-transform: uppercase; color: var(--ic-crema); }
+.codigo p { margin: 0; font-size: 14px; color: #bfb39f; }
+.codigo__tec { justify-self: start; font: 500 10px/1 var(--f-ui); letter-spacing: .2em; text-transform: uppercase; color: #0c0b0a; background: var(--ic-arena); padding: 6px 8px; }
+
+/* ---------- Catálogo con dos filtros ---------- */
+.filtros--tipo { margin-top: -30px; }
+.filtros--tipo .chip { font-size: 10px; padding: 10px 14px; }
+.contador-piezas { text-align: center; margin: -20px 0 30px; font: 500 12px/1 var(--f-ui); letter-spacing: .2em; text-transform: uppercase; color: var(--sepia); }
+.prod__col { position: absolute; z-index: 2; top: 10px; right: 10px; font: 500 10px/1 var(--f-ui); letter-spacing: .16em; text-transform: uppercase; padding: 6px 8px; background: rgba(11,9,7,.78); border: 1px solid rgba(201,161,91,.35); color: var(--crema); }
+.prod__col--artistvoice { border-color: #d6222a; color: #ffd3d5; }
+.prod__col--iconic { border-color: #b9a27f; color: #ece3d0; }
+
 /* Responsive */
 @media (max-width: 1080px) {
+  .av__muro { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .codigos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .catalogo { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .sellos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .sello { border-bottom: 1px solid rgba(201,161,91,.18); }
@@ -350,6 +457,11 @@ button { font: inherit; color: inherit; }
   .pie__grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 860px) {
+  .hub__grid { grid-template-columns: 1fr; }
+  .hub__card { min-height: 380px; }
+  .av__intro, .ic__grid { grid-template-columns: 1fr; }
+  .av__muro { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 16px; padding: 14px; }
+  .av__titulo em { right: 0; }
   .cab__nav { display: none; }
   .menu-btn { display: grid; }
   .cab__in { grid-template-columns: auto 1fr auto; }
@@ -402,10 +514,11 @@ button { font: inherit; color: inherit; }
 <header class="cab" id="cab">
   <div class="wrap cab__in">
     <nav class="cab__nav" aria-label="Tienda">
-      <a href="#coleccion">Colección</a>
-      <a href="#principal">Diseños</a>
-      <a href="#compas">El compás</a>
-      <a href="#lookbook">Lookbook</a>
+      <a href="#colecciones">Colecciones</a>
+      <a href="#principal">On Stage</a>
+      <a href="#artist-voice">Artist Voice</a>
+      <a href="#iconic">Iconic</a>
+      <a href="#coleccion">Tienda</a>
     </nav>
     <button class="ico menu-btn" type="button" id="menu-btn" aria-label="Abrir menú" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></svg></button>
     <a class="cab__logo" href="#portada" aria-label="Serás Farruquito, inicio"><img src="img/logo-farruquito.png" alt="Serás Farruquito · El Musical" width="897" height="364"></a>
@@ -417,7 +530,7 @@ button { font: inherit; color: inherit; }
 </header>
 
 <nav class="menu-movil" id="menu-movil" aria-label="Menú" hidden>
-  <a href="#coleccion">Colección</a><a href="#principal">Diseños</a><a href="#compas">El compás</a><a href="#lookbook">Lookbook</a>
+  <a href="#colecciones">Colecciones</a><a href="#principal">On Stage</a><a href="#artist-voice">Artist Voice</a><a href="#iconic">Iconic</a><a href="#coleccion">Tienda</a>
 </nav>
 
 <main>
@@ -430,11 +543,11 @@ button { font: inherit; color: inherit; }
     <canvas id="oro" aria-hidden="true"></canvas>
     <div class="wrap">
       <div class="portada__in">
-        <span class="etq">Colección On Stage · Edición limitada</span>
+        <span class="etq">Tienda oficial · Tres colecciones</span>
         <img class="portada__logo" src="img/logo-farruquito.png" alt="Serás Farruquito · El Musical" width="897" height="364">
         <p>Dos lenguajes. Una misma verdad. El arte hecho legado.</p>
         <div class="portada__ctas">
-          <a class="btn btn--oro magnet" href="#coleccion">Ver la colección</a>
+          <a class="btn btn--oro magnet" href="#colecciones">Ver las colecciones</a>
           <a class="btn magnet" href="#principal">El diseño principal</a>
         </div>
         <div class="portada__datos"><span>Algodón 280 g/m²</span><span>Corte oversize unisex</span><span>Fabricado en 5–7 días</span></div>
@@ -446,6 +559,40 @@ button { font: inherit; color: inherit; }
     <span>Origen</span><span>Pasión</span><span>Movimiento</span><span>Compás</span><span>Memoria</span><span>Legado</span>
     <span>Origen</span><span>Pasión</span><span>Movimiento</span><span>Compás</span><span>Memoria</span><span>Legado</span>
   </div></div>
+
+  <!-- TRES COLECCIONES -->
+  <section class="escena hub" id="colecciones">
+    <div class="wrap">
+      <div class="titulo-sec rv">
+        <span class="etq">Tienda oficial de Farruquito</span>
+        <h2 class="grabado">Tres colecciones, un mismo origen</h2>
+        <p>El escenario, la voz de la calle y el emblema bordado. Elige por dónde entrar.</p>
+      </div>
+      <div class="hub__grid">
+        <a class="hub__card hub--os tilt rv" href="#principal">
+          <img src="img/hero.webp" alt="">
+          <span class="hub__n">01</span>
+          <span class="hub__t hub__t--os">On Stage</span>
+          <span class="hub__s">Serás Farruquito · El Musical</span>
+          <span class="hub__go">Entrar</span>
+        </a>
+        <a class="hub__card hub--av tilt rv" href="#artist-voice" style="--d:1">
+          <img src="img/av-calle.webp" alt="">
+          <span class="hub__n">02</span>
+          <span class="hub__t hub__t--av">Artist Voice</span>
+          <span class="hub__s">Expresa. Crea. Trasciende.</span>
+          <span class="hub__go">Entrar</span>
+        </a>
+        <a class="hub__card hub--ic tilt rv" href="#iconic" style="--d:2">
+          <img src="img/ic-m08.webp" alt="">
+          <span class="hub__n">03</span>
+          <span class="hub__t hub__t--ic">Iconic</span>
+          <span class="hub__s">Built on heritage. Made to be iconic.</span>
+          <span class="hub__go">Entrar</span>
+        </a>
+      </div>
+    </div>
+  </section>
 
   <!-- MANIFIESTO -->
   <section class="escena">
@@ -510,26 +657,6 @@ button { font: inherit; color: inherit; }
     </div>
   </section>
 
-  <!-- COLECCIÓN -->
-  <section class="escena" id="coleccion" style="padding-top:0">
-    <div class="wrap">
-      <div class="titulo-sec rv">
-        <span class="etq">Tienda oficial</span>
-        <h2 class="grabado">Colección On Stage</h2>
-        <p>Cada pieza guarda una emoción, una raíz y una forma distinta de llevar el arte consigo.</p>
-      </div>
-      <div class="filtros rv" role="group" aria-label="Filtrar la colección">
-        <button class="chip" type="button" aria-pressed="true" data-f="todo">Todo</button>
-        <button class="chip" type="button" aria-pressed="false" data-f="camiseta">Camisetas</button>
-        <button class="chip" type="button" aria-pressed="false" data-f="sudadera">Sudaderas</button>
-        <button class="chip" type="button" aria-pressed="false" data-f="tote">Tote bags</button>
-        <button class="chip" type="button" aria-pressed="false" data-f="ecru">En ecru</button>
-      </div>
-      <div class="catalogo" id="catalogo"></div>
-      <p class="nota-precios">Precios de ejemplo para el prototipo · IVA incluido</p>
-    </div>
-  </section>
-
   <!-- EL COMPÁS -->
   <section class="escena" id="compas" style="padding-top:0">
     <div class="wrap compas">
@@ -564,6 +691,94 @@ button { font: inherit; color: inherit; }
         <p class="cita rv">“Lo que somos hoy es lo que otros soñaron ayer.”</p>
         <div class="rv"><button class="btn magnet" type="button" data-abrir="mod06">Ver la camiseta</button></div>
       </div>
+    </div>
+  </section>
+
+  <!-- ARTIST VOICE -->
+  <section class="av" id="artist-voice">
+    <div class="av__banda">
+      <div class="av__fondo" aria-hidden="true"><img src="img/av-calle.webp" alt=""></div>
+      <div class="wrap av__cab">
+        <span class="av__etq">Colección 02 · Farruquito since 1982</span>
+        <h2 class="av__titulo"><span>Artist</span><span>Voice</span><em>Collection</em></h2>
+        <p class="av__lema">Expresa. Crea. Trasciende. Tu voz es tu legado.</p>
+        <a class="btn av__btn magnet" href="#coleccion" data-ver-col="artistvoice">Ver la colección</a>
+      </div>
+    </div>
+    <div class="av__marq" aria-hidden="true"><div class="av__pista"><span>Alma flamenca</span><span>Bailo… luego existo</span><span>Se hace camino al andar</span><span>Trata de volar</span><span>Cuando el alma grita</span><span>Bailo mejor que Farruquito</span><span>Que la vida te pille bailando</span><span>St@y Farruquito</span><span>Alma flamenca</span><span>Bailo… luego existo</span><span>Se hace camino al andar</span><span>Trata de volar</span><span>Cuando el alma grita</span><span>Bailo mejor que Farruquito</span><span>Que la vida te pille bailando</span><span>St@y Farruquito</span></div></div>
+    <div class="wrap av__muro-wrap">
+      <div class="av__intro rv">
+        <h3>La voz convertida en cartel</h3>
+        <p>Un sistema gráfico que convierte la voz, el gesto y el imaginario de Farruquito en piezas de calle: camisetas boxy oversize, sudaderas, hoodies y gorras. Pulsa un cartel para ver su pieza.</p>
+      </div>
+      <div class="av__muro" id="av-muro">
+        <button class="cartel rv" type="button" data-abrir="av01" style="--r:-3.5deg;--d:0" aria-label="Ver la pieza Alma flamenca"><img src="img/av-d01-alma-flamenca.webp" alt="Diseño Alma flamenca"><span>Alma flamenca</span></button>
+        <button class="cartel rv" type="button" data-abrir="av02" style="--r:2.5deg;--d:1" aria-label="Ver la pieza Bailo… luego existo"><img src="img/av-d02-bailo-luego-existo.webp" alt="Diseño Bailo… luego existo"><span>Bailo… luego existo</span></button>
+        <button class="cartel rv" type="button" data-abrir="av03" style="--r:-1.5deg;--d:2" aria-label="Ver la pieza Se hace camino"><img src="img/av-d03-se-hace-camino.webp" alt="Diseño Se hace camino"><span>Se hace camino</span></button>
+        <button class="cartel rv" type="button" data-abrir="av04" style="--r:3deg;--d:3" aria-label="Ver la pieza Trata de volar"><img src="img/av-d04-trata-de-volar.webp" alt="Diseño Trata de volar"><span>Trata de volar</span></button>
+        <button class="cartel rv" type="button" data-abrir="av13" style="--r:2deg;--d:0" aria-label="Ver la pieza Cuando el alma grita"><img src="img/av-d05-cuando-el-alma-grita.webp" alt="Diseño Cuando el alma grita"><span>Cuando el alma grita</span></button>
+        <button class="cartel rv" type="button" data-abrir="av06" style="--r:-2.5deg;--d:1" aria-label="Ver la pieza Bailo mejor que Farruquito"><img src="img/av-d06-bailo-mejor.webp" alt="Diseño Bailo mejor que Farruquito"><span>Bailo mejor que Farruquito</span></button>
+        <button class="cartel rv" type="button" data-abrir="av05" style="--r:1.5deg;--d:2" aria-label="Ver la pieza Que la vida te pille bailando"><img src="img/av-d07-que-la-vida.webp" alt="Diseño Que la vida te pille bailando"><span>Que la vida te pille bailando</span></button>
+        <button class="cartel rv" type="button" data-abrir="av07" style="--r:-3deg;--d:3" aria-label="Ver la pieza St@y Farruquito"><img src="img/av-d08-stay.webp" alt="Diseño St@y Farruquito"><span>St@y Farruquito</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ICONIC -->
+  <section class="ic" id="iconic">
+    <div class="ic__fondo" aria-hidden="true">Iconic</div>
+    <div class="wrap ic__grid">
+      <div class="ic__txt">
+        <span class="ic__etq rv">Colección 03 · Farruquito since 1982</span>
+        <h2 class="ic__titulo rv">Iconic</h2>
+        <p class="ic__lema rv">Built on heritage. Made to be iconic.</p>
+        <p class="ic__desc rv">Atemporal en el diseño y con raíz en la cultura. Cuatro códigos gráficos que nacen de un mismo legado: el emblema oficial, su versión bordada, la variación tipográfica y la de la sombra.</p>
+        <ul class="ic__valores rv"><li>Timeless legacy</li><li>Rooted worldwide</li><li>Premium quality</li></ul>
+        <div class="rv"><a class="btn ic__btn magnet" href="#coleccion" data-ver-col="iconic">Ver la colección</a></div>
+      </div>
+      <div class="ic__escena rv">
+        <svg class="ic__hilo" viewBox="0 0 400 400" aria-hidden="true"><circle cx="200" cy="200" r="188"/><circle cx="200" cy="200" r="176"/></svg>
+        <button class="moneda" id="moneda" type="button" aria-label="Dar la vuelta al emblema">
+          <span class="moneda__cara"><img src="img/ic-d01-emblema.webp" alt="Emblema Farruquito bordado"></span>
+          <span class="moneda__cara moneda__cara--dorso"><img src="img/ic-d02-words.webp" alt="Emblema Farruquito con palabras"></span>
+        </button>
+        <span class="ic__pista">Mueve el cursor · pulsa para darle la vuelta</span>
+      </div>
+    </div>
+    <div class="wrap">
+      <div class="codigos">
+        <article class="codigo rv" style="--d:0"><div class="codigo__img"><img src="img/ic-d01-emblema.webp" alt="Código 01 Classic Embroidery"></div><span class="codigo__n">01</span><h3>Classic Embroidery</h3><p>El logo oficial de Farruquito, refinado a partir del original del artista. Define la identidad de la colección.</p><span class="codigo__tec">Efecto bordado</span></article>
+        <article class="codigo rv" style="--d:1"><div class="codigo__img"><img src="img/ic-d02-words.webp" alt="Código 02 Classic Words"></div><span class="codigo__n">02</span><h3>Classic Words</h3><p>El emblema escrito con las palabras del universo del artista: baile, alma, herencia, pasión y duende.</p><span class="codigo__tec">Bordado o plano</span></article>
+        <article class="codigo rv" style="--d:2"><div class="codigo__img"><img src="img/ic-d03-signature.webp" alt="Código 03 Classic Signature"></div><span class="codigo__n">03</span><h3>Classic Signature</h3><p>El emblema de palabras unido a la firma de Farruquito y el año de origen, 1982.</p><span class="codigo__tec">Bordado o plano</span></article>
+        <article class="codigo rv" style="--d:3"><div class="codigo__img"><img src="img/ic-d04-shadow.webp" alt="Código 04 Classic Shadow"></div><span class="codigo__n">04</span><h3>Classic Shadow</h3><p>La versión más conceptual: el símbolo convertido en luz, sombra y presencia escénica.</p><span class="codigo__tec">Estampado plano</span></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIENDA: CATÁLOGO COMPLETO -->
+  <section class="escena" id="coleccion">
+    <div class="wrap">
+      <div class="titulo-sec rv">
+        <span class="etq">Tienda oficial</span>
+        <h2 class="grabado">Todas las piezas</h2>
+        <p>Filtra por colección o por tipo de prenda. Un solo carrito para todo Clave de Alma.</p>
+      </div>
+      <div class="filtros rv" role="group" aria-label="Filtrar por colección">
+        <button class="chip" type="button" aria-pressed="true" data-col="todas">Todas</button>
+        <button class="chip" type="button" aria-pressed="false" data-col="onstage">On Stage</button>
+        <button class="chip" type="button" aria-pressed="false" data-col="artistvoice">Artist Voice</button>
+        <button class="chip" type="button" aria-pressed="false" data-col="iconic">Iconic</button>
+      </div>
+      <div class="filtros filtros--tipo rv" role="group" aria-label="Filtrar por tipo de prenda">
+        <button class="chip" type="button" aria-pressed="true" data-f="todo">Todo</button>
+        <button class="chip" type="button" aria-pressed="false" data-f="camiseta">Camisetas</button>
+        <button class="chip" type="button" aria-pressed="false" data-f="sudadera">Sudaderas</button>
+        <button class="chip" type="button" aria-pressed="false" data-f="gorra">Gorras</button>
+        <button class="chip" type="button" aria-pressed="false" data-f="tote">Tote bags</button>
+      </div>
+      <p class="contador-piezas" id="contador-piezas" aria-live="polite"></p>
+      <div class="catalogo" id="catalogo"></div>
+      <p class="nota-precios">Precios de ejemplo para el prototipo · IVA incluido</p>
     </div>
   </section>
 
@@ -626,7 +841,8 @@ button { font: inherit; color: inherit; }
   </div>
 </footer>
 
-<!-- Ficha de producto -->
+<!-- Capas flotantes: ficha de producto y carrito -->
+<div class="capas">
 <div class="velo" id="velo"></div>
 <div class="ficha" id="ficha" role="dialog" aria-modal="true" aria-labelledby="ficha-titulo" aria-hidden="true">
   <button class="ico ficha__cerrar" type="button" id="ficha-cerrar" aria-label="Cerrar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
@@ -656,6 +872,7 @@ button { font: inherit; color: inherit; }
     <p class="aviso" id="pagar-msg" role="status"></p>
   </div>
 </aside>
+</div>
 
 <script>
 (() => {
@@ -669,66 +886,109 @@ button { font: inherit; color: inherit; }
   /* ---------- Datos de la colección (precios de ejemplo, en céntimos) ---------- */
   const comunes = { tejido: 'Algodón 280 g/m² · 100 % natural', corte: 'Oversize · unisex', plazo: 'Fabricado bajo pedido en 5–7 días' };
   const P = [
-    { id: 'mod01', mod: 'Mod. 01', n: 'La esencia', tipo: 'Camiseta oversize · negra', cat: 'camiseta', p: 3990, art: 'img/art-01a-sepia.webp', look: 'img/look-01.webp', extra: ['img/det-tipo.webp', 'img/det-simbolo.webp', 'img/det-textura.webp'], color: 'Negro profundo · tinta crema',
+    { col: 'onstage', id: 'mod01', mod: 'Mod. 01', n: 'La esencia', tipo: 'Camiseta oversize · negra', cat: 'camiseta', p: 3990, art: 'img/art-01a-sepia.webp', look: 'img/look-01.webp', extra: ['img/det-tipo.webp', 'img/det-simbolo.webp', 'img/det-textura.webp'], color: 'Negro profundo · tinta crema',
       d: 'Una imagen que trasciende lo visible. El artista frente a su propia sombra: el gesto abierto, la entrega total y el símbolo en la espalda que habla de raíces y de linaje.', c: '“No es una pose. Es un estado del alma.”' },
-    { id: 'mod01b', mod: 'Mod. 01B', n: 'El llamado del alma', tipo: 'Camiseta oversize · negra', cat: 'camiseta', p: 3990, art: 'img/art-01b-llamado.webp', look: 'img/look-01b.webp', extra: [], color: 'Negro profundo · destellos multicolor',
+    { col: 'onstage', id: 'mod01b', mod: 'Mod. 01B', n: 'El llamado del alma', tipo: 'Camiseta oversize · negra', cat: 'camiseta', p: 3990, art: 'img/art-01b-llamado.webp', look: 'img/look-01b.webp', extra: [], color: 'Negro profundo · destellos multicolor',
       d: 'Una sombra que abraza. Una espalda que eleva. El instante en que el alma reconoce su misión y se entrega al arte como única verdad.', c: '“Aquí estoy.”' },
-    { id: 'mod01c', mod: 'Mod. 01C', n: 'La luz del duende', tipo: 'Camiseta oversize · negra', cat: 'camiseta', p: 3990, art: 'img/art-01c-luz.webp', look: 'img/look-01c.webp', extra: [], color: 'Negro profundo · multicromía',
+    { col: 'onstage', id: 'mod01c', mod: 'Mod. 01C', n: 'La luz del duende', tipo: 'Camiseta oversize · negra', cat: 'camiseta', p: 3990, art: 'img/art-01c-luz.webp', look: 'img/look-01c.webp', extra: [], color: 'Negro profundo · multicromía',
       d: 'La misma raíz, abierta al color como una revelación. La sombra sigue siendo memoria, pero ahora respira luz, impulso y expansión.', c: '“No cambia el origen. Cambia la forma en que la emoción arde.”' },
-    { id: 'mod02', mod: 'Mod. 02', n: 'El don hecho color', tipo: 'Camiseta oversize · negra', cat: 'camiseta', p: 4290, art: 'img/art-02a-vitral.webp', look: 'img/look-02.webp', extra: [], color: 'Negro profundo · impresión full color',
+    { col: 'onstage', id: 'mod02', mod: 'Mod. 02', n: 'El don hecho color', tipo: 'Camiseta oversize · negra', cat: 'camiseta', p: 4290, art: 'img/art-02a-vitral.webp', look: 'img/look-02.webp', extra: [], color: 'Negro profundo · impresión full color',
       d: 'El universo de Serás Farruquito en clave cromática: la figura se eleva como una invocación luminosa y el color irrumpe sobre la sombra.', c: '“Donde el baile se vuelve luz, el alma encuentra su voz.”' },
-    { id: 'mod02b', mod: 'Mod. 02B', n: 'La huella del movimiento', tipo: 'Camiseta oversize · negra', cat: 'camiseta', p: 4290, art: 'img/art-02b-huella.webp', look: null, extra: [], color: 'Negro · blanco · rojo',
+    { col: 'onstage', id: 'mod02b', mod: 'Mod. 02B', n: 'La huella del movimiento', tipo: 'Camiseta oversize · negra', cat: 'camiseta', p: 4290, art: 'img/art-02b-huella.webp', look: null, extra: [], color: 'Negro · blanco · rojo',
       d: 'Aquí el baile deja de ser instante para convertirse en estela. Las botas aparecen como memoria del compás; negro, blanco y rojo construyen la tensión dramática.', c: '“Es la huella del cuerpo cuando el alma sigue danzando.”' },
-    { id: 'mod06', mod: 'Mod. 06', n: 'El espejo del origen', tipo: 'Camiseta oversize · ecru', cat: 'camiseta ecru', p: 3990, art: 'img/art-06-espejo.webp', look: 'img/look-06.webp', extra: [], color: 'Ecru suave · tinta negra',
+    { col: 'onstage', id: 'mod06', mod: 'Mod. 06', n: 'El espejo del origen', tipo: 'Camiseta oversize · ecru', cat: 'camiseta ecru', p: 3990, art: 'img/art-06-espejo.webp', look: 'img/look-06.webp', extra: [], color: 'Ecru suave · tinta negra',
       d: 'Dos tiempos, un alma, un mismo camino. El retrato dividido revela el origen que nos forma y el destino que elegimos abrazar.', c: '“Toda vocación comienza en un rostro que aún no sabe que será destino.”' },
-    { id: 'mod08', mod: 'Mod. 08', n: 'El pulso del compás', tipo: 'Sudadera de felpa · negra', cat: 'sudadera', p: 6490, art: 'img/art-08-pulso.webp', look: 'img/look-08.webp', extra: [], color: 'Negro profundo · tinta gris plata', tejido: 'Felpa 280 g/m² · 100 % algodón',
+    { col: 'onstage', id: 'mod08', mod: 'Mod. 08', n: 'El pulso del compás', tipo: 'Sudadera de felpa · negra', cat: 'sudadera', p: 6490, art: 'img/art-08-pulso.webp', look: 'img/look-08.webp', extra: [], color: 'Negro profundo · tinta gris plata', tejido: 'Felpa 280 g/m² · 100 % algodón',
       d: 'Un círculo que no se cierra: se expande. El movimiento se vuelve mantra y la huella del baile se ordena en torno al centro de la memoria.', c: '“Todo compás verdadero nace del alma y regresa a ella convertido en destino.”' },
-    { id: 'mod09', mod: 'Mod. 09', n: 'El don en silencio', tipo: 'Sudadera · ecru', cat: 'sudadera ecru', p: 6490, art: 'img/art-09-silencio.webp', look: 'img/look-09.webp', extra: [], color: 'Ecru suave · tinta negra',
+    { col: 'onstage', id: 'mod09', mod: 'Mod. 09', n: 'El don en silencio', tipo: 'Sudadera · ecru', cat: 'sudadera ecru', p: 6490, art: 'img/art-09-silencio.webp', look: 'img/look-09.webp', extra: [], color: 'Ecru suave · tinta negra',
       d: 'Una imagen que no necesita alzar la voz. La obra respira sobriedad, calma y profundidad, como si el alma se vistiera de silencio para seguir bailando.', c: '“No impone su fuerza. La revela.”' },
-    { id: 'tote1', mod: 'Tote', n: 'Memoria circular', tipo: 'Tote bag · negra', cat: 'tote', p: 1990, art: 'img/tote-1.webp', look: null, extra: [], color: 'Negro profundo', tejido: 'Algodón resistente', corte: 'Formato único', plazo: 'Fabricada bajo pedido en 3–5 días', tallas: [],
+    { col: 'onstage', id: 'tote1', mod: 'Tote', n: 'Memoria circular', tipo: 'Tote bag · negra', cat: 'tote', p: 1990, art: 'img/tote-1.webp', look: null, extra: [], color: 'Negro profundo', tejido: 'Algodón resistente', corte: 'Formato único', plazo: 'Fabricada bajo pedido en 3–5 días', tallas: [],
       d: 'Ritmo, raíz y movimiento en una sola órbita.', c: '' },
-    { id: 'tote2', mod: 'Tote', n: 'El duende cromático', tipo: 'Tote bag · negra', cat: 'tote', p: 1990, art: 'img/tote-2.webp', look: null, extra: [], color: 'Negro · full color', tejido: 'Algodón resistente', corte: 'Formato único', plazo: 'Fabricada bajo pedido en 3–5 días', tallas: [],
+    { col: 'onstage', id: 'tote2', mod: 'Tote', n: 'El duende cromático', tipo: 'Tote bag · negra', cat: 'tote', p: 1990, art: 'img/tote-2.webp', look: null, extra: [], color: 'Negro · full color', tejido: 'Algodón resistente', corte: 'Formato único', plazo: 'Fabricada bajo pedido en 3–5 días', tallas: [],
       d: 'El arte se eleva en color, fuerza y gratitud.', c: '' },
-    { id: 'tote3', mod: 'Tote', n: 'Pulso en movimiento', tipo: 'Tote bag · negra', cat: 'tote', p: 1990, art: 'img/tote-3.webp', look: null, extra: [], color: 'Negro · blanco · rojo', tejido: 'Algodón resistente', corte: 'Formato único', plazo: 'Fabricada bajo pedido en 3–5 días', tallas: [],
+    { col: 'onstage', id: 'tote3', mod: 'Tote', n: 'Pulso en movimiento', tipo: 'Tote bag · negra', cat: 'tote', p: 1990, art: 'img/tote-3.webp', look: null, extra: [], color: 'Negro · blanco · rojo', tejido: 'Algodón resistente', corte: 'Formato único', plazo: 'Fabricada bajo pedido en 3–5 días', tallas: [],
       d: 'La huella del baile convertida en impulso vivo.', c: '' },
-    { id: 'tote4', mod: 'Tote', n: 'Sombra del origen', tipo: 'Tote bag · negra', cat: 'tote', p: 1990, art: 'img/tote-4.webp', look: null, extra: [], color: 'Negro · tinta crema', tejido: 'Algodón resistente', corte: 'Formato único', plazo: 'Fabricada bajo pedido en 3–5 días', tallas: [],
+    { col: 'onstage', id: 'tote4', mod: 'Tote', n: 'Sombra del origen', tipo: 'Tote bag · negra', cat: 'tote', p: 1990, art: 'img/tote-4.webp', look: null, extra: [], color: 'Negro · tinta crema', tejido: 'Algodón resistente', corte: 'Formato único', plazo: 'Fabricada bajo pedido en 3–5 días', tallas: [],
       d: 'El gesto interior, el don y la presencia.', c: '' },
+    { col: 'artistvoice', id: 'av01', mod: 'AV 01', n: 'Alma flamenca', tipo: 'Camiseta boxy oversize · blanca', cat: 'camiseta', p: 3490, art: 'img/av-d01-alma-flamenca.webp', look: 'img/av-m01.webp', extra: [], color: 'Blanco · rojo y negro',
+      d: 'Manifiesto principal de la serie: el universo flamenco desde la fuerza de la palabra, el gesto del artista y la energía del cartel urbano. Print trasero de gran formato y detalle en pecho.', c: '' },
+    { col: 'artistvoice', id: 'av02', mod: 'AV 02', n: 'Bailo… luego existo', tipo: 'Camiseta boxy oversize · negro lavado', cat: 'camiseta', p: 3490, art: 'img/av-d02-bailo-luego-existo.webp', look: 'img/av-m02.webp', extra: [], color: 'Negro lavado · tinta crema',
+      d: 'Frase directa, icónica y muy reconocible: el claim de la colección en un mensaje tipográfico frontal de gran presencia.', c: '' },
+    { col: 'artistvoice', id: 'av03', mod: 'AV 03', n: 'Se hace camino', tipo: 'Camiseta boxy oversize · blanca', cat: 'camiseta', p: 3490, art: 'img/av-d03-se-hace-camino.webp', look: 'img/av-m03.webp', extra: [], color: 'Blanco · tinta negra',
+      d: 'Se hace camino al andar, y al bailar marcas camino. Diseño tipográfico de acabado desgastado en espalda y firma mínima en pecho.', c: '' },
+    { col: 'artistvoice', id: 'av04', mod: 'AV 04', n: 'Trata de volar', tipo: 'Camiseta boxy oversize · negro lavado', cat: 'camiseta', p: 3490, art: 'img/av-d04-trata-de-volar.webp', look: 'img/av-m04.webp', extra: [], color: 'Negro lavado · sepia y rojo',
+      d: 'Pieza poética: sombra, cuerpo y mensaje en una composición de gran carga emocional en la espalda, con firma ornamental en el pecho.', c: '' },
+    { col: 'artistvoice', id: 'av05', mod: 'AV 05', n: 'Que la vida te pille bailando', tipo: 'Camiseta boxy oversize · blanca', cat: 'camiseta', p: 3490, art: 'img/av-d07-que-la-vida.webp', look: 'img/av-m05.webp', extra: [], color: 'Blanco · tinta negra',
+      d: 'Composición vertical de fuerte presencia tipográfica: la figura en movimiento y los lugares clave del flamenco, de Triana al Sacromonte.', c: '' },
+    { col: 'artistvoice', id: 'av06', mod: 'AV 06', n: 'Bailo mejor que Farruquito', tipo: 'Camiseta boxy oversize · negro lavado', cat: 'camiseta', p: 3490, art: 'img/av-d06-bailo-mejor.webp', look: 'img/av-m06.webp', extra: [], color: 'Negro lavado · multicolor',
+      d: 'Diseño multicolor de máxima energía con las palabras clave de la serie: alma, herencia, flamenco, dinastía, duende.', c: '' },
+    { col: 'artistvoice', id: 'av07', mod: 'AV 07', n: 'St@y Farruquito', tipo: 'Camiseta boxy oversize · negra', cat: 'camiseta', p: 3490, art: 'img/av-d08-stay.webp', look: 'img/av-m07.webp', extra: [], color: 'Negro · blanco spray',
+      d: 'Logo-frase de estética spray: urbano, directo y de alto contraste.', c: '' },
+    { col: 'artistvoice', id: 'av08', mod: 'AV 08', n: 'Dad cap Artist Voice', tipo: 'Gorra dad cap · blanca o negra', cat: 'gorra', p: 2490, art: 'img/av-d05-cuando-el-alma-grita.webp', look: 'img/av-m08.webp', extra: [], color: 'Blanca o negra', tejido: 'Algodón', corte: 'Talla única ajustable', plazo: 'Fabricada bajo pedido en 3–5 días', tallas: [],
+      d: 'Set de gorras con dos mensajes icónicos de la línea: “Cuando el alma grita” en blanco y “Bailo… luego existo” en negro.', c: '' },
+    { col: 'artistvoice', id: 'av09', mod: 'AV 09', n: 'Bailo… luego existo', tipo: 'Sudadera crewneck · negra o ecru', cat: 'sudadera ecru', p: 5490, art: 'img/av-d02-bailo-luego-existo.webp', look: 'img/av-m09.webp', extra: [], color: 'Negro o ecru', tejido: 'Felpa de algodón premium',
+      d: 'Sudadera crewneck con el mensaje tipográfico de la colección: versátil, urbana y de uso diario.', c: '' },
+    { col: 'artistvoice', id: 'av10', mod: 'AV 10', n: 'Bailo mejor que Farruquito', tipo: 'Sudadera hoodie · negra', cat: 'sudadera', p: 6490, art: 'img/av-d06-bailo-mejor.webp', look: 'img/av-m10.webp', extra: [], color: 'Negro · multicolor', tejido: 'Felpa de algodón premium',
+      d: 'Hoodie con firma compacta en pecho y la composición multicolor a gran formato en la espalda.', c: '' },
+    { col: 'artistvoice', id: 'av11', mod: 'AV 11', n: 'Alma flamenca', tipo: 'Sudadera hoodie · negra', cat: 'sudadera', p: 6490, art: 'img/av-d01-alma-flamenca.webp', look: 'img/av-m11.webp', extra: [], color: 'Negro · rojo y blanco', tejido: 'Felpa de algodón premium',
+      d: 'El universo de Alma flamenca en una silueta urbana: gran formato en espalda y aplicación compacta en pecho.', c: '' },
+    { col: 'artistvoice', id: 'av13', mod: 'AV 13', n: 'Cuando el alma grita', tipo: 'Camiseta oversize · negra', cat: 'camiseta', p: 3490, art: 'img/av-d05-cuando-el-alma-grita.webp', look: 'img/av-m13.webp', extra: [], color: 'Negro · blanco',
+      d: '“Cuando el alma grita, el corazón baila”: gráfica frontal de lenguaje sticker y lectura circular.', c: '' },
+    { col: 'iconic', id: 'ic01', mod: 'IC 01', n: 'Classic Embroidery', tipo: 'Camiseta boxy oversize · blanca', cat: 'camiseta', p: 3990, art: 'img/ic-d01-emblema.webp', look: 'img/ic-m01.webp', extra: [], color: 'Blanco · emblema negro',
+      d: 'El emblema oficial con efecto bordado en contraste en el pecho: la base del lenguaje de la colección.', c: '' },
+    { col: 'iconic', id: 'ic02r', mod: 'IC 02', n: 'Classic Words · Regular', tipo: 'Camiseta regular fit · negra o blanca', cat: 'camiseta', p: 3490, art: 'img/ic-d02-words.webp', look: 'img/ic-m02r.webp', extra: [], color: 'Negro o blanco',
+      d: 'Camiseta regular fit con el emblema de palabras: algodón premium de tacto suave y estructura ligera.', c: '' },
+    { col: 'iconic', id: 'ic02', mod: 'IC 02B', n: 'Classic Embroidery', tipo: 'Camiseta boxy oversize · negra', cat: 'camiseta', p: 3990, art: 'img/ic-d01-emblema.webp', look: 'img/ic-m02.webp', extra: [], color: 'Negro · bordado crema',
+      d: 'Print en pecho de efecto bordado en crema sobre negro: icónica y atemporal.', c: '' },
+    { col: 'iconic', id: 'ic03', mod: 'IC 03', n: 'Emblema mayor', tipo: 'Camiseta boxy oversize · negra', cat: 'camiseta', p: 3990, art: 'img/ic-m03.webp', look: null, extra: [], color: 'Negro · emblema blanco',
+      d: 'El emblema a gran tamaño en blanco, con la silueta del artista recortada en negro.', c: '' },
+    { col: 'iconic', id: 'ic04', mod: 'IC 04', n: 'Bordado compacto', tipo: 'Camiseta boxy oversize · negra', cat: 'camiseta', p: 3990, art: 'img/ic-m04.webp', look: null, extra: [], color: 'Negro · bordado crema',
+      d: 'Bordado frontal de formato compacto y firma en la espalda.', c: '' },
+    { col: 'iconic', id: 'ic05', mod: 'IC 05', n: 'Dad cap arena', tipo: 'Gorra dad cap · arena vintage', cat: 'gorra', p: 2790, art: 'img/ic-m05.webp', look: null, extra: [], color: 'Arena vintage', tejido: 'Algodón', corte: 'Talla única ajustable', plazo: 'Fabricada bajo pedido en 3–5 días', tallas: [],
+      d: 'Gorra de algodón efecto vintage en tono arena con el emblema bordado en el frontal.', c: '' },
+    { col: 'iconic', id: 'ic06', mod: 'IC 06', n: 'Dad cap Iconic', tipo: 'Gorra dad cap · arena, blanca o negra', cat: 'gorra', p: 2790, art: 'img/ic-m06.webp', look: null, extra: [], color: 'Arena · blanco · negro', tejido: 'Algodón', corte: 'Talla única ajustable', plazo: 'Fabricada bajo pedido en 3–5 días', tallas: [],
+      d: 'Bordado frontal de alto contraste y firma en la parte trasera. Cierre ajustable.', c: '' },
+    { col: 'iconic', id: 'ic07', mod: 'IC 07', n: 'Classic Signature', tipo: 'Sudadera crewneck · cruda', cat: 'sudadera ecru', p: 5490, art: 'img/ic-d03-signature.webp', look: 'img/ic-m07.webp', extra: [], color: 'Crudo · tinta negra', tejido: 'Felpa de algodón premium',
+      d: 'Sudadera en tono crudo con el emblema de palabras y la firma: premium y versátil.', c: '' },
+    { col: 'iconic', id: 'ic08', mod: 'IC 08', n: 'Classic Embroidery', tipo: 'Sudadera hoodie · negra', cat: 'sudadera', p: 6490, art: 'img/ic-d01-emblema.webp', look: 'img/ic-m08.webp', extra: [], color: 'Negro · bordado crema', tejido: 'Felpa de algodón premium',
+      d: 'Hoodie con el emblema de efecto bordado en el frontal: el lenguaje Iconic en clave premium.', c: '' },
+    { col: 'iconic', id: 'ic09', mod: 'IC 09', n: 'Classic Shadow', tipo: 'Camiseta oversize · negra', cat: 'camiseta', p: 3990, art: 'img/ic-d04-shadow.webp', look: 'img/ic-m09.webp', extra: [], color: 'Negro · bordado y sombra',
+      d: 'Bordado frontal de alta definición y, en la espalda, el símbolo convertido en luz y sombra.', c: '' },
+    { col: 'iconic', id: 'ic10', mod: 'IC 10', n: 'Tote bag Iconic', tipo: 'Tote bag · negra o natural', cat: 'tote', p: 2290, art: 'img/ic-m10.webp', look: null, extra: [], color: 'Negro o natural', tejido: 'Canvas de algodón 340 g/m²', corte: 'Formato único', plazo: 'Fabricada bajo pedido en 3–5 días', tallas: [],
+      d: 'Canvas premium de algodón 340 g/m², asas reforzadas y gran capacidad. 38 × 42 cm.', c: '' },
   ];
   const byId = Object.fromEntries(P.map(p => [p.id, p]));
   const TALLAS = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
   /* ---------- Catálogo ---------- */
-  $('#catalogo').innerHTML = P.filter(p => p.cat !== 'tote').map((p, k) => `
-    <article class="prod rv" data-cat="${p.cat}" style="--d:${k % 4}">
+  const NOMBRE_COL = { onstage: 'On Stage', artistvoice: 'Artist Voice', iconic: 'Iconic' };
+  $('#catalogo').innerHTML = P.map((p, k) => `
+    <article class="prod rv" data-cat="${p.cat}" data-col="${p.col}" style="--d:${k % 4}">
       <div class="prod__vis tilt" data-abrir="${p.id}" tabindex="0" role="button" aria-label="Ver ${p.mod} ${p.n}">
-        <span class="prod__mod">${p.mod}</span>
-        <img class="art" src="${p.art}" alt="${p.mod} ${p.n}: diseño">
+        <span class="prod__mod">${p.mod}</span><span class="prod__col prod__col--${p.col}">${NOMBRE_COL[p.col]}</span>
+        <img class="art" src="${p.art}" alt="${p.mod} ${p.n}">
         ${p.look ? `<img class="look" src="${p.look}" alt="" aria-hidden="true">` : ''}
         <div class="prod__ver"><span class="btn">Ver la pieza</span></div>
       </div>
       <div class="prod__fila"><h3>${p.n}</h3><span class="precio">${fmt(p.p)}</span></div>
       <p class="tipo">${p.tipo}</p>
-    </article>`).join('') + P.filter(p => p.cat === 'tote').map((p, k) => `
-    <article class="prod rv fuera" data-cat="${p.cat}" style="--d:${k}">
-      <div class="prod__vis tilt" data-abrir="${p.id}" tabindex="0" role="button" aria-label="Ver tote bag ${p.n}">
-        <span class="prod__mod">Tote</span><img class="art" src="${p.art}" alt="Tote bag ${p.n}">
-        <div class="prod__ver"><span class="btn">Ver la pieza</span></div>
-      </div>
-      <div class="prod__fila"><h3>${p.n}</h3><span class="precio">${fmt(p.p)}</span></div>
-      <p class="tipo">${p.tipo}</p>
     </article>`).join('');
-  $$('.chip').forEach(ch => ch.addEventListener('click', () => {
-    $$('.chip').forEach(c => c.setAttribute('aria-pressed', String(c === ch)));
-    const f = ch.dataset.f;
+  let colSel = 'todas', tipoSel = 'todo';
+  const filtrar = () => {
+    let n = 0;
     $$('#catalogo .prod').forEach(el => {
-      const cats = el.dataset.cat.split(' ');
-      el.classList.toggle('fuera', f === 'todo' ? cats.includes('tote') : !cats.includes(f));
-      el.classList.remove('pre');
+      const ok = (colSel === 'todas' || el.dataset.col === colSel) && (tipoSel === 'todo' || el.dataset.cat.split(' ').includes(tipoSel));
+      el.classList.toggle('fuera', !ok); el.classList.remove('pre'); if (ok) n++;
     });
-  }));
+    $('#contador-piezas').textContent = `${n} ${n === 1 ? 'pieza' : 'piezas'}`;
+  };
+  $$('.chip[data-col]').forEach(ch => ch.addEventListener('click', () => { colSel = ch.dataset.col; $$('.chip[data-col]').forEach(c => c.setAttribute('aria-pressed', String(c === ch))); filtrar(); }));
+  $$('.chip[data-f]').forEach(ch => ch.addEventListener('click', () => { tipoSel = ch.dataset.f; $$('.chip[data-f]').forEach(c => c.setAttribute('aria-pressed', String(c === ch))); filtrar(); }));
+  $$('[data-ver-col]').forEach(a => a.addEventListener('click', () => { const ch = $(`.chip[data-col="${a.dataset.verCol}"]`); ch && ch.click(); }));
+  filtrar();
 
   /* Totes */
-  $('#totes').innerHTML = P.filter(p => p.cat === 'tote').map((p, k) => `
+  $('#totes').innerHTML = P.filter(p => p.cat === 'tote' && p.col === 'onstage').map((p, k) => `
     <div class="tote rv" style="--d:${k}">
       <button class="marco" type="button" data-abrir="${p.id}" style="cursor:pointer;background:#0d0a07" aria-label="Ver tote bag ${p.n}"><img src="${p.art}" alt="Tote bag ${p.n}"></button>
       <h3>${p.n}</h3><p>${p.d}</p><span class="precio" style="color:var(--oro-claro)">${fmt(p.p)}</span>
@@ -868,7 +1128,7 @@ button { font: inherit; color: inherit; }
   /* ---------- Cursor dorado, inclinación y botones magnéticos ---------- */
   if (fine && !reduce) {
     const an = $('.anillo'); let ax = 0, ay = 0, tx = 0, ty = 0;
-    addEventListener('pointermove', e => { tx = e.clientX; ty = e.clientY; an.style.opacity = 1; const g = e.target.closest && e.target.closest('a, button, [role="button"], .colores, .lupa-zona, .espejo'); an.classList.toggle('grande', !!g); }, { passive: true });
+    addEventListener('pointermove', e => { tx = e.clientX; ty = e.clientY; an.style.opacity = 1; const g = e.target.closest && e.target.closest('a, button, [role="button"], .colores, .lupa-zona, .espejo, .ic__escena'); an.classList.toggle('grande', !!g); }, { passive: true });
     const sigue = () => { ax += (tx - ax) * .2; ay += (ty - ay) * .2; an.style.transform = `translate3d(${ax}px,${ay}px,0)`; requestAnimationFrame(sigue); }; sigue();
     document.addEventListener('pointermove', e => {
       const b = e.target.closest && e.target.closest('.magnet');
@@ -880,6 +1140,22 @@ button { font: inherit; color: inherit; }
     }, { passive: true });
   }
 
+
+  /* ---------- Iconic: moneda 3D ---------- */
+  const moneda = $('#moneda'), escenaIc = $('.ic__escena');
+  let vuelta = 0;
+  moneda.addEventListener('click', () => { vuelta += 180; moneda.style.setProperty('--vuelta', vuelta + 'deg'); });
+  if (fine && !reduce) {
+    escenaIc.addEventListener('pointermove', e => {
+      const r = escenaIc.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+      moneda.style.setProperty('--mry', `${(px - .5) * 36}deg`); moneda.style.setProperty('--mrx', `${(.5 - py) * 30}deg`);
+      moneda.style.setProperty('--bx', `${px * 100}%`); moneda.style.setProperty('--by', `${py * 100}%`);
+    });
+    escenaIc.addEventListener('pointerleave', () => { moneda.style.setProperty('--mry', '0deg'); moneda.style.setProperty('--mrx', '0deg'); });
+  }
+  const avFondo = $('.av__fondo img'), avSec = $('#artist-voice');
+  if (!reduce) addEventListener('scroll', () => { const r = avSec.getBoundingClientRect(); avFondo.style.setProperty('--avp', `${r.top * -.18}px`); }, { passive: true });
+
   /* ---------- Ficha de producto ---------- */
   const ficha = $('#ficha'), velo = $('#velo');
   let actual = null, tallaSel = 'M';
@@ -889,7 +1165,7 @@ button { font: inherit; color: inherit; }
     const sel = imgInicial || p.art;
     $('#ficha-img').src = sel; $('#ficha-img').alt = `${p.mod} ${p.n}`;
     $('#ficha-minis').innerHTML = imgs.map(s => `<button type="button" data-src="${s}" aria-current="${s === sel}" aria-label="Ver imagen"><img src="${s}" alt=""></button>`).join('');
-    $('#ficha-mod').textContent = `${p.mod} · Colección On Stage`;
+    $('#ficha-mod').textContent = `${p.mod} · Colección ${NOMBRE_COL[p.col]}`;
     $('#ficha-titulo').textContent = p.n;
     $('#ficha-tipo').textContent = p.tipo;
     $('#ficha-precio').textContent = fmt(p.p);
@@ -899,7 +1175,7 @@ button { font: inherit; color: inherit; }
     $('#ficha-tallas-wrap').hidden = !tallas.length;
     tallaSel = tallas.includes('M') ? 'M' : '';
     $('#ficha-tallas').innerHTML = tallas.map(t => `<button class="talla" type="button" aria-pressed="${t === tallaSel}">${t}</button>`).join('');
-    $('#ficha-specs').innerHTML = [['Tejido', p.tejido || comunes.tejido], ['Corte', p.corte || comunes.corte], ['Colores', p.color], ['Producción', p.plazo || comunes.plazo], ['Devolución', '14 días desde la entrega'], ['Edición', 'Limitada · Colección On Stage']].map(([k, v]) => `<li><span>${k}</span><span>${v}</span></li>`).join('');
+    $('#ficha-specs').innerHTML = [['Tejido', p.tejido || comunes.tejido], ['Corte', p.corte || comunes.corte], ['Colores', p.color], ['Producción', p.plazo || comunes.plazo], ['Devolución', '14 días desde la entrega'], ['Colección', NOMBRE_COL[p.col]]].map(([k, v]) => `<li><span>${k}</span><span>${v}</span></li>`).join('');
     $('#ficha-aviso').textContent = '';
     ficha.classList.add('on'); velo.classList.add('on'); ficha.setAttribute('aria-hidden', 'false');
     $('#ficha-cerrar').focus();

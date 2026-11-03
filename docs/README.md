@@ -51,3 +51,9 @@ php artisan db:seed --class=DemoSeeder
 ```
 
 Crea 2 artistas con su tienda, 3 prendas base, 6 productos y 28 variantes. No se ejecuta en producción.
+
+```bash
+php artisan db:seed --class=FarruquitoSeeder
+```
+
+Primera tienda de prueba: Farruquito (oculta), con las colecciones On Stage, Artist Voice e Iconic: 35 piezas, 186 variantes e imágenes tomadas de `docs/diseno/farruquito`. Precios, comisión (25 %) y unidades (25 por variante en On Stage) son **de ejemplo**. No se ejecuta en producción.
