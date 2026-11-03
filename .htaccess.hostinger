@@ -1,0 +1,9 @@
+# Copiar como .htaccess en la raíz del proyecto SOLO si el dominio de pruebas
+# no puede apuntar directamente a la carpeta public/ (ver docs/instalacion-hostinger.md).
+# Redirige todo a public/ y bloquea el acceso al resto del código.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(\.env|\.git|composer\.(json|lock)|artisan|VERSION)$ - [F,L]
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

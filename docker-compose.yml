@@ -1,0 +1,130 @@
+# Clave de Alma · producción y staging en OVH (Docker Compose)
+#
+# Uso:
+#   cp .env.docker.example .env      # y rellenar claves
+#   docker compose up -d --build
+#   docker compose exec app php artisan migrate --force
+#
+# Traefik obtiene un certificado comodín (*.clavedealma.es) con el reto DNS de OVH.
+# Las variables OVH_* se crean en https://api.ovh.com/createToken/ (ver docs/despliegue-docker.md).
+
+name: clavedealma
+
+x-app: &app
+  build:
+    context: .
+    dockerfile: docker/php/Dockerfile
+    target: runtime
+  image: clavedealma/app:${APP_VERSION:-latest}
+  env_file: .env
+  restart: unless-stopped
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_started
+  volumes:
+    - storage:/var/www/html/storage/app
+  networks: [internal]
+
+services:
+  traefik:
+    image: traefik:v3.3
+    restart: unless-stopped
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.ovh.acme.email=${ACME_EMAIL}
+      - --certificatesresolvers.ovh.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.ovh.acme.dnschallenge.provider=ovh
+    environment:
+      OVH_ENDPOINT: ${OVH_ENDPOINT:-ovh-eu}
+      OVH_APPLICATION_KEY: ${OVH_APPLICATION_KEY}
+      OVH_APPLICATION_SECRET: ${OVH_APPLICATION_SECRET}
+      OVH_CONSUMER_KEY: ${OVH_CONSUMER_KEY}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+    networks: [internal]
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: web
+    image: clavedealma/web:${APP_VERSION:-latest}
+    restart: unless-stopped
+    depends_on: [app]
+    volumes:
+      - storage:/var/www/html/storage/app:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.clavedealma.rule=HostRegexp(`^(.+\.)?${APP_DOMAIN}$`)
+      - traefik.http.routers.clavedealma.entrypoints=websecure
+      - traefik.http.routers.clavedealma.tls.certresolver=ovh
+      - traefik.http.routers.clavedealma.tls.domains[0].main=${APP_DOMAIN}
+      - traefik.http.routers.clavedealma.tls.domains[0].sans=*.${APP_DOMAIN}
+    networks: [internal]
+
+  app:
+    <<: *app
+
+  worker:
+    <<: *app
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
+
+  scheduler:
+    <<: *app
+    command: ["php", "artisan", "schedule:work"]
+
+  db:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_DATABASE}
+      MARIADB_USER: ${DB_USERNAME}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [internal]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis:/data
+    networks: [internal]
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.12
+    restart: unless-stopped
+    environment:
+      MEILI_ENV: production
+      MEILI_MASTER_KEY: ${MEILISEARCH_KEY}
+    volumes:
+      - meilisearch:/meili_data
+    networks: [internal]
+
+volumes:
+  storage:
+  db:
+  redis:
+  meilisearch:
+  letsencrypt:
+
+networks:
+  internal:
