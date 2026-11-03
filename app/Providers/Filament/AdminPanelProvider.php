@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Support\InitialsAvatarProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -27,7 +28,11 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            // Si a una política le falta una acción, error en lugar de permitirla.
+            ->strictAuthorization()
+            ->defaultAvatarProvider(InitialsAvatarProvider::class)
             ->brandName('Clave de Alma')
+            ->navigationGroups(['Tiendas', 'Catálogo', 'Operación', 'Administración'])
             ->colors([
                 'primary' => Color::Amber,
             ])

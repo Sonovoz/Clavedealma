@@ -2,10 +2,12 @@
 
 namespace App\Modules\Identity\Contracts;
 
+use App\Support\Contracts\HasLabel;
+
 /**
  * Roles del sistema. El valor es el nombre guardado en la tabla `roles`.
  */
-enum Role: string
+enum Role: string implements HasLabel
 {
     case Superadmin = 'superadmin';
     case Manufacturer = 'fabricante';

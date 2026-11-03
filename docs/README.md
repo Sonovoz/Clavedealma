@@ -15,11 +15,13 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0002](adr/0002-stripe-pasarela-unica.md) | Stripe como pasarela única |
 | [0003](adr/0003-base-de-datos-mariadb.md) | MariaDB/MySQL en todos los entornos |
 | [0004](adr/0004-drivers-por-entorno.md) | Mismo código, drivers distintos por entorno |
+| [0005](adr/0005-dinero-y-porcentajes-enteros.md) | Dinero en céntimos y porcentajes en puntos básicos |
+| [0006](adr/0006-eventos-entre-modulos.md) | Los módulos se comunican con eventos |
 
 ## Orden de construcción
 
-1. **Cimientos** ← fase actual: proyecto, módulos, roles, panel, entornos, CI.
-2. Tiendas y catálogo en el panel.
+1. ✓ Cimientos: proyecto, módulos, roles, panel, entornos, CI.
+2. **Tiendas y catálogo en el panel** ← fase actual.
 3. Tienda "en blanco" para probar flujos.
 4. Compra y pago con Stripe (modo test).
 5. Operación: producción, envíos, devoluciones.
@@ -30,4 +32,21 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 
 ## Módulos
 
-`app/Modules/`: Identity, Stores, Catalog, Inventory, Cart, Orders, Payments, Production, Shipping, Returns, Settlements, Invoicing, Notifications, Audit. En la fase 1 solo existe `Identity`; el resto se crea al llegar a su fase, con la misma estructura de carpetas.
+`app/Modules/`: Identity, Stores, Catalog, Inventory, Cart, Orders, Payments, Production, Shipping, Returns, Settlements, Invoicing, Notifications, Audit. Existen ya `Identity`, `Stores`, `Catalog` e `Inventory`; el resto se crea al llegar a su fase, con la misma estructura de carpetas.
+
+## Panel por rol (fase 2)
+
+| Sección | Superadmin | Fabricante | Artista |
+| --- | --- | --- | --- |
+| Tiendas: artistas y tiendas | ✓ | — | — |
+| Catálogo: productos, colecciones, prendas base | ✓ | — | — |
+| Operación: stock | ✓ | ✓ | — |
+| Administración: sistema | ✓ | — | — |
+
+## Datos de demostración
+
+```bash
+php artisan db:seed --class=DemoSeeder
+```
+
+Crea 2 artistas con su tienda, 3 prendas base, 6 productos y 28 variantes. No se ejecuta en producción.
