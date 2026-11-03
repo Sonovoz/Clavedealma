@@ -33,7 +33,7 @@ class ApplyUpdate
         foreach ($steps as $label => [$command, $arguments]) {
             try {
                 $exitCode = Artisan::call($command, $arguments);
-                $results[] = ['step' => $label, 'ok' => $exitCode === 0, 'output' => trim(Artisan::output())];
+                $results[] = ['step' => $label, 'ok' => $exitCode === 0, 'output' => $this->clean(Artisan::output())];
             } catch (Throwable $e) {
                 $results[] = ['step' => $label, 'ok' => false, 'output' => $e->getMessage()];
             }
@@ -42,5 +42,15 @@ class ApplyUpdate
         Log::info('Actualización aplicada desde el panel', ['user_id' => $userId, 'results' => $results]);
 
         return $results;
+    }
+
+    /**
+     * Quita los puntos de relleno y espacios de la salida de Artisan.
+     */
+    private function clean(string $output): string
+    {
+        $output = (string) preg_replace('/\.{3,}|\s+/', ' ', $output);
+
+        return trim((string) preg_replace('/ {2,}/', ' ', $output));
     }
 }
