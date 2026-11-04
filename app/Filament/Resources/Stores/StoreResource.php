@@ -10,6 +10,7 @@ use App\Modules\Stores\Contracts\StoreStatus;
 use App\Modules\Stores\Domain\Subdomain;
 use App\Modules\Stores\Infrastructure\Models\Store;
 use App\Storefront\Designs;
+use App\Storefront\Genres;
 use App\Storefront\Urls;
 use BackedEnum;
 use Closure;
@@ -92,6 +93,11 @@ class StoreResource extends Resource
                         ->selectablePlaceholder(false)
                         ->required()
                         ->helperText('Portada y ambiente hechos a medida para el artista. La pasarela de productos es la misma en todas las tiendas.'),
+                    Select::make('theme.genres')
+                        ->label('Estilos musicales')
+                        ->helperText('Para el filtro de tiendas de la matriz de Clave de Alma.')
+                        ->options(Genres::ALL)
+                        ->multiple(),
                     TextInput::make('tagline')->label('Frase de portada')->maxLength(255),
                     Textarea::make('bio')->label('Biografía del artista')->rows(5),
                 ]),

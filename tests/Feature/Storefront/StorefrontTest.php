@@ -80,3 +80,25 @@ it('la tienda Farruquito usa su diseño y sus imágenes no salen mientras está 
     $this->get(Urls::designAsset('farruquito', '../../.env'))->assertNotFound();
     $this->get(Urls::collection($store, 'iconic'))->assertOk()->assertSee('Classic Embroidery');
 });
+
+it('la matriz enseña las tiendas: el público solo las publicadas; el equipo también las ocultas', function () {
+    $this->seed(FarruquitoSeeder::class);
+    tiendaPublicada();
+
+    $this->get('/')
+        ->assertOk()
+        ->assertSee('Tiendas oficiales')
+        ->assertSee('Tienda Prueba')
+        ->assertDontSee('Farruquito')
+        ->assertDontSee('Piezas con alma'); // el drop de productos inventados del prototipo no está
+    $this->get(Urls::designAsset('matriz', 'logo.png'))->assertOk();
+    $this->get(Urls::designAsset('farruquito', 'tarjeta.webp'))->assertNotFound();
+
+    $this->actingAs(User::factory()->withRole(Role::CatalogManager)->create())
+        ->get('/')
+        ->assertSee('Farruquito')
+        ->assertSee('Oculta · solo equipo')
+        ->assertSee('Tienda oficial · On Stage · Artist Voice · Iconic')
+        ->assertSee(Urls::home('farruquito'), false)
+        ->assertSee(Urls::designAsset('farruquito', 'tarjeta.webp'), false);
+});

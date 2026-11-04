@@ -57,9 +57,10 @@ class FarruquitoSeeder extends Seeder
                 'tagline' => 'Tienda oficial · Since 1982',
                 'bio' => 'Tienda oficial de Farruquito en Clave de Alma: colecciones On Stage, Artist Voice e Iconic.',
                 'design' => 'farruquito',
+                'theme' => ['genres' => ['flamenco']],
             ]);
             if ($store->design === 'base') {
-                $store->update(['design' => 'farruquito']);
+                $store->update(['design' => 'farruquito', 'theme' => ['genres' => ['flamenco']] + (array) $store->theme]);
             }
 
             $orden = 0;

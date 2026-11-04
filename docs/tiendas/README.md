@@ -27,7 +27,13 @@ Páginas de cada tienda:
 | Colección | `/coleccion/<colección>` |
 | Ficha de artículo | `/p/<artículo>` |
 
-La portada del market (`/`) lista las tiendas publicadas.
+La portada del market (`/`) es la **matriz de Clave de Alma**, con el diseño de [`docs/diseno/matriz`](../diseno/matriz/index.html). Su sección «Tiendas oficiales» se rellena sola:
+
+- Muestra las tiendas publicadas. El equipo, con la sesión iniciada, ve también las ocultas, marcadas «solo equipo».
+- La foto de cada tarjeta es `resources/designs/<diseño>/tarjeta.webp`, si existe.
+- Los estilos para el filtro se eligen en el panel: *Tiendas → Estilos musicales*.
+- Del prototipo se ha quitado el drop de productos inventados y su carrito.
+- Los formularios del Club y de la comunidad todavía no guardan datos.
 
 ## Visibilidad
 

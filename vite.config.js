@@ -14,6 +14,8 @@ export default defineConfig({
                 'resources/js/storefront/app.js',
                 'resources/css/storefront/designs/farruquito.css',
                 'resources/js/storefront/designs/farruquito.js',
+                'resources/css/storefront/matriz.css',
+                'resources/js/storefront/matriz.js',
             ],
             refresh: true,
         }),
