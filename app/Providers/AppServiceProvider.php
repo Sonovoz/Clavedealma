@@ -34,6 +34,8 @@ use App\Platform\Ai\TextGenerator;
 use App\Platform\Backup\Backup;
 use App\Platform\Pdf\DompdfRenderer;
 use App\Platform\Pdf\PdfRenderer;
+use App\Platform\Security\SecurityEvent;
+use App\Platform\Security\SecurityListeners;
 use App\Policies\CatalogPolicy;
 use App\Policies\StockLevelPolicy;
 use App\Policies\StockMovementPolicy;
@@ -67,7 +69,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Artistas, tiendas, usuarios, envíos, pedidos y pagos: solo superadministradores
         // (el gestor de catálogo no ve datos de clientes ni de cobros).
-        foreach ([Artist::class, Store::class, User::class, Carrier::class, ZoneRate::class, RateBand::class, Backup::class, Order::class, OrderLine::class, OrderEvent::class, Payment::class, Refund::class, ReturnRequest::class, ReturnLine::class, Invoice::class, InvoiceLine::class, InvoiceIssuer::class] as $model) {
+        foreach ([Artist::class, Store::class, User::class, Carrier::class, ZoneRate::class, RateBand::class, Backup::class, Order::class, OrderLine::class, OrderEvent::class, Payment::class, Refund::class, ReturnRequest::class, ReturnLine::class, Invoice::class, InvoiceLine::class, InvoiceIssuer::class, SecurityEvent::class] as $model) {
             Gate::policy($model, SuperadminOnlyPolicy::class);
         }
 
@@ -78,6 +80,9 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(StockLevel::class, StockLevelPolicy::class);
         Gate::policy(StockMovement::class, StockMovementPolicy::class);
+
+        // Registro de seguridad: accesos y cambios en las cuentas (las acciones del panel se anotan en cada acción).
+        SecurityListeners::register();
 
         // Número de piezas de la cesta en la cabecera de todas las tiendas y de la matriz.
         View::composer(['storefront.market', 'storefront.designs.*.layout', 'checkout.*'], function ($view): void {

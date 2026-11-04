@@ -8,6 +8,8 @@ use App\Modules\Orders\Contracts\OrderStatus;
 use App\Modules\Orders\Domain\OrderFlow;
 use App\Modules\Orders\Infrastructure\Models\Order;
 use App\Modules\Shipping\Contracts\CarrierDirectory;
+use App\Platform\Security\SecurityEventType;
+use App\Platform\Security\SecurityLog;
 use App\Support\Money;
 use Closure;
 use Filament\Actions\Action;
@@ -82,7 +84,10 @@ final class OrderActions
                 Textarea::make('reason')->label('Motivo (lo leerá el cliente)')->required()->maxLength(300)->rows(3),
             ])
             ->action(function (Order $record, array $data, CancelPaidOrder $cancel): void {
-                self::run(fn () => $cancel($record, (string) $data['reason'], self::who()), 'Pedido cancelado y dinero devuelto');
+                self::run(function () use ($cancel, $record, $data): void {
+                    $cancel($record, (string) $data['reason'], self::who());
+                    SecurityLog::record(SecurityEventType::OrderCancelled, 'Pedido cancelado y devueltos '.Money::fromCents($record->total_cents)->format().'. Motivo: '.$data['reason'], subject: (string) $record->reference);
+                }, 'Pedido cancelado y dinero devuelto');
             });
     }
 

@@ -2,7 +2,7 @@
 
 Marketplace de ropa de artistas. **Clave de Alma es el vendedor único**: cada artista tiene una tienda interna en `clavedealma.es/<artista>`, pero el cliente compra, paga (Stripe: tarjeta, Bizum, Apple/Google Pay) y recibe la factura de Clave de Alma. Los artistas cobran una comisión mensual mediante autofacturación (Veri*Factu).
 
-Documento de bases y arquitectura completa: ver `docs/README.md`.
+Documento de bases y arquitectura completa: ver `docs/README.md`. Cómo está hecho cada parte (también en el panel, *Desarrollo*): `docs/desarrollo/README.md`; mantenlo al día al añadir módulos o flujos.
 
 ## Reglas de arquitectura (obligatorias)
 
@@ -20,6 +20,7 @@ Documento de bases y arquitectura completa: ver `docs/README.md`.
 - Dirección de cada tienda: `clavedealma.es/<clave>` (ADR 0013); el subdominio y `/tienda/<clave>` solo redirigen. Toda ruta pública de un tramo (`/carrito`…) reserva su palabra en `Subdomain::RESERVED`.
 - Compra (ADR 0014, `docs/compra`): una cesta y un pago para todas las tiendas. Precios, envío e IVA siempre en el servidor (`Cart\Application\PriceCart`); el pago solo por `Payments\Contracts\PaymentGateway` y se da por bueno cuando lo confirma la pasarela. `PAYMENT_DRIVER=fake` nunca en producción. El stock se descuenta al pagar.
 - Facturación (ADR 0018, `docs/facturacion.md`): las facturas las emite solo `Invoicing` (al cobrar y al devolver dinero), con numeración correlativa y registro Veri*Factu encadenado; el envío a la AEAT va por `Invoicing\Contracts\VerifactuSender`. Ningún dato fiscal en el código: se rellenan en el panel.
+- Seguridad (ADR 0019): toda acción sensible nueva del panel se anota con `App\Platform\Security\SecurityLog::record()`; nunca contraseñas, tokens ni datos de tarjeta.
 - SEO: toda página pública pasa por `App\Storefront\Seo\SeoBuilder` (título, canónica, JSON-LD) y las reglas de `docs/seo/README.md`; un diseño nunca escribe sus propias metaetiquetas. Fuera de producción no se indexa nada.
 - IA: siempre por el contrato `App\Platform\Ai\TextGenerator` (driver en `config/ai.php`); solo propone textos que revisa una persona y nunca recibe datos de clientes.
 - El precio tachado de las rebajas lo calcula el sistema con el historial de precios (30 días, ADR 0008): nunca se guarda un «precio anterior» escrito a mano.

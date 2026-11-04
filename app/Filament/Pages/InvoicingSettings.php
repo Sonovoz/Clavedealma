@@ -6,6 +6,8 @@ use App\Modules\Identity\Infrastructure\Models\User;
 use App\Modules\Invoicing\Contracts\VerifactuSender;
 use App\Modules\Invoicing\Infrastructure\Models\Invoice;
 use App\Modules\Invoicing\Infrastructure\Models\InvoiceIssuer;
+use App\Platform\Security\SecurityEventType;
+use App\Platform\Security\SecurityLog;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
@@ -70,7 +72,12 @@ class InvoicingSettings extends Page
                     if (isset($clean['nif'])) {
                         $clean['nif'] = strtoupper((string) $clean['nif']);
                     }
-                    InvoiceIssuer::current()->update($clean);
+                    $issuer = InvoiceIssuer::current();
+                    $issuer->update($clean);
+                    $changed = array_values(array_diff(array_keys($issuer->getChanges()), ['updated_at']));
+                    if ($changed !== []) {
+                        SecurityLog::record(SecurityEventType::FiscalDataChanged, 'Datos de facturación cambiados: '.implode(', ', $changed).'.');
+                    }
                     Notification::make()->title('Datos de facturación guardados')->success()->send();
                 }),
             Action::make('issuePending')
@@ -82,6 +89,7 @@ class InvoicingSettings extends Page
                 ->visible(fn (): bool => InvoiceIssuer::current()->complete())
                 ->action(function (): void {
                     Artisan::call('facturas:emitir-pendientes');
+                    SecurityLog::record(SecurityEventType::InvoicesIssued, trim(Artisan::output()));
                     Notification::make()->title(trim(Artisan::output()))->success()->send();
                 }),
         ];

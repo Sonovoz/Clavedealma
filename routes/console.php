@@ -25,3 +25,6 @@ Schedule::command('pedidos:cancelar-caducados')->everyFifteenMinutes()->withoutO
 
 // Veri*Factu: reenvía a la AEAT los registros pendientes (no hace nada si el envío no está configurado).
 Schedule::command('verifactu:enviar')->hourly()->withoutOverlapping();
+
+// Registro de seguridad: se borra lo que pasa del plazo de conservación (RGPD).
+Schedule::command('seguridad:purgar')->dailyAt('03:40')->timezone('Europe/Madrid');

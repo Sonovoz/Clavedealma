@@ -6,6 +6,8 @@ use App\Modules\Identity\Infrastructure\Models\User;
 use App\Platform\Backup\Backup;
 use App\Platform\Backup\BackupSchedule;
 use App\Platform\Backup\CreateBackup;
+use App\Platform\Security\SecurityEventType;
+use App\Platform\Security\SecurityLog;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
@@ -106,7 +108,11 @@ class Backups extends Page implements HasTable
                     ->label('Descargar')
                     ->icon(Heroicon::OutlinedArrowDownTray)
                     ->visible(fn (Backup $record): bool => $record->status === Backup::OK && $record->path !== null)
-                    ->action(fn (Backup $record): StreamedResponse => Storage::disk($record->disk)->download((string) $record->path)),
+                    ->action(function (Backup $record): StreamedResponse {
+                        SecurityLog::record(SecurityEventType::BackupDownloaded, 'Copia de seguridad descargada.', subject: 'Copia #'.$record->id);
+
+                        return Storage::disk($record->disk)->download((string) $record->path);
+                    }),
                 Action::make('delete')
                     ->label('Borrar')
                     ->icon(Heroicon::OutlinedTrash)
@@ -119,6 +125,7 @@ class Backups extends Page implements HasTable
                             Storage::disk($record->disk)->delete($record->path);
                         }
                         $record->delete();
+                        SecurityLog::record(SecurityEventType::BackupDeleted, 'Copia de seguridad borrada.', subject: 'Copia #'.$record->id);
                         Notification::make()->title('Copia borrada')->success()->send();
                     }),
             ]);
@@ -137,6 +144,7 @@ class Backups extends Page implements HasTable
                 ->modalDescription('Guarda la base de datos y los archivos subidos. Puede tardar un minuto.')
                 ->action(function (CreateBackup $createBackup): void {
                     $backup = $createBackup('manual', auth()->id());
+                    SecurityLog::record(SecurityEventType::BackupCreated, 'Copia de seguridad manual: '.$backup->status.'.', subject: 'Copia #'.$backup->id);
                     $backup->status === Backup::OK
                         ? Notification::make()->title('Copia hecha')->body("{$backup->sizeLabel()} · {$backup->message}")->success()->send()
                         : Notification::make()->title('La copia ha fallado')->body((string) $backup->message)->danger()->persistent()->send();
@@ -166,6 +174,7 @@ class Backups extends Page implements HasTable
                         'keep' => (int) $data['keep'],
                         'email' => $data['email'] ?: null,
                     ]);
+                    SecurityLog::record(SecurityEventType::BackupScheduleChanged, 'Programación de copias: '.BackupSchedule::describe());
                     Notification::make()->title('Programación guardada')->body(BackupSchedule::describe())->success()->send();
                 }),
         ];

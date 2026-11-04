@@ -6,6 +6,8 @@ use App\Filament\Resources\Returns\ReturnResource;
 use App\Modules\Returns\Application\ProcessReturn;
 use App\Modules\Returns\Contracts\ReturnStatus;
 use App\Modules\Returns\Infrastructure\Models\ReturnRequest;
+use App\Platform\Security\SecurityEventType;
+use App\Platform\Security\SecurityLog;
 use App\Support\Money;
 use Closure;
 use Filament\Actions\Action;
@@ -56,7 +58,7 @@ class ViewReturn extends ViewRecord
                 ->modalDescription('Confirma que has recibido y revisado las piezas. Se devolverá el dinero al medio de pago del cliente y no se puede deshacer.')
                 ->schema([Toggle::make('restock')->label('Las piezas están bien: reponerlas en el stock')->default(true)])
                 ->action(fn (ReturnRequest $record, array $data, ProcessReturn $process) => $this->run(
-                    fn () => $process->receiveAndRefund($record, (bool) $data['restock'], $this->who()), 'Dinero devuelto al cliente')),
+                    fn () => $this->refunded($process->receiveAndRefund($record, (bool) $data['restock'], $this->who())), 'Dinero devuelto al cliente')),
 
             Action::make('retryRefund')
                 ->label('Reintentar la devolución del dinero')
@@ -64,7 +66,7 @@ class ViewReturn extends ViewRecord
                 ->color('danger')
                 ->visible($is(ReturnStatus::Received))
                 ->requiresConfirmation()
-                ->action(fn (ReturnRequest $record, ProcessReturn $process) => $this->run(fn () => $process->refund($record), 'Dinero devuelto al cliente')),
+                ->action(fn (ReturnRequest $record, ProcessReturn $process) => $this->run(fn () => $this->refunded($process->refund($record)), 'Dinero devuelto al cliente')),
         ];
     }
 
@@ -86,6 +88,11 @@ class ViewReturn extends ViewRecord
             Notification::make()->title($e->getMessage())->danger()->send();
         }
         $this->record->refresh();
+    }
+
+    private function refunded(ReturnRequest $return): void
+    {
+        SecurityLog::record(SecurityEventType::MoneyRefunded, 'Devueltos '.Money::fromCents($return->refund_cents)->format().' por la devolución '.$return->reference.' (pedido '.$return->order_reference.').', subject: (string) $return->reference);
     }
 
     private function who(): ?string
