@@ -18,7 +18,7 @@ class MarkOrderPaid
     {
         DB::transaction(function () use ($payment): void {
             $order = Order::query()->with('lines')->lockForUpdate()->find($payment->orderId);
-            if ($order === null || $order->status === OrderStatus::Paid) {
+            if ($order === null || $order->status->isPaid()) {
                 return;
             }
 

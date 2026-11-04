@@ -6,6 +6,7 @@ use App\Modules\Payments\Contracts\GatewayEvent;
 use App\Modules\Payments\Contracts\InvalidWebhook;
 use App\Modules\Payments\Contracts\PaymentGateway;
 use App\Modules\Payments\Contracts\PaymentRequest;
+use App\Modules\Payments\Contracts\RefundResult;
 use App\Modules\Payments\Contracts\StartedPayment;
 
 /**
@@ -41,4 +42,9 @@ class FakeGateway implements PaymentGateway
     }
 
     public function cancel(string $providerReference): void {}
+
+    public function refund(string $providerReference, int $amountCents, string $idempotencyKey): RefundResult
+    {
+        return new RefundResult(true, 'fake_re_'.substr(hash('sha256', $idempotencyKey), 0, 20));
+    }
 }

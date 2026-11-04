@@ -132,3 +132,13 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .co-foot { border-top: 1px solid var(--line); padding-block: 24px; color: var(--muted); font-size: 13px; }
 .co-foot .co-wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 24px; }
 .co-foot nav { display: flex; gap: 18px; flex-wrap: wrap; }
+
+/* Seguimiento del pedido */
+.co-track { list-style: none; margin: 6px 0; padding: 0; display: grid; gap: 0; width: 100%; }
+.co-track li { display: grid; grid-template-columns: 22px 1fr auto; gap: 12px; align-items: center; padding: 10px 0; position: relative; color: var(--muted); }
+.co-track li + li::before { content: ""; position: absolute; left: 6px; top: -10px; height: 20px; border-left: 2px solid var(--line); }
+.co-track__dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line); background: var(--bg); }
+.co-track .is-done { color: var(--ink); }
+.co-track .is-done .co-track__dot { border-color: var(--ok); background: var(--ok); }
+.co-track .is-done + .is-done::before { border-color: var(--ok); }
+.co-track__date { font: 400 12px/1 var(--f-mono); color: var(--muted); }

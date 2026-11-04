@@ -24,4 +24,7 @@ interface PaymentGateway
     public function fetch(string $providerReference): GatewayEvent;
 
     public function cancel(string $providerReference): void;
+
+    /** Devuelve (todo o parte de) un cobro hecho. */
+    public function refund(string $providerReference, int $amountCents, string $idempotencyKey): RefundResult;
 }
