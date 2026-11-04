@@ -55,6 +55,7 @@ class StorefrontController
 
         return view(Designs::view($shop->design, 'product'), $this->shared($request, $shop) + [
             'item' => $item,
+            'related' => $this->catalog->related($shop, $item['model']),
             'seo' => $this->seo->product($shop, $item),
         ]);
     }

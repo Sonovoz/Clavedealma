@@ -74,23 +74,54 @@
                 @endif
 
                 <p class="sf-stock" data-stock aria-live="polite"></p>
+                {{-- Como WooCommerce: cantidad + «Añadir al carrito». --}}
                 <form class="sf-add-form" method="post" action="{{ route('cart.add') }}" data-add-form>
                     @csrf
                     <input type="hidden" name="variant_id" value="" data-variant-input>
-                    <button class="sf-add" type="submit" data-add disabled>{{ $item['sizes'] !== [] ? 'Elige una talla' : 'Añadir a la cesta' }}</button>
+                    <div class="sf-cart-row">
+                        <label class="sf-sr" for="sf-qty">Cantidad</label>
+                        <input class="sf-qty" id="sf-qty" type="number" name="quantity" value="1" min="1" max="10" step="1" inputmode="numeric" data-qty>
+                        <button class="sf-add" type="submit" data-add disabled>{{ $item['sizes'] !== [] ? 'Elige una talla' : 'Añadir al carrito' }}</button>
+                    </div>
                 </form>
                 <p class="sf-added" data-add-message aria-live="polite" @if (! session('cart.added') && ! session('cart.error')) hidden @endif>
-                    {{ session('cart.added') ?? session('cart.error') }} <a href="{{ route('cart.show') }}">Ver la cesta</a>
+                    {{ session('cart.added') ?? session('cart.error') }} <a href="{{ route('cart.show') }}">Ver carrito</a>
                 </p>
 
+                {{-- Datos del producto, como el pie de ficha de WooCommerce. --}}
+                <p class="sf-meta">
+                    @if ($item['reference'])<span>SKU: <strong data-sku>{{ $item['reference'] }}</strong></span>@endif
+                    @if ($item['collections'] !== [])
+                        <span>{{ count($item['collections']) === 1 ? 'Categoría' : 'Categorías' }}:
+                            @foreach ($item['collections'] as $collection)<a href="{{ $collection['url'] }}">{{ $collection['name'] }}</a>@if (! $loop->last), @endif @endforeach
+                        </span>
+                    @endif
+                    <span>Tienda: <a href="{{ \App\Storefront\Urls::home($store) }}">{{ $store->name }}</a></span>
+                </p>
+            </div>
+        </div>
+
+        {{-- Pestañas como WooCommerce: Descripción · Información adicional · Envíos y devoluciones. --}}
+        <div class="sf-tabs" data-tabs>
+            <div class="sf-tabs__list" role="tablist">
+                <button class="sf-tab" type="button" role="tab" id="tab-desc" aria-controls="panel-desc" aria-selected="true" data-tab>Descripción</button>
+                <button class="sf-tab" type="button" role="tab" id="tab-info" aria-controls="panel-info" aria-selected="false" data-tab>Información adicional</button>
+                <button class="sf-tab" type="button" role="tab" id="tab-ship" aria-controls="panel-ship" aria-selected="false" data-tab>Envíos y devoluciones</button>
+            </div>
+            <div class="sf-tabs__panel" role="tabpanel" id="panel-desc" aria-labelledby="tab-desc">
                 @if ($item['description'])
                     <div class="sf-desc">{!! $item['description'] !!}</div>
+                @else
+                    <p class="sf-desc">{{ $item['name'] }}{{ $garment ? ' · '.$garment['name'] : '' }}, merchandising oficial de {{ $store->name }}.</p>
                 @endif
                 @if ($item['model_info'])
                     <p class="sf-model">{{ $item['model_info'] }}</p>
                 @endif
-
+            </div>
+            <div class="sf-tabs__panel" role="tabpanel" id="panel-info" aria-labelledby="tab-info" hidden>
                 <ul class="sf-facts">
+                    @if ($item['colors'] !== [])<li><span>Colores</span><span>{{ collect($item['colors'])->pluck('name')->implode(', ') }}</span></li>@endif
+                    @if ($item['sizes'] !== [])<li><span>Tallas</span><span>{{ implode(', ', $item['sizes']) }}</span></li>@endif
                     @if ($garment && $garment['composition'])<li><span>Composición</span><span>{{ $garment['composition'] }}</span></li>@endif
                     @if ($garment && $garment['material'])<li><span>Tejido</span><span>{{ $garment['material'] }}</span></li>@endif
                     @if ($garment && $garment['fit'])<li><span>Corte</span><span>{{ $garment['fit'] }}</span></li>@endif
@@ -99,8 +130,27 @@
                     <li><span>Fabricación</span><span>Bajo pedido · {{ \Illuminate\Support\Str::lcfirst($item['lead_time']) }}</span></li>
                     <li><span>Devoluciones</span><span>{{ $item['personalized'] ? 'Pieza personalizada: sin derecho de desistimiento' : '14 días desde la entrega' }}</span></li>
                 </ul>
+                @if ($hasGuide)
+                    <button class="sf-link" type="button" data-open-guide>Ver la guía de tallas</button>
+                @endif
+            </div>
+            <div class="sf-tabs__panel" role="tabpanel" id="panel-ship" aria-labelledby="tab-ship" hidden>
+                <p>Cada pieza se fabrica para ti: {{ \Illuminate\Support\Str::lcfirst($item['lead_time']) }}. Después sale con la empresa de transporte de tu destino; verás el precio del envío en el carrito antes de pagar.</p>
+                <p>{{ $item['personalized'] ? 'Al ser una pieza personalizada no admite devolución, salvo defecto.' : 'Tienes 14 días desde la entrega para devolverla desde la página de tu pedido.' }}
+                    <a href="{{ \App\Storefront\Urls::legal($store, 'envios-y-devoluciones') }}">Envíos y devoluciones</a></p>
             </div>
         </div>
+
+        @if (($related ?? []) !== [])
+            <section class="sf-related" aria-labelledby="sf-related-title">
+                <h2 class="sf-display" id="sf-related-title">Productos relacionados</h2>
+                <div class="sf-grid">
+                    @foreach ($related as $k => $card)
+                        @include(\App\Storefront\Designs::view($design, 'card'), ['card' => $card, 'k' => $k])
+                    @endforeach
+                </div>
+            </section>
+        @endif
     </div>
 
     @if ($hasGuide)

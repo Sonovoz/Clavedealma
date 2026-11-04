@@ -17,7 +17,7 @@
             <a class="co-brand" href="{{ route('market') }}">Clave de Alma</a>
             @if ($step > 0)
             <ol class="co-steps" aria-label="Pasos de la compra">
-                @foreach (['Cesta', 'Datos y envío', 'Pago', 'Hecho'] as $k => $label)
+                @foreach (['Carrito', 'Finalizar compra', 'Pago', 'Pedido recibido'] as $k => $label)
                     <li @class(['is-done' => $k + 1 < $step, 'is-on' => $k + 1 === $step]) @if ($k + 1 === $step) aria-current="step" @endif><span>{{ $k + 1 }}</span>{{ $label }}</li>
                 @endforeach
             </ol>

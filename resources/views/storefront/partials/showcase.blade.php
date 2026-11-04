@@ -44,7 +44,22 @@
             </div>
         @endif
 
-        <p class="sf-count" data-count aria-live="polite">{{ count($cards) }} {{ count($cards) === 1 ? 'pieza' : 'piezas' }}</p>
+        {{-- Como en WooCommerce: recuento de resultados y «Ordenar por». --}}
+        <div class="sf-toolbar">
+            <p class="sf-count" data-count aria-live="polite">{{ count($cards) === 1 ? 'Mostrando el único resultado' : 'Mostrando los '.count($cards).' resultados' }}</p>
+            @if (count($cards) > 1)
+                <label class="sf-orderby">
+                    <span class="sf-sr">Ordenar por</span>
+                    <select data-orderby>
+                        <option value="menu_order">Orden predeterminado</option>
+                        <option value="popularity">Ordenar por popularidad</option>
+                        <option value="date">Ordenar por los últimos</option>
+                        <option value="price">Ordenar por precio: bajo a alto</option>
+                        <option value="price-desc">Ordenar por precio: alto a bajo</option>
+                    </select>
+                </label>
+            @endif
+        </div>
 
         @if ($cards === [])
             <p class="sf-empty">Pronto habrá piezas en esta tienda.</p>
@@ -54,6 +69,7 @@
                     @include($cardView, ['card' => $card, 'k' => $k])
                 @endforeach
             </div>
+            <nav class="sf-pagination" data-pagination aria-label="Páginas de productos" hidden></nav>
         @endif
         <p class="sf-note">IVA incluido · Fabricado bajo pedido · Devolución en 14 días</p>
     </div>

@@ -16,7 +16,7 @@ Estas condiciones se aplican a todas las compras hechas en Clave de Alma y en la
 
 ## 3. Cómo se compra
 
-1. Añade las piezas a la cesta. Hay una sola cesta para todas las tiendas.
+1. Añade las piezas al carrito. Hay un solo carrito para todas las tiendas.
 2. Escribe tus datos y la dirección de entrega: verás el precio del envío y el total.
 3. Acepta estas condiciones y paga.
 4. Al confirmarse el pago recibirás un email con el resumen del pedido y el enlace para seguirlo y descargar tu factura.

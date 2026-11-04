@@ -21,6 +21,7 @@ use Illuminate\Support\Str;
  * (módulo Stores); Catálogo no depende de sus clases internas.
  *
  * @property int $id
+ * @property ?Carbon $created_at
  * @property ?Carbon $updated_at
  * @property int $store_id
  * @property ?int $base_garment_id

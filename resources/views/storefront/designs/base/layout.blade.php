@@ -16,7 +16,7 @@
                     <a href="{{ \App\Storefront\Urls::collection($store, $collection->slug) }}">{{ $collection->name }}</a>
                 @endforeach
             </nav>
-            <a class="base-head__cart" href="{{ route('cart.show') }}">Cesta (<span data-cart-count>{{ $cartCount ?? 0 }}</span>)</a>
+            <a class="base-head__cart" href="{{ route('cart.show') }}">Carrito (<span data-cart-count>{{ $cartCount ?? 0 }}</span>)</a>
         </div>
     </header>
     <main>

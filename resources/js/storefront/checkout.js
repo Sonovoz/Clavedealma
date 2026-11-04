@@ -7,6 +7,37 @@ const $ = (s, c = document) => c.querySelector(s);
 // Cesta: al cambiar las unidades se guarda sola.
 document.querySelectorAll('[data-autosubmit]').forEach(el => el.addEventListener('change', () => el.form.submit()));
 
+// Carrito: «Calcular envío» (como WooCommerce). El precio lo da el servidor con las tarifas del panel.
+const totals = $('[data-cart-totals]');
+if (totals) {
+  const run = async () => {
+    const country = $('[data-calc-country]', totals).value;
+    const postal = $('[data-calc-postal]', totals).value.trim();
+    const result = $('[data-shipping-result]', totals);
+    const total = $('[data-total-result]', totals);
+    if (postal.length < 4) { result.textContent = 'Escribe tu código postal'; return; }
+    try {
+      const res = await fetch(`${totals.dataset.quoteUrl}?country=${encodeURIComponent(country)}&postal_code=${encodeURIComponent(postal)}`, { headers: { Accept: 'application/json' } });
+      const data = await res.json();
+      if (data.ok) {
+        result.textContent = `${data.shipping} · ${data.zone}`;
+        total.textContent = data.total;
+      } else {
+        result.textContent = data.message;
+        total.textContent = total.dataset.subtotal;
+      }
+    } catch { result.textContent = 'No se ha podido calcular ahora.'; }
+  };
+  $('[data-calc-shipping]', totals)?.addEventListener('click', run);
+  $('[data-calc-postal]', totals)?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); run(); } });
+}
+
+// Carrito: avisar de que hay cambios sin guardar en las cantidades (como «Actualizar carrito» de Woo).
+document.querySelectorAll('[data-cart-qty]').forEach(input => input.addEventListener('input', () => {
+  const button = document.querySelector('[data-update-cart]');
+  if (button) button.classList.add('is-dirty');
+}));
+
 // Datos y envío: pide el precio del envío al servidor cuando cambian país o código postal.
 const form = $('[data-checkout]');
 if (form) {
