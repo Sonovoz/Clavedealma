@@ -3,6 +3,7 @@
 use App\Http\Controllers\Checkout\CartController;
 use App\Http\Controllers\Checkout\CheckoutController;
 use App\Http\Controllers\Checkout\PaymentWebhookController;
+use App\Http\Controllers\Checkout\ReturnController;
 use App\Http\Controllers\Storefront\DesignAssetController;
 use App\Http\Controllers\Storefront\LegalController;
 use App\Http\Controllers\Storefront\MarketController;
@@ -44,6 +45,8 @@ Route::get('/pedido/envio', [CheckoutController::class, 'quote'])->middleware('t
 Route::post('/pedido', [CheckoutController::class, 'place'])->middleware('throttle:10,1')->name('checkout.place');
 Route::get('/pedido/{token}/pagar', [CheckoutController::class, 'pay'])->where('token', '[A-Za-z0-9]{48}')->name('checkout.pay');
 Route::post('/pedido/{token}/simular', [CheckoutController::class, 'simulate'])->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:20,1')->name('checkout.simulate');
+Route::get('/pedido/{token}/devolucion', [ReturnController::class, 'show'])->where('token', '[A-Za-z0-9]{48}')->name('returns.create');
+Route::post('/pedido/{token}/devolucion', [ReturnController::class, 'store'])->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:10,1')->name('returns.store');
 Route::get('/pedido/{token}', [CheckoutController::class, 'thanks'])->where('token', '[A-Za-z0-9]{48}')->name('checkout.thanks');
 Route::post('/webhooks/stripe', PaymentWebhookController::class)->name('payments.webhook.stripe');
 

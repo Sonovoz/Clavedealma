@@ -142,3 +142,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .co-track .is-done .co-track__dot { border-color: var(--ok); background: var(--ok); }
 .co-track .is-done + .is-done::before { border-color: var(--ok); }
 .co-track__date { font: 400 12px/1 var(--f-mono); color: var(--muted); }
+.co-line--return { grid-template-columns: 72px minmax(0, 1fr) auto; grid-template-areas: "img info qty"; }
+.co-steps-list { margin: 0; padding-left: 20px; display: grid; gap: 10px; font-size: 14px; color: var(--muted); }
+.co-returns { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; width: 100%; }
+.co-returns li { display: flex; justify-content: space-between; gap: 12px; border: 1px solid var(--line); padding: 10px 14px; font-size: 14px; }
+.co-ok { border-left: 3px solid var(--ok); background: rgba(63, 178, 127, .08); padding: 12px 14px; margin: 0; font-size: 14px; }

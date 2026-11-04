@@ -99,6 +99,27 @@ Pagado · por fabricar → En fabricación → Listo para enviar → Enviado →
   - Envía un email al cliente con el motivo.
   - Si la pasarela no hace la devolución, el pedido no se cancela y el fallo queda en el historial.
 
+## Devoluciones
+
+El cliente tiene **14 días naturales desde la entrega** para devolver las piezas que no sean personalizadas. Si no se marcó la entrega, el plazo se cuenta desde el envío más el plazo de entrega.
+
+1. **El cliente lo pide** desde la página de su pedido (botón **Devolver piezas**, en el enlace «Ver mi pedido» de los emails). Elige qué piezas y cuántas, el motivo y, si quiere, un comentario. Recibe un email y el equipo recibe un aviso.
+2. **El equipo revisa** en *Ventas → Devoluciones → Por revisar* y decide:
+   - **Aprobar**: se envían al cliente las instrucciones, que vienen ya escritas con la dirección de `RETURNS_ADDRESS` y se pueden cambiar.
+   - **Rechazar**: con el motivo, que se le envía por email.
+3. **Al recibir el paquete**, pulsa **Recibida: devolver X €**. Si las piezas están bien, deja marcado «reponerlas en el stock». El dinero vuelve al medio de pago del cliente y se le avisa.
+
+Importe:
+- Se devuelven las piezas y, **si vuelve el pedido entero, también el envío pagado**.
+- El envío de vuelta lo paga el cliente, salvo que la pieza llegara con un defecto o no fuera la pedida. En ese caso el panel avisa de que lo paga Clave de Alma.
+- Si la pasarela falla, la devolución queda en **Dinero pendiente** con el error y hay un botón para reintentar.
+
+Configura en el `.env` la dirección a la que se envían las devoluciones:
+
+```text
+RETURNS_ADDRESS="Clave de Alma · Devoluciones, Calle …, CP Ciudad"
+```
+
 ## Panel: Ventas → Pedidos
 
 Solo lo ve el superadministrador. El gestor de catálogo no ve datos de clientes ni de cobros.
@@ -107,7 +128,7 @@ Solo lo ve el superadministrador. El gestor de catálogo no ve datos de clientes
 - **Detalle**: piezas, importes con IVA, cobro, plazo, dirección e historial.
 - El pedido no tiene botón de editar ni de borrar.
 - Tiene pestañas: Por fabricar, En fabricación, Para enviar, Enviados y A revisar.
-- Las devoluciones de piezas llegan en la fase 5b.
+- La ficha enseña las devoluciones del pedido, con enlace a cada una.
 
 ## Antes de vender de verdad
 
@@ -117,3 +138,4 @@ Solo lo ve el superadministrador. El gestor de catálogo no ve datos de clientes
 - [ ] Tarifas de envío reales en el panel.
 - [ ] Claves de Stripe en modo real (`pk_live_` / `sk_live_`) y su webhook, **solo en producción**.
 - [ ] Correo de salida (SMTP) configurado y probado.
+- [ ] Dirección de devoluciones (`RETURNS_ADDRESS`).
