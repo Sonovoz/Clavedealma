@@ -12,20 +12,21 @@ El artista **no edita nada**. Solo recibe información de sus ventas.
 
 ## Direcciones
 
-Cada tienda tiene dos direcciones que muestran lo mismo:
+La dirección principal de cada tienda es **`https://clavedealma.es/<clave>`**, por ejemplo `clavedealma.es/farruquito` (ADR 0013). Es la única que usan los enlaces, la canónica y el mapa del sitio.
 
-- `https://<subdominio>.clavedealma.es`, para producción.
-- `https://clavedealma.es/tienda/<subdominio>`, para las pruebas en Hostinger y en local.
+Además, dos direcciones redirigen ahí de forma permanente (301), conservando la página:
+- `https://<clave>.clavedealma.es`, para quien la escriba así. Solo funciona si el DNS tiene el comodín `*.clavedealma.es`, que es opcional.
+- `https://clavedealma.es/tienda/<clave>`, la dirección antigua de las pruebas.
 
-`STORE_URL_MODE` (`subdomain` o `path`) elige cuál de las dos se usa en los enlaces.
+La clave se elige en *Tiendas → Dirección de la tienda* y **no se cambia después de publicar**. No pueden usarse las palabras reservadas del market (`admin`, `carrito`, `pedidos`, `ayuda`, `legal`…; lista en `App\Modules\Stores\Domain\Subdomain::RESERVED`).
 
 Páginas de cada tienda:
 
 | Página | Ruta |
 | --- | --- |
-| Portada (diseño + pasarela) | `/` |
-| Colección | `/coleccion/<colección>` |
-| Ficha de artículo | `/p/<artículo>` |
+| Portada (diseño + pasarela) | `/<clave>` |
+| Colección | `/<clave>/coleccion/<colección>` |
+| Ficha de artículo | `/<clave>/p/<artículo>` |
 
 La portada del market (`/`) es la **matriz de Clave de Alma**, con el diseño de [`docs/diseno/matriz`](../diseno/matriz/index.html). Su sección «Tiendas oficiales» se rellena sola:
 
@@ -45,8 +46,6 @@ La portada del market (`/`) es la **matriz de Clave de Alma**, con el diseño de
 Las imágenes del diseño (retratos, logotipos…) se sirven por `/_diseno/<clave>/<fichero>` y siguen la misma regla: las de una tienda oculta no salen a Internet.
 
 Los artículos en borrador no aparecen en la pasarela. El equipo puede abrir su ficha para revisarla antes de publicar.
-
-> En producción por subdominio, para que la sesión del panel valga en las tiendas hay que poner `SESSION_DOMAIN=.clavedealma.es`.
 
 ## Crear el diseño de una tienda nueva
 

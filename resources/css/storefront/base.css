@@ -20,6 +20,7 @@ button { font: inherit; }
 .base-head nav { display: flex; gap: 20px; flex-wrap: wrap; }
 .base-head nav a { text-decoration: none; font-size: 14px; color: var(--sf-muted); }
 .base-head nav a:hover { color: var(--sf-ink); }
+.base-head__cart { font-size: 14px; text-decoration: none; white-space: nowrap; }
 .base-hero { padding-block: clamp(56px, 9vw, 120px); text-align: center; border-bottom: 1px solid var(--sf-line); }
 .base-hero h1 { font-size: clamp(40px, 7vw, 88px); }
 .base-hero p { margin: 18px auto 0; max-width: 56ch; color: var(--sf-muted); font-size: 18px; }

@@ -40,6 +40,17 @@ class SeoBuilder
         return SeoText::limit($text !== '' ? $text : $product->name.' · merchandising oficial de '.$store->name.'. Fabricado bajo pedido.', SeoText::DESCRIPTION_MAX);
     }
 
+    /** Páginas de compra (cesta, datos, pago, confirmación): nunca se indexan. */
+    public function checkout(string $title): SeoMeta
+    {
+        return new SeoMeta(
+            title: $title.' | Clave de Alma',
+            description: 'Compra en Clave de Alma: un solo carrito y un solo pago para todas las tiendas.',
+            canonical: url()->current(),
+            index: false,
+        );
+    }
+
     /**
      * @param  list<array{name: string, url: string}>  $stores
      */

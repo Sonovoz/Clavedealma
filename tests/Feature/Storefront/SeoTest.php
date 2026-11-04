@@ -84,7 +84,7 @@ it('el mapa del sitio lista solo lo publicado, con sus fotos, y robots lo anunci
         ->toContain(Urls::home($this->store))
         ->toContain('products/luna/lb-01.webp')
         ->not->toContain('borrador-secreto')
-        ->not->toContain('/tienda/oculta');
+        ->not->toContain('/oculta');
     expect(simplexml_load_string($xml))->not->toBeFalse();
 
     $this->get('/robots.txt')->assertSee('Disallow: /admin')->assertSee('Sitemap: '.route('seo.sitemap'));

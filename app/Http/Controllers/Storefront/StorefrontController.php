@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 
 /**
  * Páginas de una tienda: portada (diseño propio + pasarela), colección y ficha de producto.
- * Funciona igual por subdominio (farruquito.clavedealma.es) que por ruta (/tienda/farruquito).
+ * Dirección principal: clavedealma.es/<clave> (el subdominio y /tienda/<clave> redirigen aquí).
  */
 class StorefrontController
 {

@@ -11,6 +11,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 - [Esquema de tienda: diseño propio y pasarela común](tiendas/README.md)
 - [Copias de seguridad: qué se guarda, programación y cómo restaurar](copias-de-seguridad.md)
 - [SEO: reglas obligatorias, estrategia y asistente de IA](seo/README.md)
+- [Compra y pago: cesta, pedidos, Stripe y pago simulado](compra/README.md)
 
 ## Decisiones técnicas (ADR)
 
@@ -28,13 +29,15 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0010](adr/0010-tienda-activa-y-envios.md) | Tienda activa en el panel, prendas por tienda y envíos por peso |
 | [0011](adr/0011-copias-de-seguridad.md) | Copias de seguridad programables desde el panel |
 | [0012](adr/0012-seo-e-ia.md) | SEO técnico en todo el portal e IA por contrato con driver |
+| [0013](adr/0013-direccion-de-las-tiendas.md) | Dirección única de las tiendas: `clavedealma.es/<clave>` |
+| [0014](adr/0014-compra-pedidos-y-pagos.md) | Compra: cesta única, pedidos inmutables y pago por contrato |
 
 ## Orden de construcción
 
 1. ✓ Cimientos: proyecto, módulos, roles, panel, entornos, CI.
 2. ✓ Tiendas y catálogo en el panel (ficha de artículo, protocolo de importación, gestor de catálogo).
-3. **Tiendas públicas: diseño propio + pasarela común** (primera: Farruquito) ← fase actual.
-4. Compra y pago con Stripe (modo test).
+3. ✓ Tiendas públicas: diseño propio + pasarela común (primera: Farruquito).
+4. **Compra y pago con Stripe (modo test)** ← fase actual.
 5. Operación: producción, envíos, devoluciones.
 6. Artistas, liquidaciones y autofacturación.
 7. Centro de control para superadministradores.
@@ -45,12 +48,13 @@ IA: el asistente SEO del panel ya está (ADR 0012, `docs/seo`). Más adelante, s
 
 ## Módulos
 
-`app/Modules/`: Identity, Stores, Catalog, Inventory, Cart, Orders, Payments, Production, Shipping, Returns, Settlements, Invoicing, Notifications, Audit. Existen ya `Identity`, `Stores`, `Catalog` e `Inventory`; el resto se crea al llegar a su fase, con la misma estructura de carpetas.
+`app/Modules/`: Identity, Stores, Catalog, Inventory, Cart, Orders, Payments, Production, Shipping, Returns, Settlements, Invoicing, Notifications, Audit. Existen ya `Identity`, `Stores`, `Catalog`, `Inventory`, `Shipping`, `Cart`, `Orders` y `Payments`; el resto se crea al llegar a su fase, con la misma estructura de carpetas.
 
 ## Panel por rol
 
 | Sección | Superadmin | Gestor de catálogo | Fabricante | Artista |
 | --- | --- | --- | --- | --- |
+| Ventas: pedidos (datos de clientes y cobros) | ✓ | — | — | — |
 | Tiendas: artistas y tiendas (datos fiscales) | ✓ | — | — | — |
 | Catálogo de la tienda elegida («Tienda: …»): productos, colecciones, prendas base | ✓ | ✓ | — | — |
 | Operación: stock | ✓ | — | ✓ | — |

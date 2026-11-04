@@ -51,7 +51,7 @@ class AdminPanelProvider extends PanelProvider
             ->strictAuthorization()
             ->defaultAvatarProvider(InitialsAvatarProvider::class)
             ->brandName('Clave de Alma')
-            ->navigationGroups(['Tiendas', 'Catálogo', 'Operación', 'Envíos', 'Administración'])
+            ->navigationGroups(['Ventas', 'Tiendas', 'Catálogo', 'Operación', 'Envíos', 'Administración'])
             // Selector «Tienda: X»: el catálogo se trabaja siempre dentro de una tienda.
             ->renderHook(PanelsRenderHook::TOPBAR_START, fn (): string => Blade::render('@livewire(\'store-switcher\')'))
             // Y en cada página del catálogo, en grande: «Tienda: X».

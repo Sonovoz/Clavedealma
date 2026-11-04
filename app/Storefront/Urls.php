@@ -5,8 +5,8 @@ namespace App\Storefront;
 use App\Modules\Stores\Infrastructure\Models\Store;
 
 /**
- * Enlaces del escaparate. Según STORE_URL_MODE apuntan al subdominio de la tienda
- * (farruquito.clavedealma.es) o a la ruta /tienda/farruquito.
+ * Enlaces del escaparate. La dirección principal de una tienda es clavedealma.es/<clave>
+ * (ADR 0013); el subdominio y /tienda/<clave> solo redirigen aquí.
  */
 final class Urls
 {
@@ -15,10 +15,9 @@ final class Urls
      */
     public static function to(Store|string $store, string $page = 'home', array $parameters = []): string
     {
-        $subdomain = $store instanceof Store ? $store->subdomain : $store;
-        $prefix = config('storefront.url_mode') === 'subdomain' ? 'storefront.subdomain.' : 'storefront.path.';
+        $key = $store instanceof Store ? $store->subdomain : $store;
 
-        return route($prefix.$page, ['store' => $subdomain] + $parameters);
+        return rtrim((string) config('app.url'), '/').route('storefront.'.$page, ['store' => $key] + $parameters, false);
     }
 
     public static function home(Store|string $store): string
@@ -34,6 +33,14 @@ final class Urls
     public static function product(Store|string $store, string $slug): string
     {
         return self::to($store, 'product', ['product' => $slug]);
+    }
+
+    /** Dirección principal tal y como se enseña en el panel: clavedealma.es/<clave>. */
+    public static function label(Store|string $store): string
+    {
+        $key = $store instanceof Store ? $store->subdomain : $store;
+
+        return config('clavedealma.domain').'/'.$key;
     }
 
     /** Imagen propia de un diseño (portadas, logotipos…), servida con control de visibilidad. */

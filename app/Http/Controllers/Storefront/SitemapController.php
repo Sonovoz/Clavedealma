@@ -68,7 +68,7 @@ class SitemapController
     public function robots(): Response
     {
         $lines = SeoBuilder::indexing()
-            ? ['User-agent: *', 'Disallow: /admin', 'Disallow: /livewire', 'Allow: /', '', 'Sitemap: '.route('seo.sitemap')]
+            ? ['User-agent: *', 'Disallow: /admin', 'Disallow: /livewire', 'Disallow: /carrito', 'Disallow: /pedido', 'Disallow: /webhooks', 'Allow: /', '', 'Sitemap: '.route('seo.sitemap')]
             : ['# Servidor de pruebas: no indexar', 'User-agent: *', 'Disallow: /'];
 
         return response(implode("\n", $lines)."\n", 200, ['Content-Type' => 'text/plain; charset=UTF-8']);

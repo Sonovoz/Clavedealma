@@ -5,15 +5,30 @@ namespace App\Modules\Stores\Domain;
 use InvalidArgumentException;
 
 /**
- * Subdominio de una tienda: <subdominio>.clavedealma.es
+ * Clave de la dirección de una tienda: clavedealma.es/<clave> (dirección principal, ADR 0013).
+ * <clave>.clavedealma.es y /tienda/<clave> redirigen a ella.
  */
 final readonly class Subdomain
 {
-    /** Subdominios que nunca puede usar una tienda. */
+    /**
+     * Claves que nunca puede usar una tienda: subdominios técnicos y, como la tienda vive en
+     * clavedealma.es/<clave>, las páginas propias del market (presentes y previstas).
+     */
     public const RESERVED = [
+        // Subdominios y servicios técnicos
         'www', 'admin', 'api', 'app', 'staging', 'pruebas', 'test', 'dev', 'mail', 'smtp',
-        'static', 'cdn', 'assets', 'media', 'checkout', 'pago', 'pagos', 'cuenta', 'ayuda',
-        'soporte', 'blog', 'tienda', 'tiendas', 'clavedealma', 'status',
+        'static', 'cdn', 'assets', 'media', 'status', 'clavedealma',
+        // Rutas del sistema
+        'livewire', 'storage', 'build', 'filament', 'sitemap', 'robots', 'favicon', 'login',
+        'logout', 'register', 'password', 'webhook', 'webhooks', 'stripe', 'health',
+        // Páginas del market (presentes y futuras)
+        'tienda', 'tiendas', 'artistas', 'artista', 'coleccion', 'colecciones', 'producto',
+        'productos', 'buscar', 'busqueda', 'carrito', 'cesta', 'checkout', 'pago', 'pagos',
+        'pedido', 'pedidos', 'cuenta', 'mi-cuenta', 'ayuda', 'soporte', 'contacto', 'blog',
+        'noticias', 'club', 'comunidad', 'novedades', 'rebajas', 'ofertas', 'regalos',
+        'envios', 'devoluciones', 'legal', 'aviso-legal', 'privacidad', 'cookies',
+        'condiciones', 'terminos', 'sobre-nosotros', 'quienes-somos', 'faq', 'prensa',
+        'empleo', 'factura', 'facturas',
     ];
 
     public const PATTERN = '/^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$/';
@@ -29,6 +44,16 @@ final readonly class Subdomain
         }
 
         $this->value = $value;
+    }
+
+    /**
+     * Expresión para las rutas: una clave válida que no sea una palabra reservada
+     * (así /admin, /livewire… nunca se confunden con una tienda).
+     */
+    public static function routePattern(): string
+    {
+        return '(?!(?:'.implode('|', array_map(fn (string $w): string => preg_quote($w, '#'), self::RESERVED)).')(?![a-z0-9-]))'
+            .'[a-z0-9][a-z0-9-]{1,38}[a-z0-9]';
     }
 
     public static function isValid(string $value): bool

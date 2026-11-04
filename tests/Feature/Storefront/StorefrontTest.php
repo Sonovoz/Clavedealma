@@ -5,6 +5,7 @@ use App\Modules\Catalog\Infrastructure\Models\Product;
 use App\Modules\Identity\Contracts\Role;
 use App\Modules\Identity\Infrastructure\Models\User;
 use App\Modules\Stores\Contracts\StoreStatus;
+use App\Modules\Stores\Domain\Subdomain;
 use App\Modules\Stores\Infrastructure\Models\Store;
 use App\Storefront\Urls;
 use Database\Seeders\FarruquitoSeeder;
@@ -26,12 +27,38 @@ function tiendaPublicada(array $attrs = []): Store
     return $store;
 }
 
-it('enseña la tienda publicada con su pasarela, por ruta y por subdominio', function () {
+it('enseña la tienda publicada con su pasarela en clavedealma.es/<clave>', function () {
     $store = tiendaPublicada();
 
-    $this->get('/tienda/prueba')->assertOk()->assertSee('Camiseta gira')->assertSee('29,90')->assertDontSee('Borrador secreto');
-    $this->get('http://prueba.'.config('clavedealma.domain').'/')->assertOk()->assertSee('Camiseta gira');
+    expect(Urls::home($store))->toBe(rtrim(config('app.url'), '/').'/prueba');
+    $this->get('/prueba')->assertOk()->assertSee('Camiseta gira')->assertSee('29,90')->assertDontSee('Borrador secreto');
     $this->get('/')->assertOk()->assertSee('Tienda Prueba');
+});
+
+it('el subdominio y /tienda/<clave> redirigen (301) a la dirección principal, conservando la página', function () {
+    tiendaPublicada();
+    $base = rtrim(config('app.url'), '/');
+
+    $this->get('http://prueba.'.config('clavedealma.domain').'/')->assertStatus(301)->assertRedirect($base.'/prueba');
+    $this->get('http://prueba.'.config('clavedealma.domain').'/p/camiseta-gira?color=negro')->assertStatus(301)->assertRedirect($base.'/prueba/p/camiseta-gira?color=negro');
+    $this->get($base.'/tienda/prueba')->assertStatus(301)->assertRedirect($base.'/prueba');
+    $this->get($base.'/tienda/prueba/coleccion/gira')->assertStatus(301)->assertRedirect($base.'/prueba/coleccion/gira');
+});
+
+it('las palabras reservadas nunca son una tienda', function () {
+    expect(Subdomain::isValid('admin'))->toBeFalse()
+        ->and(Subdomain::isValid('carrito'))->toBeFalse()
+        ->and(Subdomain::isValid('livewire'))->toBeFalse()
+        ->and(Subdomain::isValid('farruquito'))->toBeTrue()
+        ->and(Subdomain::isValid('admin-flamenco'))->toBeTrue();
+
+    expect(preg_match('#^'.Subdomain::routePattern().'$#', 'admin'))->toBe(0)
+        ->and(preg_match('#^'.Subdomain::routePattern().'$#', 'admin-flamenco'))->toBe(1)
+        ->and(preg_match('#^'.Subdomain::routePattern().'$#', 'farruquito'))->toBe(1);
+
+    // /admin sigue siendo el panel, no una tienda.
+    $this->get('/admin')->assertRedirect();
+    $this->get('/sitemap.xml')->assertOk();
 });
 
 it('la ficha muestra tallas en orden, color en el título y precio propio de la talla grande', function () {
@@ -47,11 +74,11 @@ it('la ficha muestra tallas en orden, color en el título y precio propio de la 
 it('una tienda oculta solo la ve el equipo de catálogo', function () {
     tiendaPublicada(['status' => StoreStatus::Hidden]);
 
-    $this->get('/tienda/prueba')->assertNotFound();
+    $this->get('/prueba')->assertNotFound();
     $this->get('/')->assertDontSee('Tienda Prueba');
 
-    $this->actingAs(User::factory()->withRole(Role::Manufacturer)->create())->get('/tienda/prueba')->assertNotFound();
-    $this->actingAs(User::factory()->withRole(Role::CatalogManager)->create())->get('/tienda/prueba')->assertOk()->assertSee('Vista previa para el equipo');
+    $this->actingAs(User::factory()->withRole(Role::Manufacturer)->create())->get('/prueba')->assertNotFound();
+    $this->actingAs(User::factory()->withRole(Role::CatalogManager)->create())->get('/prueba')->assertOk()->assertSee('Vista previa para el equipo');
 });
 
 it('el equipo puede previsualizar la ficha de un borrador; el público no', function () {

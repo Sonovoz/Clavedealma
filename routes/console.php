@@ -19,3 +19,6 @@ if (Settings::ready()) {
     // Aviso si la última copia buena es demasiado antigua (por ejemplo, si el cron dejó de funcionar).
     Schedule::command('copias:revisar')->dailyAt('09:10')->timezone((string) config('clavedealma.backups.timezone'));
 }
+
+// Pedidos sin pagar: se cancelan pasado el tiempo de espera (clavedealma.shop.pending_minutes).
+Schedule::command('pedidos:cancelar-caducados')->everyFifteenMinutes()->withoutOverlapping();
