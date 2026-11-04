@@ -59,3 +59,12 @@ it('lo que se crea va siempre a la tienda activa', function () {
         ->assertHasNoFormErrors();
     expect(Product::where('name', 'Nueva')->value('store_id'))->toBe($this->b->id);
 });
+
+it('cada página del catálogo dice en grande en qué tienda se trabaja', function () {
+    ActiveStore::set($this->b->id);
+
+    foreach (['/admin/productos', '/admin/productos/create', '/admin/colecciones', '/admin/prendas-base', '/admin/prendas-base/create'] as $url) {
+        $this->get($url)->assertOk()->assertSeeInOrder(['Tienda:', 'B tienda', 'Todo lo que veas, crees o cambies aquí es de esta tienda']);
+    }
+    $this->get(ProductResource::getUrl('edit', ['record' => $this->pb]))->assertSee('Todo lo que veas, crees o cambies aquí es de esta tienda');
+});
