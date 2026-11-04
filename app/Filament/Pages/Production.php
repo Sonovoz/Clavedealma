@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Resources\Orders\OrderActions;
+use App\Filament\Support\Documents;
 use App\Modules\Identity\Contracts\Role;
 use App\Modules\Identity\Infrastructure\Models\User;
 use App\Modules\Orders\Contracts\OrderStatus;
@@ -82,7 +83,8 @@ class Production extends Page implements HasTable
                     OrderStatus::InProduction->value => OrderStatus::InProduction->label(),
                 ]),
             ])
-            ->recordActions([OrderActions::startProduction(), OrderActions::markReady()])
+            ->headerActions([Documents::productionSheet()])
+            ->recordActions([OrderActions::startProduction(), OrderActions::markReady(), Documents::productionOrder()->label('PDF')])
             ->defaultSort('paid_at')
             ->emptyStateHeading('No hay nada que fabricar')
             ->emptyStateDescription('Los pedidos pagados aparecen aquí solos.');

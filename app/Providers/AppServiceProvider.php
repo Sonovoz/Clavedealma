@@ -29,6 +29,8 @@ use App\Platform\Ai\Drivers\NullTextGenerator;
 use App\Platform\Ai\Drivers\OpenAiCompatibleTextGenerator;
 use App\Platform\Ai\TextGenerator;
 use App\Platform\Backup\Backup;
+use App\Platform\Pdf\DompdfRenderer;
+use App\Platform\Pdf\PdfRenderer;
 use App\Policies\CatalogPolicy;
 use App\Policies\StockLevelPolicy;
 use App\Policies\StockMovementPolicy;
@@ -48,6 +50,9 @@ class AppServiceProvider extends ServiceProvider
             'openai' => new OpenAiCompatibleTextGenerator((array) config('ai.openai')),
             default => new NullTextGenerator,
         });
+
+        // Documentos PDF del panel (fabricación, albaranes e informes).
+        $this->app->bind(PdfRenderer::class, DompdfRenderer::class);
     }
 
     public function boot(): void

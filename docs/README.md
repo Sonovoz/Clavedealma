@@ -12,6 +12,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 - [Copias de seguridad: qué se guarda, programación y cómo restaurar](copias-de-seguridad.md)
 - [SEO: reglas obligatorias, estrategia y asistente de IA](seo/README.md)
 - [Compra y pago: cesta, pedidos, Stripe y pago simulado](compra/README.md)
+- [Documentos PDF: fabricación, albaranes e informes](informes.md)
 
 ## Decisiones técnicas (ADR)
 
@@ -33,6 +34,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0014](adr/0014-compra-pedidos-y-pagos.md) | Compra: cesta única, pedidos inmutables y pago por contrato |
 | [0015](adr/0015-fabricacion-envio-y-cancelacion.md) | Fabricación, envío y cancelación con devolución del importe |
 | [0016](adr/0016-devoluciones.md) | Devoluciones de piezas (derecho de desistimiento) |
+| [0017](adr/0017-documentos-pdf.md) | Documentos PDF del panel (dompdf por contrato) |
 
 ## Orden de construcción
 
@@ -56,10 +58,10 @@ IA: el asistente SEO del panel ya está (ADR 0012, `docs/seo`). Más adelante, s
 
 | Sección | Superadmin | Gestor de catálogo | Fabricante | Artista |
 | --- | --- | --- | --- | --- |
-| Ventas: pedidos y devoluciones (datos de clientes y cobros) | ✓ | — | — | — |
+| Ventas: pedidos, devoluciones, informes y PDF (datos de clientes y cobros) | ✓ | — | — | — |
 | Tiendas: artistas y tiendas (datos fiscales) | ✓ | — | — | — |
 | Catálogo de la tienda elegida («Tienda: …»): productos, colecciones, prendas base | ✓ | ✓ | — | — |
-| Operación: fabricación (sin datos del cliente) y stock | ✓ | — | ✓ | — |
+| Operación: fabricación y su PDF (sin datos del cliente) y stock | ✓ | — | ✓ | — |
 | Envíos: tarifas por destino y transportistas | ✓ | — | — | — |
 | Administración: usuarios, sistema y copias de seguridad | ✓ | — | — | — |
 
