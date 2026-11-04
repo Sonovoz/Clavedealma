@@ -33,6 +33,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0013](adr/0013-direccion-de-las-tiendas.md) | Dirección única de las tiendas: `clavedealma.es/<clave>` |
 | [0014](adr/0014-compra-pedidos-y-pagos.md) | Compra: cesta única, pedidos inmutables y pago por contrato |
 | [0015](adr/0015-fabricacion-envio-y-cancelacion.md) | Fabricación, envío y cancelación con devolución del importe |
+| [0016](adr/0016-devoluciones.md) | Devoluciones de piezas (derecho de desistimiento) |
 | [0017](adr/0017-documentos-pdf.md) | Documentos PDF del panel (dompdf por contrato) |
 
 ## Orden de construcción
@@ -51,13 +52,13 @@ IA: el asistente SEO del panel ya está (ADR 0012, `docs/seo`). Más adelante, s
 
 ## Módulos
 
-`app/Modules/`: Identity, Stores, Catalog, Inventory, Cart, Orders, Payments, Production, Shipping, Returns, Settlements, Invoicing, Notifications, Audit. Existen ya `Identity`, `Stores`, `Catalog`, `Inventory`, `Shipping`, `Cart`, `Orders` y `Payments`; el resto se crea al llegar a su fase, con la misma estructura de carpetas.
+`app/Modules/`: Identity, Stores, Catalog, Inventory, Cart, Orders, Payments, Production, Shipping, Returns, Settlements, Invoicing, Notifications, Audit. Existen ya `Identity`, `Stores`, `Catalog`, `Inventory`, `Shipping`, `Cart`, `Orders`, `Payments` y `Returns`; el resto se crea al llegar a su fase, con la misma estructura de carpetas.
 
 ## Panel por rol
 
 | Sección | Superadmin | Gestor de catálogo | Fabricante | Artista |
 | --- | --- | --- | --- | --- |
-| Ventas: pedidos, informes y PDF (datos de clientes y cobros) | ✓ | — | — | — |
+| Ventas: pedidos, devoluciones, informes y PDF (datos de clientes y cobros) | ✓ | — | — | — |
 | Tiendas: artistas y tiendas (datos fiscales) | ✓ | — | — | — |
 | Catálogo de la tienda elegida («Tienda: …»): productos, colecciones, prendas base | ✓ | ✓ | — | — |
 | Operación: fabricación y su PDF (sin datos del cliente) y stock | ✓ | — | ✓ | — |

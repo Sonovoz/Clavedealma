@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Orders;
 
 use App\Filament\Resources\Orders\Pages\ListOrders;
 use App\Filament\Resources\Orders\Pages\ViewOrder;
+use App\Filament\Resources\Returns\ReturnResource;
 use App\Filament\Support\Fields;
 use App\Modules\Orders\Contracts\OrderStatus;
 use App\Modules\Orders\Infrastructure\Models\Order;
@@ -11,6 +12,7 @@ use App\Modules\Orders\Infrastructure\Models\OrderEvent;
 use App\Modules\Orders\Infrastructure\Models\OrderLine;
 use App\Modules\Payments\Contracts\Refunds;
 use App\Modules\Payments\Infrastructure\Models\Payment;
+use App\Modules\Returns\Infrastructure\Models\ReturnRequest;
 use App\Modules\Shipping\Contracts\ShippingZone;
 use App\Storefront\Checkout\Countries;
 use App\Support\Money;
@@ -175,6 +177,15 @@ class OrderResource extends Resource
                 ]))),
                 TextEntry::make('customer_note')->label('Nota del cliente')->placeholder('—')->columnSpanFull(),
             ]),
+
+            Section::make('Devoluciones')->columnSpan(2)
+                ->visible(fn (Order $record): bool => ReturnRequest::query()->where('order_id', $record->id)->exists())
+                ->schema([
+                    TextEntry::make('returns')->hiddenLabel()->html()->state(fn (Order $record): string => ReturnRequest::query()->where('order_id', $record->id)->get()
+                        ->map(fn (ReturnRequest $r): string => '<a href="'.e(ReturnResource::getUrl('view', ['record' => $r])).'" style="text-decoration:underline">'.e((string) $r->reference).'</a> · '
+                            .e($r->status->label()).' · '.e(Money::fromCents($r->refund_cents)->format()))
+                        ->implode('<br>')),
+                ]),
 
             Section::make('Historial')->columnSpan(1)->schema([
                 RepeatableEntry::make('events')->hiddenLabel()->schema([

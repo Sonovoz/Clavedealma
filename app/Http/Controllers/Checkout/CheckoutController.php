@@ -7,6 +7,7 @@ use App\Modules\Cart\Application\CartStore;
 use App\Modules\Cart\Application\PriceCart;
 use App\Modules\Cart\Contracts\PricedCart;
 use App\Modules\Orders\Application\PlaceOrder;
+use App\Modules\Orders\Contracts\OrderLookup;
 use App\Modules\Orders\Contracts\OrderStatus;
 use App\Modules\Orders\Infrastructure\Models\Order;
 use App\Modules\Payments\Application\HandleGatewayEvent;
@@ -15,6 +16,8 @@ use App\Modules\Payments\Application\SyncOrderPayments;
 use App\Modules\Payments\Contracts\GatewayEvent;
 use App\Modules\Payments\Contracts\PaymentGateway;
 use App\Modules\Payments\Contracts\PaymentUnavailable;
+use App\Modules\Returns\Application\ReturnOptions;
+use App\Modules\Returns\Infrastructure\Models\ReturnRequest;
 use App\Modules\Shipping\Contracts\ShippingQuote;
 use App\Modules\Shipping\Contracts\ShippingQuoter;
 use App\Storefront\Checkout\CartPresenter;
@@ -157,7 +160,16 @@ class CheckoutController
             $this->cart->clear();
         }
 
-        return view('checkout.thanks', $this->summary($order) + ['seo' => $this->seo->checkout('Pedido '.$order->reference)]);
+        $summary = app(OrderLookup::class)->find($order->id);
+        $options = app(ReturnOptions::class);
+
+        return view('checkout.thanks', $this->summary($order) + [
+            'seo' => $this->seo->checkout('Pedido '.$order->reference),
+            'canReturn' => $summary !== null && $options->open($summary),
+            'returnDeadline' => $summary === null ? null : $options->deadline($summary)?->format('d/m/Y'),
+            'returns' => ReturnRequest::query()->where('order_id', $order->id)->latest('id')->get()
+                ->map(fn (ReturnRequest $r): array => ['reference' => $r->reference, 'status' => $r->status->customerLabel(), 'amount' => Money::fromCents($r->refund_cents)->format()])->all(),
+        ]);
     }
 
     private function priced(Request $request): PricedCart
