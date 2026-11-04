@@ -10,6 +10,7 @@ Referencia visual para la fase 8 (capa visual). Son páginas HTML estáticas: se
 ## Uso
 
 - La tarjeta "Farruquito" de la matriz enlaza con su tienda (solo en esta copia del repositorio, no en la versión publicada).
+- Los dos prototipos ya están portados a la aplicación: la matriz es la portada del market (`/`) y Farruquito es su tienda (`/tienda/farruquito`). Ver [`docs/tiendas`](../tiendas/README.md).
 
 - Abrir `index.html` de cada carpeta con el navegador (mejor en ordenador: muchos efectos responden al cursor).
 - Precios, fechas de agenda, ediciones limitadas y formularios son **de ejemplo**: nada se envía ni se cobra.
