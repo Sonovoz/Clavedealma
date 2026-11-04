@@ -1,0 +1,38 @@
+/*
+ * Plantilla base: tiendas que todavía no tienen diseño propio. Neutra, clara y
+ * con la tipografía del sistema. Solo cabecera, portada sencilla, pasarela y pie.
+ */
+@import "./showcase.css";
+
+* { box-sizing: border-box; }
+html { background: var(--sf-bg); }
+body { margin: 0; background: var(--sf-bg); color: var(--sf-ink); font: 400 16px/1.6 var(--sf-font-text); -webkit-font-smoothing: antialiased; overflow-x: clip; }
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+button { font: inherit; }
+
+.base-strip { background: var(--sf-ink); color: #d8d2c8; font: 500 11px/1 var(--sf-font-text); letter-spacing: .18em; text-transform: uppercase; }
+.base-strip .sf-wrap { display: flex; justify-content: space-between; gap: 16px; align-items: center; min-height: 36px; flex-wrap: wrap; }
+.base-strip a { text-decoration: none; }
+.base-head { border-bottom: 1px solid var(--sf-line); }
+.base-head .sf-wrap { display: flex; justify-content: space-between; align-items: center; gap: 20px; min-height: 76px; }
+.base-head__name { font: 400 26px/1 var(--sf-font-display); text-decoration: none; }
+.base-head nav { display: flex; gap: 20px; flex-wrap: wrap; }
+.base-head nav a { text-decoration: none; font-size: 14px; color: var(--sf-muted); }
+.base-head nav a:hover { color: var(--sf-ink); }
+.base-hero { padding-block: clamp(56px, 9vw, 120px); text-align: center; border-bottom: 1px solid var(--sf-line); }
+.base-hero h1 { font-size: clamp(40px, 7vw, 88px); }
+.base-hero p { margin: 18px auto 0; max-width: 56ch; color: var(--sf-muted); font-size: 18px; }
+.base-foot { border-top: 1px solid var(--sf-line); padding-block: 40px; color: var(--sf-muted); font-size: 14px; }
+.base-foot .sf-wrap { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+
+/* Matriz del market */
+.market-hero { padding-block: clamp(64px, 10vw, 140px); text-align: center; }
+.market-hero h1 { font-size: clamp(44px, 8vw, 104px); }
+.market-hero p { color: var(--sf-muted); font-size: 18px; margin: 16px auto 0; max-width: 50ch; }
+.market-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding-bottom: 100px; }
+.market-card { display: grid; gap: 8px; padding: 28px; border: 1px solid var(--sf-line); text-decoration: none; transition: border-color .25s; }
+.market-card:hover { border-color: var(--sf-ink); }
+.market-card h2 { font-size: 30px; }
+.market-card p { margin: 0; color: var(--sf-muted); }
+.market-badge { justify-self: start; font: 600 11px/1 var(--sf-font-text); letter-spacing: .12em; text-transform: uppercase; background: #f2b705; color: #1b1300; padding: 5px 8px; }

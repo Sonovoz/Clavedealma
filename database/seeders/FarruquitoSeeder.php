@@ -56,7 +56,11 @@ class FarruquitoSeeder extends Seeder
                 'commission_bps' => 2500, // ejemplo: pendiente del acuerdo con el artista
                 'tagline' => 'Tienda oficial · Since 1982',
                 'bio' => 'Tienda oficial de Farruquito en Clave de Alma: colecciones On Stage, Artist Voice e Iconic.',
+                'design' => 'farruquito',
             ]);
+            if ($store->design === 'base') {
+                $store->update(['design' => 'farruquito']);
+            }
 
             $orden = 0;
             foreach (self::COLECCIONES as [$nombre, $descripcion]) {
