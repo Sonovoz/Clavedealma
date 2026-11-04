@@ -107,6 +107,7 @@ class InvoicingSettings extends Page
             'missing' => $issuer->missing(),
             'aeatConfigured' => app(VerifactuSender::class)->configured(),
             'production' => (bool) config('invoicing.verifactu.production'),
+            'verifactuEnabled' => (bool) config('invoicing.verifactu.enabled'),
             'count' => Invoice::query()->count(),
         ];
     }

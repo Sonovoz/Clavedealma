@@ -15,7 +15,11 @@ Clave de Alma vende a consumidores y debe emitir factura de cada venta y rectifi
 - **Emisor**: los datos fiscales se rellenan en *Administración → Datos de facturación* y se copian en cada factura. Mientras falten, no se factura: el pedido anota «Factura pendiente» y `facturas:emitir-pendientes` las emite después, en orden.
 - **Inmutables**: una factura no se edita ni se borra. Solo cambia su estado de envío a la AEAT.
 - **Compras de prueba**: no se facturan, para no gastar numeración.
-- **Veri*Factu**:
+- **Veri*Factu desactivado hasta que sea obligatorio** (`VERIFACTU_ENABLED=false`, valor por defecto):
+  - las facturas salen sin QR ni leyenda y no se envían;
+  - la huella encadenada se guarda igualmente;
+  - cada factura recuerda si se emitió con Veri*Factu (columna `verifactu`), así que al activarlo solo cambian las nuevas.
+- **Veri*Factu activado**:
   - Huella SHA-256 con el formato de la AEAT. La prueba la compara con los dos ejemplos oficiales, el primero y el encadenado.
   - Encadenada con el registro anterior.
   - QR de cotejo: entorno de pruebas o de producción (`VERIFACTU_PRODUCTION`).

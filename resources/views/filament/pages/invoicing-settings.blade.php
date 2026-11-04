@@ -20,8 +20,10 @@
 
     <div style="{{ $card }}">
         <div style="font-weight:700;margin-bottom:.5rem">Veri*Factu</div>
-        <div style="{{ $row }}"><span>Registro (huella encadenada y QR)</span><strong style="color:rgb(22,163,74)">Activo en cada factura</strong></div>
-        <div style="{{ $row }}"><span>QR de cotejo</span><strong>{{ $production ? 'Sede de la AEAT (producción)' : 'Entorno de pruebas de la AEAT' }}</strong></div>
+        <div style="{{ $row }}"><span>Estado</span>
+            <strong style="color:{{ $verifactuEnabled ? 'rgb(22,163,74)' : 'rgb(217,119,6)' }}">{{ $verifactuEnabled ? 'Activado: QR, leyenda y envío a la AEAT en las facturas nuevas' : 'Desactivado hasta que sea obligatorio (VERIFACTU_ENABLED)' }}</strong></div>
+        <div style="{{ $row }}"><span>Huella encadenada</span><strong>Se guarda en todas las facturas, para activarlo sin huecos</strong></div>
+        <div style="{{ $row }}"><span>QR de cotejo</span><strong>{{ $verifactuEnabled ? ($production ? 'Sede de la AEAT (producción)' : 'Entorno de pruebas de la AEAT') : 'No se imprime' }}</strong></div>
         <div style="{{ $row }};border:0"><span>Envío de los registros a la AEAT</span>
             <strong style="color:{{ $aeatConfigured ? 'rgb(22,163,74)' : 'rgb(217,119,6)' }}">{{ $aeatConfigured ? 'Configurado' : 'Sin configurar: falta el certificado digital de Clave de Alma' }}</strong></div>
     </div>

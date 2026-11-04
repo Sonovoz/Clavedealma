@@ -34,6 +34,7 @@ use LogicException;
  * @property int $vat_cents
  * @property int $total_cents
  * @property string $currency
+ * @property bool $verifactu
  * @property string $hash
  * @property ?string $previous_hash
  * @property string $record_generated_at
@@ -61,6 +62,7 @@ class Invoice extends Model
             'base_cents' => 'integer',
             'vat_cents' => 'integer',
             'total_cents' => 'integer',
+            'verifactu' => 'boolean',
         ];
     }
 

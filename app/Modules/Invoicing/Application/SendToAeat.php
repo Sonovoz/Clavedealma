@@ -17,6 +17,11 @@ class SendToAeat
 
     public function __invoke(Invoice $invoice): void
     {
+        // Emitida sin Veri*Factu (no era obligatorio): no se envía.
+        if (! $invoice->verifactu) {
+            return;
+        }
+
         try {
             $result = $this->sender->send([
                 'issuer_nif' => $invoice->issuer['nif'] ?? null,

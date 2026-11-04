@@ -101,7 +101,8 @@ it('al cobrar emite la factura simplificada con IVA, envío, numeración y regis
         ->and($invoice->issuer['nif'])->toBe('B00000000')
         ->and($invoice->previous_hash)->toBeNull()
         ->and($invoice->hash)->toBe(Verifactu::hash('B00000000', $invoice->code, $invoice->issueDate(), 'F2', $invoice->vat_cents, $invoice->total_cents, null, $invoice->record_generated_at))
-        ->and($invoice->aeat_status)->toBe(AeatStatus::NotConfigured);
+        ->and($invoice->verifactu)->toBeFalse() // todavía no es obligatorio
+        ->and($invoice->aeat_status)->toBe(AeatStatus::Disabled);
 
     $next = Invoice::query()->where('order_id', $second->id)->sole();
     expect($next->code)->toBe("T{$year}-000002")->and($next->previous_hash)->toBe($invoice->hash);
@@ -142,7 +143,8 @@ it('el cliente descarga su factura; el panel la enseña solo al superadministrad
     $this->get(route('checkout.invoice', [str_repeat('x', 48), $invoice->code]))->assertNotFound();
 
     $html = view('pdf.invoice', InvoiceDocument::data($invoice) + ['generatedAt' => now()])->render();
-    expect($html)->toContain('Factura simplificada')->toContain('B00000000')->toContain('VERI*FACTU')->toContain('data:image/svg+xml;base64,');
+    // Veri*Factu desactivado: ni QR ni leyenda.
+    expect($html)->toContain('Factura simplificada')->toContain('B00000000')->not->toContain('VERI*FACTU')->not->toContain('data:image/svg+xml;base64,');
 
     $this->actingAs(User::factory()->withRole(Role::Superadmin)->create());
     Livewire::test(ViewInvoice::class, ['record' => $invoice->getRouteKey()])->assertOk()->assertSee($invoice->hash)
@@ -152,6 +154,17 @@ it('el cliente descarga su factura; el panel la enseña solo al superadministrad
     $this->actingAs(User::factory()->withRole(Role::CatalogManager)->create());
     $this->get('/admin/facturas')->assertForbidden();
     $this->get('/admin/datos-de-facturacion')->assertForbidden();
+});
+
+it('con Veri*Factu activado las facturas nuevas llevan QR y leyenda y quedan para enviar', function () {
+    config()->set('invoicing.verifactu.enabled', true);
+    datosFiscales();
+    $invoice = Invoice::query()->where('order_id', pedidoCobrado($this)->id)->sole();
+
+    expect($invoice->verifactu)->toBeTrue()
+        ->and($invoice->aeat_status)->toBe(AeatStatus::NotConfigured); // driver «none»: falta el certificado
+    $html = view('pdf.invoice', InvoiceDocument::data($invoice) + ['generatedAt' => now()])->render();
+    expect($html)->toContain('VERI*FACTU')->toContain('data:image/svg+xml;base64,');
 });
 
 it('los datos fiscales se editan en el panel', function () {

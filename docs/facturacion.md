@@ -31,7 +31,14 @@ Los datos se copian en cada factura al emitirla. Cambiarlos después no altera l
 
 ## Veri*Factu
 
-Cada factura lleva su **registro de facturación**:
+**Hoy está desactivado** (`VERIFACTU_ENABLED=false`): Veri*Factu todavía no es obligatorio. Las facturas salen **sin QR ni leyenda** y no se envía nada a la AEAT, porque esa leyenda solo puede aparecer cuando los registros se envían de verdad. Por dentro, cada factura guarda igualmente su huella encadenada, para que al activarlo no haya huecos.
+
+**Cuando Hacienda lo haga obligatorio**:
+1. Se pone `VERIFACTU_ENABLED=true` en el `.env`. Afecta solo a las facturas nuevas: las anteriores no cambian.
+2. Las facturas nuevas llevan el QR y la leyenda **VERI*FACTU**.
+3. Se envían a la AEAT en cuanto esté el driver con el certificado (los pasos están más abajo).
+
+Con Veri*Factu activado, cada factura lleva su **registro de facturación**:
 - una **huella** (SHA-256) encadenada con la del registro anterior, que impide alterar o borrar facturas sin que se note;
 - un **código QR** de cotejo con la AEAT y la leyenda **VERI*FACTU**, al principio del PDF.
 
