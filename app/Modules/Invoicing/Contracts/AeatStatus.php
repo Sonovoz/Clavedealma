@@ -6,6 +6,7 @@ use App\Support\Contracts\HasLabel;
 
 enum AeatStatus: string implements HasLabel
 {
+    case Disabled = 'disabled';
     case Pending = 'pending';
     case NotConfigured = 'not_configured';
     case Accepted = 'accepted';
@@ -15,6 +16,7 @@ enum AeatStatus: string implements HasLabel
     public function label(): string
     {
         return match ($this) {
+            self::Disabled => 'No aplica (Veri*Factu desactivado)',
             self::Pending => 'Pendiente de envío',
             self::NotConfigured => 'Sin enviar (envío a la AEAT sin configurar)',
             self::Accepted => 'Aceptada por la AEAT',
@@ -28,7 +30,7 @@ enum AeatStatus: string implements HasLabel
         return match ($this) {
             self::Accepted => 'success',
             self::AcceptedWithErrors, self::Pending => 'warning',
-            self::NotConfigured => 'gray',
+            self::NotConfigured, self::Disabled => 'gray',
             self::Rejected => 'danger',
         };
     }

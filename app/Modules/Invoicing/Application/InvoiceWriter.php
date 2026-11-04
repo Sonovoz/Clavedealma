@@ -59,11 +59,12 @@ class InvoiceWriter
                 'base_cents' => $base,
                 'vat_cents' => $vat,
                 'total_cents' => $total,
+                'verifactu' => (bool) config('invoicing.verifactu.enabled', false),
                 'hash' => $hash,
                 'previous_hash' => $previous?->hash,
                 'record_generated_at' => $generatedAt,
                 'qr_url' => Verifactu::qrUrl((bool) config('invoicing.verifactu.production', false), (string) $snapshot['nif'], $code, $issueDate, $total),
-                'aeat_status' => AeatStatus::Pending,
+                'aeat_status' => config('invoicing.verifactu.enabled', false) ? AeatStatus::Pending : AeatStatus::Disabled,
             ]);
 
             foreach ($computed as $l) {

@@ -3,7 +3,9 @@
 @section('footer', ($issuer['legal_name'] ?? 'Clave de Alma').' · NIF '.($issuer['nif'] ?? '').' · '.$invoice->code)
 
 @section('content')
-    {{-- Veri*Factu: QR (30-40 mm) y leyenda al principio de la factura (Orden HAC/1177/2024). --}}
+    {{-- Veri*Factu: QR (30-40 mm) y leyenda al principio de la factura (Orden HAC/1177/2024).
+         Solo si la factura se emitió con Veri*Factu activado. --}}
+    @if ($invoice->verifactu)
     <table class="grid" style="margin-bottom:4mm">
         <tr>
             <td style="width:34mm;vertical-align:top"><img src="{{ $qr }}" alt="QR" style="width:32mm;height:32mm"></td>
@@ -13,6 +15,7 @@
             </td>
         </tr>
     </table>
+    @endif
 
     <table class="grid">
         <tr>

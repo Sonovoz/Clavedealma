@@ -29,7 +29,7 @@ final class InvoiceDocument
             'vat' => $m((int) $ls->sum('vat_cents')),
         ])->values()->all();
 
-        $svg = (new Writer(new ImageRenderer(new RendererStyle(150, 1), new SvgImageBackEnd)))->writeString($invoice->qr_url);
+        $svg = $invoice->verifactu ? (new Writer(new ImageRenderer(new RendererStyle(150, 1), new SvgImageBackEnd)))->writeString($invoice->qr_url) : null;
 
         return [
             'invoice' => $invoice,
@@ -46,7 +46,7 @@ final class InvoiceDocument
             'base' => $m($invoice->base_cents),
             'vatTotal' => $m($invoice->vat_cents),
             'total' => $m($invoice->total_cents),
-            'qr' => 'data:image/svg+xml;base64,'.base64_encode($svg),
+            'qr' => $svg === null ? null : 'data:image/svg+xml;base64,'.base64_encode($svg),
         ];
     }
 }
