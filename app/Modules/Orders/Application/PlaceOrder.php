@@ -24,7 +24,7 @@ class PlaceOrder
     public function __invoke(PricedCart $cart, CheckoutDetails $details, ShippingQuote $shipping, bool $test = false): Order
     {
         if ($cart->isEmpty() || $cart->hasProblems()) {
-            throw new InvalidArgumentException('La cesta ha cambiado: revísala antes de pagar.');
+            throw new InvalidArgumentException('El carrito ha cambiado: revísalo antes de pagar.');
         }
 
         $lines = [];

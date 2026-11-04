@@ -84,7 +84,7 @@
                     <p>Hemos cancelado el pedido {{ $order->reference }} y te hemos devuelto {{ $total }} al mismo medio de pago. Según tu banco, puede tardar unos días en verse.</p>
                 @else
                     <p>El pedido {{ $order->reference }} se canceló porque no se completó el pago. No se ha cobrado nada.</p>
-                    <a class="co-btn" href="{{ route('cart.show') }}">Volver a la cesta</a>
+                    <a class="co-btn" href="{{ route('cart.show') }}">Volver al carrito</a>
                 @endif
             @else
                 <h1 class="co-h1">Confirmando el pago…</h1>

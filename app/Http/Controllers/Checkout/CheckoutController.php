@@ -87,7 +87,7 @@ class CheckoutController
     {
         $priced = $this->priced($request);
         if ($priced->isEmpty() || $priced->hasProblems()) {
-            return to_route('cart.show')->with('cart.error', 'La cesta ha cambiado: revísala antes de pagar.');
+            return to_route('cart.show')->with('cart.error', 'El carrito ha cambiado: revísalo antes de pagar.');
         }
 
         $details = $request->details();

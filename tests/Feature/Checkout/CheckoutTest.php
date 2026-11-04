@@ -130,7 +130,7 @@ it('compra completa con pago simulado: pedido pagado, stock descontado, emails y
     Mail::assertSent(NewOrderAlert::class, fn ($m) => $m->hasTo('equipo@clavedealma.test'));
 
     $this->get(route('checkout.thanks', $order->token))->assertOk()->assertSee('Gracias, Ana')->assertSee($order->reference);
-    $this->get(route('cart.show'))->assertSee('Tu cesta está vacía');
+    $this->get(route('cart.show'))->assertSee('Tu carrito está vacío');
 
     // Un segundo aviso del mismo cobro no descuenta otra vez.
     $this->post(route('checkout.simulate', $order->token), ['outcome' => 'ok'])->assertStatus(409);
@@ -203,5 +203,5 @@ it('la ficha tiene el botón de compra y la cabecera cuenta las piezas', functio
         ->assertOk()->assertSee('data-add-form', false)->assertSee(route('cart.add'), false);
 
     $this->postJson(route('cart.add'), ['variant_id' => $this->variant->id, 'quantity' => 2]);
-    $this->get(Urls::home($this->store))->assertSee('Cesta (<span data-cart-count>2</span>)', false);
+    $this->get(Urls::home($this->store))->assertSee('Carrito (<span data-cart-count>2</span>)', false);
 });

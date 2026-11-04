@@ -161,3 +161,28 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .co-legal__body blockquote { margin: 12px 0; padding: 12px 16px; border-left: 3px solid var(--line); color: var(--muted); }
 .co-legal__body code { font: 13px var(--f-mono); }
 .co-legal__body strong { color: var(--ink); }
+
+/* Carrito como WooCommerce */
+.co-cart { overflow-x: auto; }
+.co-cart__table { width: 100%; border-collapse: collapse; }
+.co-cart__table th { text-align: left; font: 400 11px/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); padding: 0 10px 14px; border-bottom: 1px solid var(--line); }
+.co-cart__table td { padding: 16px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.co-cart__table td > a, .co-cart__table td > span { display: block; }
+.co-cart__table tr.has-problem td { opacity: .85; }
+.co-num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.co-cart__thumb { width: 72px; }
+.co-cart__thumb img { width: 64px; aspect-ratio: 4 / 5; object-fit: cover; background: #1a1918; }
+.co-cart__remove { width: 32px; }
+.co-x { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); background: none; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; }
+.co-x:hover { color: #fff; background: var(--red); border-color: var(--red); }
+.co-qty { width: 64px; padding: 9px 6px; border: 1px solid var(--line); background: var(--bg); text-align: center; font-size: 15px; border-radius: 0; }
+.co-cart__actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding-top: 18px; }
+.co-cart__actions .co-btn--ghost { margin-top: 0; min-height: 44px; }
+.co-btn.is-dirty { border-color: var(--ink); }
+.co-calc summary { list-style: none; }
+.co-calc summary::-webkit-details-marker { display: none; }
+.co-calc__form { display: grid; gap: 10px; margin-top: 12px; }
+@media (max-width: 640px) {
+  .co-cart__price, .co-cart__thumb { display: none; }
+  .co-cart__table th, .co-cart__table td { padding-inline: 6px; }
+}

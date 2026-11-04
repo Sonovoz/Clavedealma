@@ -11,6 +11,8 @@ use App\Modules\Catalog\Infrastructure\Models\ProductImage;
 use App\Modules\Catalog\Infrastructure\Models\ProductVariant;
 use App\Modules\Inventory\Contracts\StockMode;
 use App\Modules\Inventory\Infrastructure\Models\StockLevel;
+use App\Modules\Orders\Contracts\OrderStatus;
+use App\Modules\Orders\Infrastructure\Models\OrderLine;
 use App\Modules\Stores\Infrastructure\Models\Store;
 use App\Support\Money;
 use Illuminate\Support\Collection as LaravelCollection;
@@ -22,7 +24,7 @@ use Illuminate\Support\Str;
  * (el equipo puede previsualizar la ficha de un borrador). Devuelve datos listos
  * para pintar; ninguna plantilla calcula precios ni rebajas por su cuenta.
  *
- * @phpstan-type Card array{name: string, reference: ?string, url: string, image: ?string, hover: ?string, price: string, discount: ?array{before: string, percent: int}, colors: list<array{name: string, hex: ?string, swatch: ?string}>, collections: list<string>, garment: ?string, type: string}
+ * @phpstan-type Card array{name: string, reference: ?string, url: string, image: ?string, hover: ?string, price: string, price_cents: int, published: int, sold: int, discount: ?array{before: string, percent: int}, colors: list<array{name: string, hex: ?string, swatch: ?string}>, collections: list<string>, garment: ?string, type: string}
  */
 class StoreCatalog
 {
@@ -63,17 +65,59 @@ class StoreCatalog
             $p->id,
         ];
 
+        $sold = $this->unitsSold($products->modelKeys());
+
         return $products
             ->sortBy(fn (Product $p): array => $order($p))
             ->values()
-            ->map(fn (Product $p): array => $this->card($store, $p))
+            ->map(fn (Product $p): array => $this->card($store, $p, $sold[$p->id] ?? 0))
+            ->all();
+    }
+
+    /**
+     * Productos relacionados (como en WooCommerce): de la misma tienda, primero los que
+     * comparten colección, y los más vendidos antes.
+     *
+     * @return list<Card>
+     */
+    public function related(Store $store, Product $product, int $limit = 4): array
+    {
+        $collections = $product->collections->pluck('slug')->all();
+
+        return collect($this->cards($store))
+            ->reject(fn (array $c): bool => $c['url'] === Urls::product($store, $product->slug))
+            ->sortBy(fn (array $c): array => [array_intersect($c['collections'], $collections) === [] ? 1 : 0, -$c['sold'], -$c['published']])
+            ->take($limit)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Unidades vendidas por artículo (pedidos cobrados): para «Ordenar por popularidad».
+     *
+     * @param  list<int>  $productIds
+     * @return array<int, int>
+     */
+    private function unitsSold(array $productIds): array
+    {
+        if ($productIds === []) {
+            return [];
+        }
+
+        return OrderLine::query()
+            ->whereIn('product_id', $productIds)
+            ->whereHas('order', fn ($q) => $q->whereNotNull('paid_at')->where('status', '!=', OrderStatus::Cancelled))
+            ->selectRaw('product_id, SUM(quantity) as units')
+            ->groupBy('product_id')
+            ->pluck('units', 'product_id')
+            ->map(fn ($u): int => (int) $u)
             ->all();
     }
 
     /**
      * @return Card
      */
-    private function card(Store $store, Product $product): array
+    private function card(Store $store, Product $product, int $sold = 0): array
     {
         $photos = $product->images->where('is_swatch', false)->values();
         $first = $product->variants->first(fn (ProductVariant $v): bool => $v->price_cents === null) ?? $product->variants->first();
@@ -86,6 +130,9 @@ class StoreCatalog
             'image' => $this->url($photos->get(0)?->path),
             'hover' => $this->url($photos->get(1)?->path),
             'price' => Money::fromCents($product->price_cents)->format(),
+            'price_cents' => $product->price_cents,
+            'published' => (int) ($product->published_at?->getTimestamp() ?? $product->created_at?->getTimestamp() ?? 0),
+            'sold' => $sold,
             'discount' => $discount === null ? null : ['before' => Money::fromCents($discount['cents'])->format(), 'percent' => $discount['percent']],
             'colors' => $this->colors($product),
             'collections' => $product->collections->pluck('slug')->all(),

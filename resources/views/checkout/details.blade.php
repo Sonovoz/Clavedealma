@@ -70,7 +70,7 @@
                 <div class="co-totals__total"><dt>Total</dt><dd data-quote-total>{{ $subtotal }}</dd></div>
             </dl>
             <p class="co-fine" data-quote-delivery>IVA incluido.</p>
-            <a class="co-link" href="{{ route('cart.show') }}">Volver a la cesta</a>
+            <a class="co-link" href="{{ route('cart.show') }}">Volver al carrito</a>
         </aside>
     </div>
 @endsection

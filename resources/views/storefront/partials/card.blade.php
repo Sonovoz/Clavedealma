@@ -1,5 +1,5 @@
 {{-- Tarjeta común de la pasarela. Un diseño puede tener la suya en designs/<clave>/card.blade.php --}}
-<a class="sf-card" href="{{ $card['url'] }}" data-card data-collections="{{ implode(' ', $card['collections']) }}" data-type="{{ $card['type'] }}">
+<a class="sf-card" href="{{ $card['url'] }}" data-card data-collections="{{ implode(' ', $card['collections']) }}" data-type="{{ $card['type'] }}" data-price="{{ $card['price_cents'] }}" data-new="{{ $card['published'] }}" data-popular="{{ $card['sold'] }}" data-position="{{ $k }}">
     <div class="sf-card__img">
         @if ($card['image'])
             <img src="{{ $card['image'] }}" alt="{{ $card['name'] }}" loading="lazy">

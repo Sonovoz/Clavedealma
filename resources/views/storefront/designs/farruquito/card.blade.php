@@ -3,7 +3,7 @@
     $etiquetas = ['on-stage' => ['onstage', 'On Stage'], 'artist-voice' => ['artistvoice', 'Artist Voice'], 'iconic' => ['iconic', 'Iconic']];
     $col = $etiquetas[$card['collections'][0] ?? ''] ?? null;
 @endphp
-<article class="prod rv" style="--d:{{ $k % 4 }}" data-card data-collections="{{ implode(' ', $card['collections']) }}" data-type="{{ $card['type'] }}">
+<article class="prod rv" style="--d:{{ $k % 4 }}" data-card data-collections="{{ implode(' ', $card['collections']) }}" data-type="{{ $card['type'] }}" data-price="{{ $card['price_cents'] }}" data-new="{{ $card['published'] }}" data-popular="{{ $card['sold'] }}" data-position="{{ $k }}">
     <a class="prod__vis tilt" href="{{ $card['url'] }}" aria-label="Ver {{ $card['name'] }}">
         @if ($card['reference'])<span class="prod__mod">{{ $card['reference'] }}</span>@endif
         @if ($col)<span class="prod__col prod__col--{{ $col[0] }}">{{ $col[1] }}</span>@endif

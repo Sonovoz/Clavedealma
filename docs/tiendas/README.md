@@ -56,7 +56,7 @@ Los artículos en borrador no aparecen en la pasarela. El equipo puede abrir su 
    Es opcional, y si falta se usa la versión de la plantilla base:
    - `home.blade.php`: secciones propias + `@include('storefront.partials.showcase')`.
    - `collection.blade.php`, `product.blade.php`: incluyen la pasarela o la ficha comunes.
-   - `card.blade.php`: tarjeta con el ambiente del artista. Usa los mismos datos y los atributos `data-card`, `data-collections` y `data-type`.
+   - `card.blade.php`: tarjeta con el ambiente del artista. Usa los mismos datos y los atributos `data-card`, `data-collections`, `data-type`, `data-price`, `data-new`, `data-popular` y `data-position` (los usan los filtros, «Ordenar por» y la paginación).
 3. Crear la hoja de estilos del diseño:
    - Importa `../showcase.css`.
    - Define las variables `--sf-*`: fondo, tinta, acento, líneas, fuentes y color de rebaja.
@@ -71,6 +71,15 @@ Los artículos en borrador no aparecen en la pasarela. El equipo puede abrir su 
 - Puede enlazar a artículos concretos por su modelo (en la portada, `$p('FQ-OS-01')` lleva a la ficha).
 - No calcula precios, rebajas ni disponibilidad: los recibe de la pasarela.
 - No guarda datos de producto en el código. Si una sección necesita un artículo, lo busca por su modelo, y si ese artículo no está publicado, el enlace va a la pasarela.
+
+## Funcionamiento como WooCommerce
+
+La pasarela, la ficha y el carrito siguen los flujos y los nombres de WooCommerce, para que quien venga de WordPress los reconozca. Se copia el funcionamiento, no el aspecto: cada tienda conserva su diseño.
+
+- **Tienda**: «Mostrando 1–12 de N resultados», desplegable «Ordenar por» (predeterminado, popularidad, últimos, precio bajo a alto y alto a bajo) y paginación de 12 en 12. La popularidad son las unidades vendidas en pedidos pagados y no cancelados.
+- **Ficha**: cantidad + «Añadir al carrito», mensaje «N × «Producto» se han añadido a tu carrito. Ver carrito», SKU de la variación, categorías (colecciones) y tienda. Debajo, las pestañas Descripción · Información adicional · Envíos y devoluciones y «Productos relacionados».
+- **Carrito**: tabla con ×, Producto, Precio, Cantidad y Subtotal, botón «Actualizar carrito», y caja «Totales del carrito» con «Calcular envío» y «Finalizar compra».
+- Lo que no se copia es el «precio anterior» escrito a mano: el tachado lo calcula el sistema (ADR 0008).
 
 ## Diseños disponibles
 
