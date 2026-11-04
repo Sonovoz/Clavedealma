@@ -62,6 +62,7 @@ IA: el asistente SEO del panel ya está (ADR 0012, `docs/seo`). Más adelante, s
 | Administración: usuarios, sistema y copias de seguridad | ✓ | — | — | — |
 
 - El catálogo se trabaja siempre **dentro de una tienda**, la que se elige arriba en «Tienda: …». Cada tienda tiene sus propias prendas base.
+- **Ver tienda** abre la tienda en una pestaña nueva. Está junto al selector, en la franja «Tienda: …», y en el listado y la ficha de *Tiendas*. Cada artículo tiene **Ver en la tienda**, que funciona también con borradores y tiendas ocultas, en vista previa para el equipo.
 - El **gestor de catálogo** es equipo interno. Da de alta y edita los artículos de cualquier tienda, pero no ve datos fiscales ni bancarios, ni pedidos o pagos.
 - Los **artistas** solo consultan su información y no pueden editar nada.
 - Las cuentas se crean en *Administración → Usuarios*.

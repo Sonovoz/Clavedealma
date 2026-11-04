@@ -5,6 +5,7 @@ namespace App\Filament\Livewire;
 use App\Filament\Support\ActiveStore;
 use App\Modules\Identity\Infrastructure\Models\User;
 use App\Modules\Stores\Infrastructure\Models\Store;
+use App\Storefront\Urls;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
@@ -39,6 +40,7 @@ class StoreSwitcher extends Component
         return view('filament.livewire.store-switcher', [
             'visible' => $user instanceof User && $user->managesCatalog(),
             'stores' => Store::query()->orderBy('name')->pluck('name', 'id')->all(),
+            'storeUrl' => ($store = ActiveStore::get()) === null ? null : Urls::home($store),
         ]);
     }
 }

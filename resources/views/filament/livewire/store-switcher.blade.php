@@ -8,6 +8,12 @@
                     <option value="{{ $id }}" style="color:#111">{{ $name }}</option>
                 @endforeach
             </select>
+            @if ($storeUrl)
+                <a href="{{ $storeUrl }}" target="_blank" rel="noopener" title="Abrir la tienda en una pestaña nueva"
+                    style="display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .7rem;border-radius:.5rem;border:1px solid rgba(127,127,127,.35);text-decoration:none;color:inherit;font-weight:600">
+                    Ver tienda <span aria-hidden="true">↗</span>
+                </a>
+            @endif
         </label>
     @endif
 </div>
