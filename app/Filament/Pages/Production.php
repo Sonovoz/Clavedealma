@@ -32,13 +32,13 @@ class Production extends Page implements HasTable
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedWrenchScrewdriver;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Operación';
+    protected static string|UnitEnum|null $navigationGroup = 'Comercio';
 
     protected static ?string $navigationLabel = 'Fabricación';
 
     protected static ?string $title = 'Fabricación';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $slug = 'fabricacion';
 

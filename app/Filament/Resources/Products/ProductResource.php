@@ -70,9 +70,11 @@ class ProductResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingBag;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Catálogo';
+    protected static string|UnitEnum|null $navigationGroup = 'Productos';
 
     protected static ?int $navigationSort = 1;
+
+    protected static ?string $navigationLabel = 'Todos los productos';
 
     protected static ?string $modelLabel = 'producto';
 
@@ -108,7 +110,7 @@ class ProductResource extends Resource
                 ->state(fn (?Product $record): string => (string) Store::query()->whereKey($record->store_id ?? ActiveStore::id())->value('name'))
                 ->helperText('Se cambia arriba, en «Tienda». Todo lo que crees aquí va a esta tienda.'),
             Select::make('collections')
-                ->label('Colecciones')
+                ->label('Categorías')
                 ->relationship('collections', 'name', fn (Builder $query) => $query->where('store_id', ActiveStore::id()))
                 ->multiple()
                 ->preload(),

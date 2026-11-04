@@ -49,7 +49,9 @@ class OrderResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingBag;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Ventas';
+    protected static string|UnitEnum|null $navigationGroup = 'Comercio';
+
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $modelLabel = 'pedido';
 
@@ -95,12 +97,14 @@ class OrderResource extends Resource
                 TextColumn::make('status')->label('Estado')->badge()
                     ->formatStateUsing(fn (OrderStatus $state): string => $state->label())
                     ->color(fn (OrderStatus $state): string => $state->color()),
-                IconColumn::make('review_reason')->label('Revisar')->state(fn (Order $record): bool => $record->review_reason !== null)
-                    ->boolean()->trueIcon(Heroicon::OutlinedExclamationTriangle)->trueColor('danger')->falseIcon(null),
+                // Solo se marca lo que hay que revisar; el resto, en blanco.
+                IconColumn::make('review_reason')->label('Revisar')
+                    ->icon(fn (Order $record): ?Heroicon => $record->review_reason !== null ? Heroicon::OutlinedExclamationTriangle : null)
+                    ->color('danger')->tooltip(fn (Order $record): ?string => $record->review_reason),
             ])
             ->filters([
                 SelectFilter::make('status')->label('Estado')->options(Fields::options(OrderStatus::class)),
-                Filter::make('review')->label('A revisar')->query(fn (Builder $q) => $q->whereNotNull('review_reason')),
+                Filter::make('review')->label('A revisar')->query(fn (Builder $query) => $query->whereNotNull('review_reason')),
                 TernaryFilter::make('is_test')->label('Compras de prueba'),
             ])
             ->recordActions([ViewAction::make()])

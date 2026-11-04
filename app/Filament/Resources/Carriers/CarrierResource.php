@@ -30,9 +30,9 @@ class CarrierResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTruck;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Envíos';
+    protected static string|UnitEnum|null $navigationGroup = 'Ajustes';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $modelLabel = 'transportista';
 

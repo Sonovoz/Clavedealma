@@ -2,7 +2,7 @@
 
 Cómo se pasan los artículos reales de cada tienda para que salgan con sus fotos, tallas, colores, detalles y precio sin tocar nada a mano. Se usa igual para la primera carga y para los cambios posteriores.
 
-Los artículos se dan de alta con **la ficha del panel** (*Catálogo → Productos*, apartado 5), siempre dentro de la tienda elegida arriba en «Tienda».
+Los artículos se dan de alta con **la ficha del panel** (*Productos → Todos los productos*, apartado 5), siempre dentro de la tienda elegida arriba en «Tienda».
 
 Para cargas grandes (una colección entera) existe además **la hoja**, que importa el equipo técnico por consola con las mismas reglas que la ficha. La hoja se describe a continuación.
 
@@ -134,7 +134,7 @@ Se trabaja siempre **dentro de una tienda**. Arriba del panel, en **«Tienda: �
 
 El recorrido habitual es:
 
-1. *Catálogo → Prendas base*: crear la prenda, con su composición, cuidados, guía de tallas y peso para el envío.
+1. *Productos → Prendas base*: crear la prenda, con su composición, cuidados, guía de tallas y peso para el envío.
 2. En esa prenda, pulsar **«Crear artículo con esta prenda»**.
 
 La ficha del artículo (superadmin y gestor de catálogo) está organizada en pestañas:
@@ -147,7 +147,7 @@ La ficha del artículo (superadmin y gestor de catálogo) está organizada en pe
 | Precio y fabricación | Precio con IVA, IVA, rebaja en curso (calculada), comisión propia, plazo, personalización y archivo de producción. |
 | Publicación | Estado y, si falta algo para publicar, qué es. |
 
-La composición, los cuidados y la guía de tallas se rellenan en *Catálogo → Prendas base*.
+La composición, los cuidados y la guía de tallas se rellenan en *Productos → Prendas base*.
 
 ## 6. Reglas al volver a importar
 
@@ -159,7 +159,7 @@ La hoja manda, pero sin destruir nada:
 | Variante | Se identifica por `sku`. Las que ya no están en la hoja se **desactivan**, no se borran, porque pueden tener pedidos. |
 | Fotos | Las fotos del ZIP **sustituyen** a las del modelo. Un modelo que no tiene fotos en el ZIP conserva las suyas. |
 | Prendas | Las celdas vacías de la pestaña Prendas no cambian nada. Una prenda que sale en la pestaña Tallas recibe esa guía entera. |
-| Stock | Las `unidades` se aplican mientras la variante solo tenga altas iniciales, es decir, sin ventas, fabricación ni ajustes, o cuando cambia su modo de venta. Si hay stock vivo, la hoja no lo pisa: se avisa y se ajusta en *Operación → Stock*. |
+| Stock | Las `unidades` se aplican mientras la variante solo tenga altas iniciales, es decir, sin ventas, fabricación ni ajustes, o cuando cambia su modo de venta. Si hay stock vivo, la hoja no lo pisa: se avisa y se ajusta en *Productos → Inventario*. |
 | Colecciones y estado | Si la celda está vacía, no se cambian. |
 | Artículo eliminado | Si vuelve en la hoja, se recupera y se avisa. |
 

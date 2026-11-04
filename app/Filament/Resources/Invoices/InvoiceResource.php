@@ -38,7 +38,7 @@ class InvoiceResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Ventas';
+    protected static string|UnitEnum|null $navigationGroup = 'Comercio';
 
     protected static ?string $modelLabel = 'factura';
 
@@ -46,7 +46,7 @@ class InvoiceResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'code';
 
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 4;
 
     public static function canCreate(): bool
     {

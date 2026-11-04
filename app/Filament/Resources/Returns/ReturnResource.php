@@ -36,7 +36,9 @@ class ReturnResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowUturnLeft;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Ventas';
+    protected static string|UnitEnum|null $navigationGroup = 'Comercio';
+
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $modelLabel = 'devolución';
 

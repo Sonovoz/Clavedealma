@@ -41,13 +41,15 @@ class StockLevelResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArchiveBox;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Operación';
+    protected static string|UnitEnum|null $navigationGroup = 'Productos';
+
+    protected static ?int $navigationSort = 4;
 
     protected static ?string $modelLabel = 'stock';
 
-    protected static ?string $pluralModelLabel = 'stock';
+    protected static ?string $pluralModelLabel = 'inventario';
 
-    protected static ?string $navigationLabel = 'Stock';
+    protected static ?string $navigationLabel = 'Inventario';
 
     public static function canCreate(): bool
     {
@@ -80,13 +82,13 @@ class StockLevelResource extends Resource
                 ->join('stores', 'stores.id', '=', 'products.store_id')
                 ->select('stock_levels.*', 'product_variants.sku', 'product_variants.size', 'product_variants.color', 'products.name as product_name', 'stores.name as store_name'))
             ->columns([
-                TextColumn::make('product_name')->label('Producto')->searchable(query: fn (Builder $q, string $search) => $q->where('products.name', 'like', "%{$search}%")),
+                TextColumn::make('product_name')->label('Producto')->searchable(query: fn (Builder $query, string $search) => $query->where('products.name', 'like', "%{$search}%")),
                 TextColumn::make('variant')->label('Variante')->state(fn (StockLevel $record): string => implode(' · ', array_filter([$record->getAttribute('size'), $record->getAttribute('color')]))),
                 TextColumn::make('store_name')->label('Tienda'),
                 TextColumn::make('sku')
                     ->label('SKU')
                     ->toggleable(isToggledHiddenByDefault: true)
-                    ->searchable(query: fn (Builder $q, string $search) => $q->where('product_variants.sku', 'like', "%{$search}%")),
+                    ->searchable(query: fn (Builder $query, string $search) => $query->where('product_variants.sku', 'like', "%{$search}%")),
                 TextColumn::make('mode')->label('Modo')->badge()->formatStateUsing(fn (StockMode $state): string => $state->label())->color(fn (StockMode $state): string => $state === StockMode::OnDemand ? 'gray' : 'info'),
                 TextColumn::make('quantity')
                     ->label('Unidades')
@@ -101,10 +103,10 @@ class StockLevelResource extends Resource
                 SelectFilter::make('store')
                     ->label('Tienda')
                     ->options(fn (): array => Store::query()->orderBy('name')->pluck('name', 'id')->all())
-                    ->query(fn (Builder $q, array $data) => $q->when($data['value'] ?? null, fn (Builder $q, $id) => $q->where('products.store_id', $id))),
+                    ->query(fn (Builder $query, array $data) => $query->when($data['value'] ?? null, fn (Builder $q, $id) => $q->where('products.store_id', $id))),
                 Filter::make('low')
                     ->label('Stock bajo')
-                    ->query(fn (Builder $q) => $q->where('stock_levels.mode', '!=', StockMode::OnDemand->value)
+                    ->query(fn (Builder $query) => $query->where('stock_levels.mode', '!=', StockMode::OnDemand->value)
                         ->whereNotNull('stock_levels.low_stock_threshold')
                         ->whereColumn('stock_levels.quantity', '<=', 'stock_levels.low_stock_threshold')),
             ])

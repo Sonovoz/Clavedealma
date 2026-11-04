@@ -29,13 +29,13 @@ class InvoicingSettings extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Administración';
+    protected static string|UnitEnum|null $navigationGroup = 'Ajustes';
 
     protected static ?string $navigationLabel = 'Datos de facturación';
 
     protected static ?string $title = 'Datos de facturación';
 
-    protected static ?int $navigationSort = 40;
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $slug = 'datos-de-facturacion';
 
@@ -90,7 +90,7 @@ class InvoicingSettings extends Page
                         SecurityLog::record(SecurityEventType::LegalGenerated, "Textos legales generados: {$created} versiones nuevas.");
                     }
                     Notification::make()->title('Datos de facturación guardados')
-                        ->body($created > 0 ? "Textos legales actualizados: {$created} versiones nuevas, pendientes de revisión (Administración → Textos legales)." : 'Los textos legales ya estaban al día.')
+                        ->body($created > 0 ? "Textos legales actualizados: {$created} versiones nuevas, pendientes de revisión (Ajustes → Textos legales)." : 'Los textos legales ya estaban al día.')
                         ->success()->send();
                 }),
             Action::make('issuePending')

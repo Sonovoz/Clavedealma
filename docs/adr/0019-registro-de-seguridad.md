@@ -23,7 +23,7 @@ Hay un registro de seguridad común (`App\Platform\Security`, tabla `security_ev
 - Las entradas no se modifican ni se borran a mano: el modelo lo impide.
 - **Conservación**: 365 días (`SECURITY_LOG_DAYS`). `seguridad:purgar` borra cada noche lo antiguo, porque las IPs son datos personales (RGPD).
 - Si escribir en el registro falla, la acción no se interrumpe: se deja aviso en el log de la aplicación.
-- **Solo lo ve el superadministrador**: *Administración → Registro de seguridad*. El menú enseña cuántos accesos fallidos ha habido en las últimas 24 horas.
+- **Solo lo ve el superadministrador**: *Herramientas → Registro de seguridad*. El menú enseña cuántos accesos fallidos ha habido en las últimas 24 horas.
 
 ## Consecuencias
 

@@ -25,13 +25,13 @@ class System extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Administración';
+    protected static string|UnitEnum|null $navigationGroup = 'Herramientas';
 
-    protected static ?string $navigationLabel = 'Sistema';
+    protected static ?string $navigationLabel = 'Estado del sistema';
 
     protected static ?string $title = 'Sistema';
 
-    protected static ?int $navigationSort = 100;
+    protected static ?int $navigationSort = 4;
 
     protected static ?string $slug = 'sistema';
 

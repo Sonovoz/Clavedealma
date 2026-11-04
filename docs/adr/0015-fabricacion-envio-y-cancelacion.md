@@ -14,9 +14,9 @@ pendiente de pago → pagado → en fabricación → listo para enviar → envia
 
 - **No hay saltos ni vuelta atrás.** Cada paso guarda su fecha y deja constancia en el historial de quién lo hizo.
 - **Quién hace cada paso:**
-  - El **fabricante** empieza la fabricación y marca el pedido como listo, desde *Operación → Fabricación*. En esa pantalla no ve ningún dato del cliente (minimización de datos, RGPD).
+  - El **fabricante** empieza la fabricación y marca el pedido como listo, desde *Comercio → Fabricación*. En esa pantalla no ve ningún dato del cliente (minimización de datos, RGPD).
   - **Clave de Alma** (superadministrador) lo envía con transportista y número de seguimiento, y lo marca entregado. También puede hacer los pasos del fabricante.
-- **El enlace de seguimiento** se forma con la plantilla del transportista (`{codigo}`, en *Envíos → Transportistas*) o se escribe a mano.
+- **El enlace de seguimiento** se forma con la plantilla del transportista (`{codigo}`, en *Ajustes → Transportistas*) o se escribe a mano.
 - **Al enviar** se avisa al cliente (`OrderShipped`). Su página del pedido enseña los pasos y el seguimiento.
 - **Cancelar un pedido pagado:**
   - Solo se puede mientras no haya salido.

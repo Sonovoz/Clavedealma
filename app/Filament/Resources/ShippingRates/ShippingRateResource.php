@@ -29,7 +29,7 @@ use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
 /**
- * Tarifas por destino: transportista elegido por Clave de Alma, baremo por peso,
+ * Zonas de envío (como en WooCommerce): transportista elegido por Clave de Alma, baremo por peso,
  * envío gratis y plazo. Los destinos son fijos (no se crean ni se borran). Solo superadmin.
  */
 class ShippingRateResource extends Resource
@@ -40,15 +40,15 @@ class ShippingRateResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMapPin;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Envíos';
+    protected static string|UnitEnum|null $navigationGroup = 'Ajustes';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
-    protected static ?string $navigationLabel = 'Tarifas por destino';
+    protected static ?string $navigationLabel = 'Zonas de envío';
 
-    protected static ?string $modelLabel = 'tarifa de envío';
+    protected static ?string $modelLabel = 'zona de envío';
 
-    protected static ?string $pluralModelLabel = 'tarifas por destino';
+    protected static ?string $pluralModelLabel = 'zonas de envío';
 
     public static function canCreate(): bool
     {

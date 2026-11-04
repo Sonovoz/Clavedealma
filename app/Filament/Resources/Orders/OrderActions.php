@@ -57,7 +57,7 @@ final class OrderActions
                     ->label('Enlace de seguimiento (opcional)')
                     ->url()
                     ->maxLength(500)
-                    ->helperText('Vacío = se forma solo con el enlace del transportista (Envíos → Transportistas).'),
+                    ->helperText('Vacío = se forma solo con el enlace del transportista (Ajustes → Transportistas).'),
             ])
             ->action(function (Order $record, array $data, AdvanceOrder $advance): void {
                 self::run(fn () => $advance->ship($record, (string) $data['carrier'], (string) $data['tracking_number'], $data['tracking_url'] ?? null, self::who()), 'Pedido enviado: se ha avisado al cliente');

@@ -11,9 +11,9 @@ Cada documento separa los datos (`App\Platform\Documents\*`, sin HTML) de la pla
 
 | Documento | Quién | Dónde | Datos del cliente |
 | --- | --- | --- | --- |
-| Orden de fabricación (un pedido) y hoja de fabricación (todo lo pendiente, con totales por SKU) | Fabricante y superadmin | *Operación → Fabricación*, ficha del pedido | **No** |
+| Orden de fabricación (un pedido) y hoja de fabricación (todo lo pendiente, con totales por SKU) | Fabricante y superadmin | *Comercio → Fabricación*, ficha del pedido | **No** |
 | Albarán de envío (va en el paquete) | Superadmin | Ficha del pedido → PDF | Dirección y teléfono. Sin precios |
-| Estado de los envíos | Superadmin | *Ventas → Pedidos*, *Ventas → Informes* | Nombre y destino |
-| Informe de ventas por periodo | Superadmin | *Ventas → Informes* | No |
+| Estado de los envíos | Superadmin | *Comercio → Pedidos*, *Análisis → Informes* | Nombre y destino |
+| Informe de ventas por periodo | Superadmin | *Análisis → Informes* | No |
 
 **El informe de ventas es informativo.** Cuenta por fecha de pago y no incluye las compras de prueba, salvo que se marque. La comisión es una estimación: sale de la comisión guardada en cada línea, sobre el precio sin IVA y sin envío, y antes de descontar devoluciones. No sustituye a las facturas ni a las liquidaciones de la fase 6.

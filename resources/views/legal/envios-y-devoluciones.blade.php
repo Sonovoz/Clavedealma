@@ -7,7 +7,7 @@
 Elegimos la empresa de transporte de cada destino. El precio del envío depende del **destino y del peso del pedido** y se indica antes de pagar.
 
 @if ($shipping === [])
-{!! $f(null, 'tarifas de envío activas (Envíos → Tarifas por destino)') !!}
+{!! $f(null, 'tarifas de envío activas (Ajustes → Zonas de envío)') !!}
 @else
 | Destino | Envío desde | Envío gratis | Entrega después de fabricar |
 | --- | --- | --- | --- |

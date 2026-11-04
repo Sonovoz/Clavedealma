@@ -37,7 +37,7 @@ Tras probar el panel, los fundadores pidieron tres cosas:
 - Por destino: el transportista elegido (el cliente no lo elige), un baremo por peso con tramos «hasta X kg → precio con IVA», envío gratis desde un importe y el plazo.
 - `QuoteShipping` calcula el precio a partir del destino, el peso total y el importe.
   - El peso sale de «Peso para el envío» de cada prenda base.
-  - El baremo exacto lo definirá Clave de Alma en el panel, *Envíos → Tarifas por destino*. Nada viene inventado: los destinos nacen desactivados y sin tarifa.
+  - El baremo exacto lo definirá Clave de Alma en el panel, *Ajustes → Zonas de envío*. Nada viene inventado: los destinos nacen desactivados y sin tarifa.
 
 ## Consecuencias
 

@@ -38,13 +38,13 @@ class Backups extends Page implements HasTable
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCircleStack;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Administración';
+    protected static string|UnitEnum|null $navigationGroup = 'Herramientas';
 
     protected static ?string $navigationLabel = 'Copias de seguridad';
 
     protected static ?string $title = 'Copias de seguridad';
 
-    protected static ?int $navigationSort = 50;
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $slug = 'copias-de-seguridad';
 

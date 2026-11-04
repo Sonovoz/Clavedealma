@@ -37,13 +37,13 @@ class LegalTexts extends Page implements HasTable
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedScale;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Administración';
+    protected static string|UnitEnum|null $navigationGroup = 'Ajustes';
 
     protected static ?string $navigationLabel = 'Textos legales';
 
     protected static ?string $title = 'Textos legales';
 
-    protected static ?int $navigationSort = 45;
+    protected static ?int $navigationSort = 4;
 
     protected static ?string $slug = 'textos-legales';
 
@@ -117,16 +117,16 @@ class LegalTexts extends Page implements HasTable
             ->filters([
                 SelectFilter::make('scope')->label('De')
                     ->options(['market' => 'Clave de Alma'] + $stores->mapWithKeys(fn ($name, $id): array => [(string) $id => $name])->all())
-                    ->query(fn (Builder $q, array $data) => match ($data['value'] ?? null) {
-                        null, '' => $q,
-                        'market' => $q->whereNull('store_id'),
-                        default => $q->where('store_id', (int) $data['value']),
+                    ->query(fn (Builder $query, array $data) => match ($data['value'] ?? null) {
+                        null, '' => $query,
+                        'market' => $query->whereNull('store_id'),
+                        default => $query->where('store_id', (int) $data['value']),
                     }),
                 SelectFilter::make('state')->label('Estado')->options(['draft' => 'Borrador', 'approved' => 'Revisado'])
-                    ->query(fn (Builder $q, array $data) => match ($data['value'] ?? null) {
-                        'draft' => $q->whereNull('approved_at'),
-                        'approved' => $q->whereNotNull('approved_at'),
-                        default => $q,
+                    ->query(fn (Builder $query, array $data) => match ($data['value'] ?? null) {
+                        'draft' => $query->whereNull('approved_at'),
+                        'approved' => $query->whereNotNull('approved_at'),
+                        default => $query,
                     }),
             ])
             ->recordActions([
@@ -164,6 +164,6 @@ class LegalTexts extends Page implements HasTable
             ])
             ->defaultSort('store_id')
             ->emptyStateHeading('Todavía no hay textos legales')
-            ->emptyStateDescription('Se generan al guardar los datos fiscales (Administración → Datos de facturación) o con «Regenerar textos».');
+            ->emptyStateDescription('Se generan al guardar los datos fiscales (Ajustes → Datos de facturación) o con «Regenerar textos».');
     }
 }

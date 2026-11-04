@@ -38,7 +38,7 @@ class BaseGarmentResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSwatch;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Catálogo';
+    protected static string|UnitEnum|null $navigationGroup = 'Productos';
 
     protected static ?int $navigationSort = 3;
 
@@ -82,7 +82,7 @@ class BaseGarmentResource extends Resource
                 ]),
 
             Section::make('Envío')
-                ->description('El precio del envío lo calcula el baremo de cada destino (Envíos → Tarifas) con el peso del pedido.')
+                ->description('El precio del envío lo calcula el baremo de cada destino (Ajustes → Zonas de envío) con el peso del pedido.')
                 ->columnSpanFull()
                 ->schema([
                     TextInput::make('weight_grams')
