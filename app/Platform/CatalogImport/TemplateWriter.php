@@ -2,14 +2,15 @@
 
 namespace App\Platform\CatalogImport;
 
+use Illuminate\Support\Str;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Entity\SheetView;
 use OpenSpout\Writer\XLSX\Writer;
 
 /**
- * Genera la hoja del protocolo (.xlsx): pestaña "Artículos" con las columnas
- * y pestaña "Instrucciones". Todas las celdas van como texto para que la hoja
+ * Genera la hoja del protocolo (.xlsx): pestañas "Artículos", "Prendas", "Tallas"
+ * e "Instrucciones". Todas las celdas van como texto para que la hoja
  * de cálculo no convierta "5-7" en una fecha ni "39,90" en otro número.
  */
 class TemplateWriter
@@ -18,6 +19,10 @@ class TemplateWriter
     public const NOTES = [
         'Una fila por variante (cada combinación de talla y color). Los datos del producto se repiten en sus filas o se dejan vacíos desde la segunda.',
         'Fotos en un ZIP aparte, con este nombre: MODELO_NN.jpg (fotos generales) o MODELO_COLOR_NN.jpg (fotos de un color). Ej.: FQ-OS-01_01.jpg, FQ-OS-01_NEGRO_02.jpg.',
+        'La foto número 00 de un color es su muestra de tejido (el botón para elegir el color): FQ-OS-01_NEGRO_00.jpg.',
+        'Pestaña Prendas: la ficha textil (composición, cuidados, corte…) de cada prenda base. Se escribe una vez y la heredan todos sus artículos. Sin composición no se puede publicar.',
+        'Pestaña Tallas: la guía de tallas, una fila por prenda y talla, con las medidas en cm tomadas en plano.',
+        'Para publicar hacen falta precio, una variante, una foto y una prenda base con composición. Si falta algo en un artículo publicado, la importación da error.',
         'Formatos JPG, PNG o WEBP; máximo 8 MB por foto. Recomendado: 1600 px por el lado largo, fondo limpio y la misma proporción en todas (4:5).',
         'Las fotos que se suben sustituyen a las que tenía el modelo. Si un modelo no tiene fotos en el ZIP, conserva las suyas.',
         'Volver a importar la misma hoja actualiza los artículos: no duplica nada. Las variantes que desaparecen de la hoja se desactivan (no se borran).',
@@ -26,9 +31,11 @@ class TemplateWriter
     ];
 
     /**
-     * @param  list<array<string, string>>  $rows  filas con las claves de Columns::ALL
+     * @param  list<array<string, string>>  $rows  artículos, con las claves de Columns::ALL
+     * @param  list<array<string, string>>  $garments  prendas, con las claves de Columns::GARMENTS
+     * @param  list<array<string, string>>  $sizes  guía de tallas, con las claves de Columns::SIZES
      */
-    public function write(string $path, array $rows = []): void
+    public function write(string $path, array $rows = [], array $garments = [], array $sizes = []): void
     {
         $writer = new Writer;
         $writer->openToFile($path);
@@ -47,6 +54,19 @@ class TemplateWriter
             $writer->addRow(Row::fromValues(array_map(fn (string $c): string => $row[$c] ?? '', Columns::names())));
         }
 
+        foreach (['Prendas' => [Columns::GARMENTS, $garments], 'Tallas' => [Columns::SIZES, $sizes]] as $name => [$columns, $data]) {
+            $sheet = $writer->addNewSheetAndMakeItCurrent();
+            $sheet->setName($name);
+            $sheet->setSheetView((new SheetView)->setFreezeRow(2));
+            foreach (array_keys($columns) as $i => $column) {
+                $sheet->setColumnWidth(in_array($column, ['composicion', 'cuidados', 'nombre', 'tejido', 'nota_tallas'], true) ? 30 : 12, $i + 1);
+            }
+            $writer->addRow(Row::fromValues(array_keys($columns), $header));
+            foreach ($data as $row) {
+                $writer->addRow(Row::fromValues(array_map(fn (string $c): string => $row[$c] ?? '', array_keys($columns))));
+            }
+        }
+
         $help = $writer->addNewSheetAndMakeItCurrent();
         $help->setName('Instrucciones');
         $help->setColumnWidth(16, 1);
@@ -58,6 +78,13 @@ class TemplateWriter
         $writer->addRow(Row::fromValues(['Columna', 'Obligatoria', 'Nivel', 'Qué poner', 'Ejemplo'], $header));
         foreach (Columns::ALL as $name => [$required, $level, $text, $example]) {
             $writer->addRow(Row::fromValues([$name, $required ? 'sí' : 'no', $level, $text, $example], $wrap));
+        }
+        foreach (['Prendas' => Columns::GARMENTS, 'Tallas' => Columns::SIZES] as $tab => $columns) {
+            $writer->addRow(Row::fromValues([]));
+            $writer->addRow(Row::fromValues(['Pestaña '.$tab], $bold));
+            foreach ($columns as $name => [$required, $text, $example]) {
+                $writer->addRow(Row::fromValues([$name, $required ? 'sí' : 'no', Str::lower($tab), $text, $example], $wrap));
+            }
         }
         $writer->addRow(Row::fromValues([]));
         $writer->addRow(Row::fromValues(['Notas'], $bold));

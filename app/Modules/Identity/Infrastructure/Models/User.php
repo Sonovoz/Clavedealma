@@ -42,4 +42,10 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->hasRole(Role::Superadmin->value);
     }
+
+    /** Superadministrador o gestor de catálogo: altas y cambios de artículos. */
+    public function managesCatalog(): bool
+    {
+        return $this->hasAnyRole([Role::Superadmin->value, Role::CatalogManager->value]);
+    }
 }

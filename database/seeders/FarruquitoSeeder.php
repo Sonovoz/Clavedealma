@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Modules\Catalog\Infrastructure\Models\BaseGarment;
 use App\Modules\Catalog\Infrastructure\Models\Collection;
 use App\Modules\Stores\Contracts\StoreStatus;
 use App\Modules\Stores\Infrastructure\Models\Artist;
@@ -19,27 +18,16 @@ use RuntimeException;
  *
  *   php artisan db:seed --class=FarruquitoSeeder
  *
- * Crea el artista, la tienda (OCULTA), las prendas base y las colecciones, y da de alta
- * los artículos con el importador del protocolo, igual que se hará con los reales:
- * database/seeders/data/farruquito/articulos.xlsx + fotos/ (ver docs/protocolo).
+ * Crea el artista, la tienda (OCULTA) y las colecciones, y da de alta prendas base y
+ * artículos con el importador del protocolo, igual que se hará con los reales:
+ * database/seeders/data/farruquito/articulos.xlsx (pestañas Artículos y Prendas) + fotos/.
  *
- * Los PRECIOS, la COMISIÓN y las UNIDADES son de ejemplo, para ver el sistema funcionando.
+ * PRECIOS, COMISIÓN, UNIDADES, COMPOSICIÓN y CUIDADOS son de ejemplo, para ver el sistema
+ * funcionando. La guía de tallas queda vacía hasta tener las medidas reales.
  * Se puede ejecutar varias veces: no duplica nada. No se ejecuta en producción.
  */
 class FarruquitoSeeder extends Seeder
 {
-    /** @var array<string, array{0: string, 1: string}> */
-    private const PRENDAS = [
-        'FQ-CAM-OS' => ['Camiseta oversize 280 g', 'Algodón 280 g/m² · 100 % natural'],
-        'FQ-CAM-BOXY' => ['Camiseta boxy oversize', 'Algodón premium'],
-        'FQ-CAM-REG' => ['Camiseta regular fit', 'Algodón premium de tacto suave'],
-        'FQ-SUD-FELPA' => ['Sudadera de felpa 280 g', 'Felpa 280 g/m² · 100 % algodón'],
-        'FQ-SUD-CREW' => ['Sudadera crewneck', 'Felpa de algodón premium'],
-        'FQ-SUD-HOOD' => ['Sudadera hoodie', 'Felpa de algodón premium'],
-        'FQ-GOR-DAD' => ['Gorra dad cap', 'Algodón · cierre ajustable'],
-        'FQ-TOTE' => ['Tote bag', 'Canvas de algodón 340 g/m²'],
-    ];
-
     /** @var array<string, array{0: string, 1: string}> nombre y descripción de cada colección */
     private const COLECCIONES = [
         'onstage' => ['On Stage', 'Serás Farruquito · El Musical. Dos lenguajes, una misma verdad: el arte hecho legado.'],
@@ -69,10 +57,6 @@ class FarruquitoSeeder extends Seeder
                 'tagline' => 'Tienda oficial · Since 1982',
                 'bio' => 'Tienda oficial de Farruquito en Clave de Alma: colecciones On Stage, Artist Voice e Iconic.',
             ]);
-
-            foreach (self::PRENDAS as $codigo => [$nombre, $material]) {
-                BaseGarment::query()->firstOrCreate(['code' => $codigo], ['name' => $nombre, 'material' => $material]);
-            }
 
             $orden = 0;
             foreach (self::COLECCIONES as [$nombre, $descripcion]) {

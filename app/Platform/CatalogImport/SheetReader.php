@@ -4,20 +4,35 @@ namespace App\Platform\CatalogImport;
 
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use OpenSpout\Common\Entity\Row;
 use OpenSpout\Reader\CSV\Options as CsvOptions;
 use OpenSpout\Reader\CSV\Reader as CsvReader;
 use OpenSpout\Reader\XLSX\Reader as XlsxReader;
 
 /**
- * Lee la hoja de artículos (.xlsx o .csv) y devuelve una fila por variante,
- * con las cabeceras normalizadas (minúsculas, sin tildes, espacios como "_").
+ * Lee la hoja de artículos (.xlsx o .csv): una fila por variante, con las cabeceras
+ * normalizadas (minúsculas, sin tildes, espacios como "_"). En .xlsx lee también
+ * las pestañas opcionales "Prendas" y "Tallas".
  */
 class SheetReader
 {
     /**
+     * Solo la primera hoja (artículos).
+     *
      * @return list<array{fila: int, datos: array<string, string>}>
      */
     public function read(string $path, ?string $extension = null): array
+    {
+        return $this->readAll($path, $extension)['articulos'];
+    }
+
+    /**
+     * Pestañas del libro: la primera son los artículos; "Prendas" y "Tallas" se buscan
+     * por nombre (sin distinguir mayúsculas ni tildes). Un .csv solo tiene artículos.
+     *
+     * @return array{articulos: list<array{fila: int, datos: array<string, string>}>, prendas: list<array{fila: int, datos: array<string, string>}>, tallas: list<array{fila: int, datos: array<string, string>}>}
+     */
+    public function readAll(string $path, ?string $extension = null): array
     {
         $extension = strtolower($extension ?? pathinfo($path, PATHINFO_EXTENSION));
 
@@ -28,34 +43,52 @@ class SheetReader
         };
 
         $reader->open($path);
-        $filas = [];
-        $cabeceras = null;
+        $out = ['articulos' => [], 'prendas' => [], 'tallas' => []];
+        $first = true;
 
         foreach ($reader->getSheetIterator() as $hoja) {
-            foreach ($hoja->getRowIterator() as $numero => $row) {
-                $valores = array_map(fn ($v): string => $this->texto($v), $row->toArray());
-
-                if ($cabeceras === null) {
-                    $cabeceras = array_map(fn (string $c): string => $this->cabecera($c), $valores);
-
-                    continue;
-                }
-                if (implode('', $valores) === '') {
-                    continue; // fila vacía
-                }
-
-                $datos = [];
-                foreach ($cabeceras as $k => $cabecera) {
-                    if ($cabecera !== '') {
-                        $datos[$cabecera] = trim($valores[$k] ?? '');
-                    }
-                }
-                $filas[] = ['fila' => (int) $numero, 'datos' => $datos];
+            $name = $first ? 'articulos' : $this->cabecera($hoja->getName());
+            $first = false;
+            if (! array_key_exists($name, $out)) {
+                continue; // p. ej. la pestaña de instrucciones
             }
-            break; // solo la primera hoja: la segunda es la de instrucciones
+            $out[$name] = $this->rows($hoja->getRowIterator());
         }
 
         $reader->close();
+
+        return $out;
+    }
+
+    /**
+     * @param  iterable<int, Row>  $rowIterator
+     * @return list<array{fila: int, datos: array<string, string>}>
+     */
+    private function rows(iterable $rowIterator): array
+    {
+        $filas = [];
+        $cabeceras = null;
+
+        foreach ($rowIterator as $numero => $row) {
+            $valores = array_map(fn ($v): string => $this->texto($v), $row->toArray());
+
+            if ($cabeceras === null) {
+                $cabeceras = array_map(fn (string $c): string => $this->cabecera($c), $valores);
+
+                continue;
+            }
+            if (implode('', $valores) === '') {
+                continue; // fila vacía
+            }
+
+            $datos = [];
+            foreach ($cabeceras as $k => $cabecera) {
+                if ($cabecera !== '') {
+                    $datos[$cabecera] = trim($valores[$k] ?? '');
+                }
+            }
+            $filas[] = ['fila' => (int) $numero, 'datos' => $datos];
+        }
 
         return $filas;
     }

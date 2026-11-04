@@ -20,6 +20,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0005](adr/0005-dinero-y-porcentajes-enteros.md) | Dinero en céntimos y porcentajes en puntos básicos |
 | [0006](adr/0006-eventos-entre-modulos.md) | Los módulos se comunican con eventos |
 | [0007](adr/0007-protocolo-de-articulos.md) | Alta de artículos con hoja y fotos de nombre fijo |
+| [0008](adr/0008-ficha-de-articulo.md) | Ficha de artículo, ficha textil y precio de referencia de las rebajas |
 
 ## Orden de construcción
 
@@ -37,15 +38,19 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 
 `app/Modules/`: Identity, Stores, Catalog, Inventory, Cart, Orders, Payments, Production, Shipping, Returns, Settlements, Invoicing, Notifications, Audit. Existen ya `Identity`, `Stores`, `Catalog` e `Inventory`; el resto se crea al llegar a su fase, con la misma estructura de carpetas.
 
-## Panel por rol (fase 2)
+## Panel por rol
 
-| Sección | Superadmin | Fabricante | Artista |
-| --- | --- | --- | --- |
-| Tiendas: artistas y tiendas | ✓ | — | — |
-| Catálogo: productos, colecciones, prendas base | ✓ | — | — |
-| Catálogo: importar artículos | ✓ | — | — |
-| Operación: stock | ✓ | ✓ | — |
-| Administración: sistema | ✓ | — | — |
+| Sección | Superadmin | Gestor de catálogo | Fabricante | Artista |
+| --- | --- | --- | --- | --- |
+| Tiendas: artistas y tiendas (datos fiscales) | ✓ | — | — | — |
+| Catálogo de todas las tiendas: productos, colecciones, prendas base | ✓ | ✓ | — | — |
+| Catálogo: importar artículos | ✓ | ✓ | — | — |
+| Operación: stock | ✓ | — | ✓ | — |
+| Administración: usuarios y sistema | ✓ | — | — | — |
+
+- El **gestor de catálogo** es equipo interno. Da de alta y edita los artículos de cualquier tienda, pero no ve datos fiscales ni bancarios, ni pedidos o pagos.
+- Los **artistas** solo consultan su información y no pueden editar nada.
+- Las cuentas se crean en *Administración → Usuarios*.
 
 ## Datos de demostración
 

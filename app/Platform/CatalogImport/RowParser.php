@@ -4,6 +4,7 @@ namespace App\Platform\CatalogImport;
 
 use App\Modules\Catalog\Contracts\ProductStatus;
 use App\Modules\Catalog\Domain\LeadTime;
+use App\Modules\Catalog\Domain\SizeScale;
 use App\Modules\Inventory\Contracts\StockMode;
 use App\Support\Money;
 use Illuminate\Support\Str;
@@ -14,7 +15,7 @@ use InvalidArgumentException;
  * validando cada valor. No toca la base de datos.
  *
  * @phpstan-type VariantDraft array{fila: int, talla: ?string, color: ?string, color_hex: ?string, precio: int, sku: ?string, venta: StockMode, unidades: ?int, aviso: ?int}
- * @phpstan-type ProductDraft array{fila: int, tienda: string, modelo: string, nombre: string, colecciones: ?list<string>, prenda: ?string, iva: int, comision: ?int, descripcion: ?string, plazo: array{0: int, 1: int}, personalizado: bool, estado: ?ProductStatus, variantes: list<VariantDraft>}
+ * @phpstan-type ProductDraft array{fila: int, tienda: string, modelo: string, nombre: string, colecciones: ?list<string>, prenda: ?string, iva: int, comision: ?int, descripcion: ?string, info_modelo: ?string, plazo: array{0: int, 1: int}, personalizado: bool, estado: ?ProductStatus, variantes: list<VariantDraft>}
  */
 class RowParser
 {
@@ -130,7 +131,7 @@ class RowParser
     {
         $errores = count($report->errors);
 
-        $talla = ($d['talla'] ?? '') === '' ? null : Str::upper($d['talla']);
+        $talla = SizeScale::normalize($d['talla'] ?? null);
         if ($talla !== null && mb_strlen($talla) > 20) {
             $report->error($fila, 'talla', 'La talla no puede pasar de 20 caracteres.');
         }
@@ -254,6 +255,7 @@ class RowParser
             'iva' => (int) $iva,
             'comision' => $comision,
             'descripcion' => $valor('descripcion') === '' ? null : $this->html($valor('descripcion')),
+            'info_modelo' => $valor('info_modelo') === '' ? null : Str::limit($valor('info_modelo'), 255, ''),
             'plazo' => $plazo,
             'personalizado' => $personalizado,
             'estado' => $estado,

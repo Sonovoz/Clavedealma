@@ -6,11 +6,11 @@ use App\Modules\Identity\Database\Seeders\SuperadminSeeder;
 use App\Modules\Identity\Infrastructure\Models\User;
 use Spatie\Permission\Models\Role as RoleModel;
 
-it('crea los cuatro roles y es idempotente', function () {
+it('crea los cinco roles y es idempotente', function () {
     $this->seed(RolesSeeder::class);
 
     expect(RoleModel::pluck('name')->sort()->values()->all())
-        ->toBe(['artista', 'cliente', 'fabricante', 'superadmin']);
+        ->toBe(['artista', 'cliente', 'fabricante', 'gestor_catalogo', 'superadmin']);
 });
 
 it('crea el superadministrador con los datos del .env', function () {

@@ -2,16 +2,15 @@
 
 namespace App\Platform\CatalogImport;
 
+use App\Modules\Catalog\Application\PublicationCheck;
 use App\Modules\Catalog\Contracts\ProductStatus;
 use App\Modules\Catalog\Domain\Sku;
 use App\Modules\Catalog\Infrastructure\Models\BaseGarment;
 use App\Modules\Catalog\Infrastructure\Models\Collection;
 use App\Modules\Catalog\Infrastructure\Models\Product;
 use App\Modules\Catalog\Infrastructure\Models\ProductVariant;
-use App\Modules\Inventory\Application\AdjustStock;
+use App\Modules\Inventory\Application\SetStockMode;
 use App\Modules\Inventory\Contracts\StockMode;
-use App\Modules\Inventory\Contracts\StockMovementReason;
-use App\Modules\Inventory\Infrastructure\Models\StockLevel;
 use App\Modules\Stores\Infrastructure\Models\Store;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -27,6 +26,8 @@ use Throwable;
  *
  * @phpstan-import-type ProductDraft from RowParser
  * @phpstan-import-type VariantDraft from RowParser
+ * @phpstan-import-type GarmentDraft from GarmentParser
+ * @phpstan-import-type SizeDraft from GarmentParser
  *
  * @phpstan-type Photo array{nombre: string, ruta: string, color: ?string, n: int}
  * @phpstan-type StockTask array{variant_id: int, existed: bool, sku: string, fila: int, venta: StockMode, unidades: ?int, aviso: ?int}
@@ -55,7 +56,9 @@ class CatalogImporter
     public function __construct(
         private readonly SheetReader $reader,
         private readonly RowParser $parser,
-        private readonly AdjustStock $adjustStock,
+        private readonly GarmentParser $garmentParser,
+        private readonly PublicationCheck $publicationCheck,
+        private readonly SetStockMode $setStockMode,
     ) {}
 
     public function import(string $sheetPath, ?PhotoSet $photos = null, bool $apply = false, ?int $userId = null, ?string $extension = null): ImportReport
@@ -64,15 +67,18 @@ class CatalogImporter
         $report = new ImportReport;
 
         try {
-            $rows = $this->reader->read($sheetPath, $extension);
+            $book = $this->reader->readAll($sheetPath, $extension);
         } catch (Throwable $e) {
             $report->error(null, 'hoja', 'No se puede leer la hoja: '.$e->getMessage());
 
             return $report;
         }
-        $report->summary['filas'] = count($rows);
+        $report->summary['filas'] = count($book['articulos']);
 
-        $products = $this->parser->parse($rows, $report);
+        $garments = $this->garmentParser->garments($book['prendas'], $report);
+        $sizes = $this->garmentParser->sizes($book['tallas'], $report);
+        $this->checkGarments($garments, $sizes, $report);
+        $products = $this->parser->parse($book['articulos'], $report);
         $stores = $this->checkDatabase($products, $report);
         $plan = $photos !== null ? $this->matchPhotos($products, $photos, $report) : [];
 
@@ -82,6 +88,7 @@ class CatalogImporter
 
         DB::beginTransaction();
         try {
+            $this->saveGarments($garments, $sizes, $report);
             $position = 0;
             foreach ($products as $key => $draft) {
                 $this->saveProduct($draft, $stores[$draft['tienda']], $plan[$key] ?? null, $photos !== null, $position++, $report);
@@ -90,6 +97,13 @@ class CatalogImporter
             DB::rollBack();
             report($e);
             $report->error(null, 'hoja', 'La importación no se ha podido completar y no se ha cambiado nada: '.$e->getMessage());
+
+            return $report;
+        }
+
+        // Todo o nada: un artículo que no se puede publicar para la importación entera.
+        if ($report->hasErrors()) {
+            DB::rollBack();
 
             return $report;
         }
@@ -114,6 +128,74 @@ class CatalogImporter
         $this->checkStock($report, simulate: false, userId: $userId);
 
         return $report;
+    }
+
+    /**
+     * Las tallas de la guía deben ser de una prenda de la pestaña Prendas o ya existente.
+     *
+     * @param  array<string, GarmentDraft>  $garments
+     * @param  array<string, list<SizeDraft>>  $sizes
+     */
+    private function checkGarments(array $garments, array $sizes, ImportReport $report): void
+    {
+        $known = BaseGarment::query()->whereIn('code', array_keys($sizes + $garments))->pluck('code')->all();
+        foreach ($garments as $code => $garment) {
+            if ($garment['nombre'] === null && ! in_array($code, $known, true)) {
+                $report->error($garment['fila'], 'Prendas · nombre', "La prenda {$code} es nueva: necesita nombre.");
+            }
+        }
+        foreach ($sizes as $code => $rows) {
+            if (! isset($garments[$code]) && ! in_array($code, $known, true)) {
+                $report->error($rows[0]['fila'], 'Tallas · prenda', "La prenda {$code} no existe ni está en la pestaña Prendas.");
+            }
+        }
+    }
+
+    /**
+     * Ficha textil y guía de tallas. En Prendas, una celda vacía no cambia el dato;
+     * en Tallas, la guía de cada prenda que aparece se sustituye entera.
+     *
+     * @param  array<string, GarmentDraft>  $garments
+     * @param  array<string, list<SizeDraft>>  $sizes
+     */
+    private function saveGarments(array $garments, array $sizes, ImportReport $report): void
+    {
+        foreach ($garments as $code => $draft) {
+            $garment = BaseGarment::query()->firstWhere('code', $code);
+            $isNew = $garment === null;
+            $garment ??= new BaseGarment(['code' => $code]);
+            $garment->fill(array_filter([
+                'name' => $draft['nombre'],
+                'material' => $draft['tejido'],
+                'composition' => $draft['composicion'],
+                'fit' => $draft['corte'],
+                'care' => $draft['cuidados'],
+                'origin_country' => $draft['pais'],
+                'weight_grams' => $draft['peso'],
+                'size_guide_note' => $draft['nota_tallas'],
+            ], fn ($v): bool => $v !== null));
+            if ($isNew) {
+                $report->count('prendas_nuevas');
+            } elseif ($garment->isDirty()) {
+                $report->count('prendas_actualizadas');
+            }
+            $garment->save();
+        }
+
+        foreach ($sizes as $code => $rows) {
+            $garment = BaseGarment::query()->where('code', $code)->firstOrFail();
+            $garment->sizes()->delete();
+            foreach ($rows as $position => $row) {
+                $garment->sizes()->create([
+                    'size' => $row['talla'],
+                    'position' => $position,
+                    'chest_cm' => $row['pecho'],
+                    'length_cm' => $row['largo'],
+                    'sleeve_cm' => $row['manga'],
+                ]);
+            }
+            $report->count('tallas_guia', count($rows));
+        }
     }
 
     /**
@@ -233,6 +315,11 @@ class CatalogImporter
                     continue;
                 }
             }
+            if ((int) $n === 0 && $color === null) {
+                $report->error(null, 'fotos', "{$name}: el número 00 es la muestra de tejido de un color; pon el color (MODELO_COLOR_00).");
+
+                continue;
+            }
             $plan[$key][] = ['nombre' => $name, 'ruta' => $path, 'color' => $color, 'n' => (int) $n];
         }
 
@@ -263,6 +350,7 @@ class CatalogImporter
             'name' => $draft['nombre'],
             'base_garment_id' => $draft['prenda'] === null ? null : $this->garment($draft['prenda'], $report),
             'description' => $draft['descripcion'],
+            'model_info' => $draft['info_modelo'],
             'price_cents' => $minPrice,
             'vat_rate_bps' => $draft['iva'],
             'commission_bps' => $draft['comision'],
@@ -297,6 +385,12 @@ class CatalogImporter
             $changed = $this->savePhotos($product, $store, $draft, $photos, $report) || $changed;
         } elseif (! $product->images()->exists()) {
             $report->warning($draft['fila'], 'fotos', "El modelo {$draft['modelo']} no tiene fotos".($photosGiven ? ' en el ZIP.' : '.'));
+        }
+
+        if ($product->status === ProductStatus::Published) {
+            foreach ($this->publicationCheck->problems($product) as $problem) {
+                $report->error($draft['fila'], 'estado', "El modelo {$draft['modelo']} no se puede publicar: {$problem}");
+            }
         }
 
         if ($isNew) {
@@ -367,12 +461,18 @@ class CatalogImporter
             $extension = Str::lower(pathinfo($photo['nombre'], PATHINFO_EXTENSION));
             $hash = substr((string) sha1_file($photo['ruta']), 0, 10);
             $path = $folder.Str::lower(pathinfo($photo['nombre'], PATHINFO_FILENAME)).'-'.$hash.'.'.($extension === 'jpeg' ? 'jpg' : $extension);
-            $new[] = ['path' => $path, 'color' => $photo['color'], 'alt' => trim($draft['nombre'].' '.($photo['color'] ?? ''))];
+            $swatch = $photo['n'] === 0;
+            $new[] = [
+                'path' => $path,
+                'color' => $photo['color'],
+                'is_swatch' => $swatch,
+                'alt' => trim(($swatch ? 'Muestra de tejido · ' : '').$draft['nombre'].' '.($photo['color'] ?? '')),
+            ];
             $this->filesToStore[] = [$photo['ruta'], $path];
         }
         $report->count('fotos', count($new));
 
-        $current = $product->images()->get(['path', 'color', 'alt'])->map->only(['path', 'color', 'alt'])->all();
+        $current = $product->images()->get(['path', 'color', 'is_swatch', 'alt'])->map->only(['path', 'color', 'is_swatch', 'alt'])->all();
         if ($current === $new) {
             return false;
         }
@@ -391,9 +491,7 @@ class CatalogImporter
     }
 
     /**
-     * Modo y unidades de cada variante. Las unidades de la hoja solo se aplican mientras la ficha
-     * no tenga más movimientos que altas iniciales, o si cambia de modo: el stock vivo
-     * (ventas, fabricación, ajustes del fabricante) manda.
+     * Modo y unidades de cada variante, con las mismas reglas que la ficha del panel (SetStockMode).
      */
     private function checkStock(ImportReport $report, bool $simulate, ?int $userId): void
     {
@@ -401,35 +499,9 @@ class CatalogImporter
             if ($simulate && ! $task['existed']) {
                 continue; // la ficha de stock se crea al confirmar
             }
-            $level = $simulate
-                ? StockLevel::query()->where('product_variant_id', $task['variant_id'])->first()
-                : StockLevel::query()->firstOrCreate(['product_variant_id' => $task['variant_id']], ['mode' => StockMode::OnDemand, 'quantity' => 0]);
-            if ($level === null) {
-                continue;
-            }
-
-            $modeChanges = $level->mode !== $task['venta'];
-            $hasMovements = $level->movements()->where('reason', '!=', StockMovementReason::Initial)->exists();
-            $level->mode = $task['venta'];
-            if ($task['aviso'] !== null) {
-                $level->low_stock_threshold = $task['aviso'];
-            }
-
-            $delta = 0;
-            if ($task['venta']->tracksQuantity() && $task['unidades'] !== $level->quantity) {
-                if (! $hasMovements || $modeChanges) {
-                    $delta = (int) $task['unidades'] - $level->quantity;
-                } else {
-                    $report->warning($task['fila'], 'unidades', "{$task['sku']} ya tiene movimientos de stock: quedan {$level->quantity} y la hoja dice {$task['unidades']}. No se cambia; ajústalo desde Stock.");
-                }
-            }
-
-            if ($simulate) {
-                continue;
-            }
-            $level->save();
-            if ($delta !== 0) {
-                ($this->adjustStock)($task['variant_id'], $delta, $hasMovements ? StockMovementReason::Adjustment : StockMovementReason::Initial, 'Importación de artículos', $userId);
+            $warning = ($this->setStockMode)($task['variant_id'], $task['venta'], $task['unidades'], $task['aviso'], $userId, $simulate);
+            if ($warning !== null) {
+                $report->warning($task['fila'], 'unidades', "{$task['sku']} {$warning}");
             }
         }
     }
