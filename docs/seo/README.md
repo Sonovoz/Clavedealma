@@ -17,7 +17,7 @@ Esto ya está programado (`App\Storefront\Seo`) y no hay que tocarlo:
 | Qué | Dónde | Regla |
 | --- | --- | --- |
 | Título y descripción | Todas las páginas públicas | El campo SEO escrito a mano manda. Si está vacío, se genera: `Nombre · Prenda Artista \| Clave de Alma`, sin pasar de 60 caracteres. La descripción se resume a 155 caracteres como máximo. |
-| Canónica | Todas | Una sola dirección por página, según `STORE_URL_MODE`. Evita que Google vea duplicadas la versión de subdominio y la de carpeta. |
+| Canónica | Todas | Una sola dirección por página: `clavedealma.es/<clave>/…`. El subdominio y `/tienda/<clave>` redirigen con un 301, así Google nunca ve páginas duplicadas. |
 | No indexar | Tiendas ocultas, borradores y todo el servidor de pruebas | `noindex` + `robots.txt` cerrado fuera de producción (`SEO_INDEXING=false` en Hostinger). |
 | Datos estructurados (schema.org) | Matriz: `Organization` + `WebSite`. Tienda y colección: `BreadcrumbList` + `ItemList`. Ficha: `Product` con `Brand`, ofertas por variante con precio real, disponibilidad (`MadeToOrder`, `InStock`, `OutOfStock`) y política de devolución de 14 días, más `BreadcrumbList` | Permite a Google enseñar precio, stock y migas en los resultados. |
 | Redes sociales | Todas | Open Graph y Twitter Card con imagen, título y descripción, para que WhatsApp, Instagram y Facebook muestren una tarjeta bonita. |
@@ -100,11 +100,11 @@ Reglas:
 
 ## 6. Dirección principal de las tiendas
 
-Para posicionar, **la carpeta (`clavedealma.es/farruquito`) es más fuerte que el subdominio (`farruquito.clavedealma.es`)**: Google suma toda la autoridad en un solo sitio.
+**Decidido (ADR 0013): `clavedealma.es/<clave>`**, por ejemplo `clavedealma.es/farruquito`.
 
-- `STORE_URL_MODE=path` hace que la canónica, los enlaces y el mapa usen la carpeta. Es lo recomendado.
-- Si se elige el subdominio, cada subdominio debe darse de alta en Search Console. El mapa del sitio de la matriz los lista igualmente.
-- **Se decide una vez antes del lanzamiento y no se cambia.** Un cambio posterior obliga a redirigir todas las direcciones.
+- La carpeta es más fuerte que el subdominio: Google suma toda la autoridad del dominio en un solo sitio y basta con una propiedad en Search Console.
+- `farruquito.clavedealma.es` y `clavedealma.es/tienda/farruquito` redirigen con un 301 a la dirección principal.
+- La clave de una tienda **no se cambia después de publicar**. Si hubiera que hacerlo, la antigua tendría que redirigir a la nueva.
 
 ---
 
@@ -138,7 +138,7 @@ Reglas de uso:
 
 Antes del lanzamiento:
 
-1. Decidir `STORE_URL_MODE` (apartado 6) y poner `SEO_INDEXING` sin valor o en `true` **solo en producción**.
+1. Poner `SEO_INDEXING` sin valor o en `true` **solo en producción**.
 2. Dar de alta el dominio en **Google Search Console** y en **Bing Webmaster Tools**, y enviar `https://clavedealma.es/sitemap.xml`.
 3. Pasar 3 fichas por la **Prueba de resultados enriquecidos** de Google (datos de producto sin errores).
 4. Medir la velocidad con **PageSpeed Insights** (objetivo: LCP < 2,5 s, CLS < 0,1, INP < 200 ms en móvil).

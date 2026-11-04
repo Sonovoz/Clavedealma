@@ -69,15 +69,15 @@ class StoreResource extends Resource
                         ->required(),
                     TextInput::make('name')->label('Nombre de la tienda')->required()->maxLength(255),
                     TextInput::make('subdomain')
-                        ->label('Subdominio')
+                        ->label('Dirección de la tienda')
                         ->required()
                         ->maxLength(40)
-                        ->suffix('.'.config('clavedealma.domain'))
-                        ->helperText('Minúsculas, números y guiones. Ejemplo: lunabruma')
+                        ->prefix(config('clavedealma.domain').'/')
+                        ->helperText('Minúsculas, números y guiones. Ejemplo: lunabruma. No se cambia después de publicar: Google perdería la tienda.')
                         ->unique(ignoreRecord: true)
                         ->rule(fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
                             if (! Subdomain::isValid(strtolower(trim((string) $value)))) {
-                                $fail('El subdominio no es válido o está reservado.');
+                                $fail('Esta dirección no es válida o está reservada para el market.');
                             }
                         }),
                     Select::make('status')
@@ -153,7 +153,7 @@ class StoreResource extends Resource
                 TextColumn::make('artist.display_name')->label('Artista')->searchable(),
                 TextColumn::make('subdomain')
                     ->label('Dirección')
-                    ->formatStateUsing(fn (string $state): string => $state.'.'.config('clavedealma.domain'))
+                    ->formatStateUsing(fn (string $state): string => Urls::label($state))
                     ->url(fn (Store $record): string => Urls::home($record), shouldOpenInNewTab: true)
                     ->searchable(),
                 TextColumn::make('status')

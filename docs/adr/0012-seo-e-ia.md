@@ -12,7 +12,7 @@ El portal tiene que posicionar en Google cada tienda y cada artículo. Los funda
 1. **SEO técnico centralizado** en `App\Storefront\Seo`:
    - `SeoBuilder` genera para cada página pública el título, la descripción, la canónica, la indexación, Open Graph y el JSON-LD de schema.org (`Organization`, `WebSite`, `BreadcrumbList`, `ItemList`, `Product` con ofertas reales).
    - Lo pinta un único parcial, `storefront/partials/seo.blade.php`. Los diseños de tienda no escriben metaetiquetas propias.
-2. **Una sola canónica**, según `STORE_URL_MODE`. Se recomienda la carpeta para sumar autoridad en un solo dominio.
+2. **Una sola canónica**: `clavedealma.es/<clave>` (ADR 0013).
 3. **No indexar** vistas previas, borradores ni ningún entorno que no sea producción (`SEO_INDEXING`). `robots.txt` y `sitemap.xml` se generan en la aplicación.
 4. **Campos SEO editables** (`seo_title`, `seo_description`) en artículos, colecciones y tiendas. Si están vacíos, se generan.
    - **Semáforo** `SeoAudit` con reglas fijas, sin IA: longitudes, descripción, fotos, textos alternativos, duplicados y publicación.

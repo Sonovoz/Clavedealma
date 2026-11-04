@@ -16,7 +16,7 @@ Los artículos los gestiona el equipo interno y los artistas no editan nada.
   - La pasarela es la rejilla, los filtros y la ficha de artículo (`storefront/partials`, `App\Storefront\StoreCatalog`).
   - Si un diseño no tiene una página, se usa la de la plantilla base.
 - Los diseños personalizan la pasarela solo mediante variables CSS `--sf-*` y, si quieren, su propia tarjeta. Nunca calculan precios, rebajas ni disponibilidad.
-- **Mismas páginas por subdominio y por ruta** (`/tienda/<subdominio>`). `STORE_URL_MODE` decide los enlaces: subdominio en producción, ruta en las pruebas de Hostinger.
+- **Mismas páginas por subdominio y por ruta** (`/tienda/<subdominio>`). `STORE_URL_MODE` decide los enlaces: subdominio en producción, ruta en las pruebas de Hostinger. *Sustituido por el ADR 0013: dirección única `clavedealma.es/<clave>`.*
 - **Vista previa:**
   - Una tienda oculta o en preparación solo la ve el equipo de catálogo con sesión iniciada, con un aviso y `noindex`.
   - Las imágenes propias del diseño se sirven desde `resources/designs` por una ruta que aplica la misma regla.
