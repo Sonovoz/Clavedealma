@@ -7,6 +7,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 - [Instalación de pruebas en Hostinger](instalacion-hostinger.md)
 - [Despliegue con Docker en OVH](despliegue-docker.md)
 - [Prototipos de diseño: matriz y tienda Farruquito](diseno/README.md)
+- [Protocolo de alta de artículos: hoja, fotos e importación](protocolo/README.md)
 
 ## Decisiones técnicas (ADR)
 
@@ -18,6 +19,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0004](adr/0004-drivers-por-entorno.md) | Mismo código, drivers distintos por entorno |
 | [0005](adr/0005-dinero-y-porcentajes-enteros.md) | Dinero en céntimos y porcentajes en puntos básicos |
 | [0006](adr/0006-eventos-entre-modulos.md) | Los módulos se comunican con eventos |
+| [0007](adr/0007-protocolo-de-articulos.md) | Alta de artículos con hoja y fotos de nombre fijo |
 
 ## Orden de construcción
 
@@ -41,6 +43,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | --- | --- | --- | --- |
 | Tiendas: artistas y tiendas | ✓ | — | — |
 | Catálogo: productos, colecciones, prendas base | ✓ | — | — |
+| Catálogo: importar artículos | ✓ | — | — |
 | Operación: stock | ✓ | ✓ | — |
 | Administración: sistema | ✓ | — | — |
 
@@ -56,4 +59,11 @@ Crea 2 artistas con su tienda, 3 prendas base, 6 productos y 28 variantes. No se
 php artisan db:seed --class=FarruquitoSeeder
 ```
 
-Primera tienda de prueba: Farruquito (oculta), con las colecciones On Stage, Artist Voice e Iconic: 35 piezas, 186 variantes e imágenes tomadas de `docs/diseno/farruquito`. Precios, comisión (25 %) y unidades (25 por variante en On Stage) son **de ejemplo**. No se ejecuta en producción.
+Primera tienda de prueba: Farruquito (oculta), con las colecciones On Stage, Artist Voice e Iconic.
+
+- Tiene 35 piezas, 186 variantes y 60 fotos.
+- Los artículos se dan de alta con el [protocolo](protocolo/README.md), a partir de la hoja de ejemplo `database/seeders/data/farruquito/articulos.xlsx` y sus fotos.
+- Precios, comisión (25 %) y unidades (25 por variante en On Stage) son **de ejemplo**.
+- No se ejecuta en producción.
+
+Si tu base de datos ya tenía la versión anterior de esta tienda, sin referencias de modelo, empieza de cero con `php artisan migrate:fresh --seed` y vuelve a lanzar los dos seeders.

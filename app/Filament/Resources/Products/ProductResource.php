@@ -67,6 +67,11 @@ class ProductResource extends Resource
                         ->relationship('baseGarment', 'name', fn (Builder $query) => $query->where('active', true))
                         ->searchable()
                         ->preload(),
+                    TextInput::make('reference')
+                        ->label('Modelo (referencia)')
+                        ->helperText('Clave del artículo en la hoja de importación. Única en la tienda.')
+                        ->maxLength(40)
+                        ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule, Get $get) => $rule->where('store_id', $get('store_id'))),
                     TextInput::make('name')->label('Nombre')->required()->maxLength(255),
                     TextInput::make('slug')
                         ->label('Dirección (slug)')
@@ -144,6 +149,7 @@ class ProductResource extends Resource
                 ->addSelect(['store_name' => Store::query()->select('name')->whereColumn('stores.id', 'products.store_id')])
                 ->withCount('variants'))
             ->columns([
+                TextColumn::make('reference')->label('Modelo')->searchable()->sortable()->placeholder('—'),
                 TextColumn::make('name')->label('Producto')->searchable()->sortable(),
                 TextColumn::make('store_name')->label('Tienda')->sortable(),
                 Fields::moneyColumn('price_cents')->label('Precio'),

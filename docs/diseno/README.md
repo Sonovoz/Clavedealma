@@ -18,7 +18,7 @@ Referencia visual para la fase 8 (capa visual). Son páginas HTML estáticas: se
 
 ## Confidencialidad
 
-La carpeta `farruquito/` contiene la imagen y la marca de un artista real. No publicarla ni compartirla fuera del equipo hasta que el artista la apruebe.
+La carpeta `farruquito/` y la hoja de ejemplo `database/seeders/data/farruquito/` contienen la imagen y la marca de un artista real. No publicarlas ni compartirlas fuera del equipo hasta que el artista lo apruebe.
 
 ## Qué trasladar a la aplicación
 

@@ -22,6 +22,7 @@ use Illuminate\Support\Str;
  *
  * @property int $id
  * @property int $store_id
+ * @property ?string $reference
  * @property string $name
  * @property string $slug
  * @property int $price_cents
@@ -31,6 +32,7 @@ use Illuminate\Support\Str;
  * @property int $lead_time_max_days
  * @property ProductStatus $status
  * @property ?Carbon $published_at
+ * @property ?Carbon $deleted_at
  */
 #[UseFactory(ProductFactory::class)]
 class Product extends Model
