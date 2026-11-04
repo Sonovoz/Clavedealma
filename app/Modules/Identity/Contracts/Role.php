@@ -10,6 +10,8 @@ use App\Support\Contracts\HasLabel;
 enum Role: string implements HasLabel
 {
     case Superadmin = 'superadmin';
+    /** Equipo interno: da de alta y edita los artículos de todas las tiendas. */
+    case CatalogManager = 'gestor_catalogo';
     case Manufacturer = 'fabricante';
     case Artist = 'artista';
     case Customer = 'cliente';
@@ -18,6 +20,7 @@ enum Role: string implements HasLabel
     {
         return match ($this) {
             self::Superadmin => 'Superadministrador',
+            self::CatalogManager => 'Gestor de catálogo',
             self::Manufacturer => 'Fabricante',
             self::Artist => 'Artista',
             self::Customer => 'Cliente',

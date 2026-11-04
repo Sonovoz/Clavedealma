@@ -22,7 +22,9 @@ use Illuminate\Support\Str;
  *
  * @property int $id
  * @property int $store_id
+ * @property ?int $base_garment_id
  * @property ?string $reference
+ * @property ?string $model_info
  * @property string $name
  * @property string $slug
  * @property int $price_cents
@@ -73,6 +75,13 @@ class Product extends Model
 
             if ($product->status === ProductStatus::Published && $product->published_at === null) {
                 $product->published_at = now();
+            }
+        });
+
+        // Las variantes sin precio propio cambian de precio con el producto.
+        static::saved(function (Product $product): void {
+            if ($product->wasChanged('price_cents')) {
+                $product->variants()->whereNull('price_cents')->get()->each->recordPrice($product->price_cents);
             }
         });
     }

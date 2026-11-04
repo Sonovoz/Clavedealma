@@ -26,6 +26,8 @@ class ImportReport
         'fotos' => 0,
         'colecciones_nuevas' => 0,
         'prendas_nuevas' => 0,
+        'prendas_actualizadas' => 0,
+        'tallas_guia' => 0,
     ];
 
     public bool $applied = false;
@@ -42,6 +44,8 @@ class ImportReport
         'fotos' => 'Fotos asignadas',
         'colecciones_nuevas' => 'Colecciones nuevas',
         'prendas_nuevas' => 'Prendas base nuevas',
+        'prendas_actualizadas' => 'Prendas base actualizadas (pestaña Prendas)',
+        'tallas_guia' => 'Tallas en guías de tallas (pestaña Tallas)',
     ];
 
     public function error(?int $fila, string $campo, string $mensaje): void

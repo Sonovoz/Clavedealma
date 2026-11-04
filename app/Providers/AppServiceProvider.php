@@ -4,13 +4,16 @@ namespace App\Providers;
 
 use App\Modules\Catalog\Infrastructure\Models\BaseGarment;
 use App\Modules\Catalog\Infrastructure\Models\Collection;
+use App\Modules\Catalog\Infrastructure\Models\GarmentSize;
 use App\Modules\Catalog\Infrastructure\Models\Product;
 use App\Modules\Catalog\Infrastructure\Models\ProductImage;
 use App\Modules\Catalog\Infrastructure\Models\ProductVariant;
+use App\Modules\Identity\Infrastructure\Models\User;
 use App\Modules\Inventory\Infrastructure\Models\StockLevel;
 use App\Modules\Inventory\Infrastructure\Models\StockMovement;
 use App\Modules\Stores\Infrastructure\Models\Artist;
 use App\Modules\Stores\Infrastructure\Models\Store;
+use App\Policies\CatalogPolicy;
 use App\Policies\StockLevelPolicy;
 use App\Policies\StockMovementPolicy;
 use App\Policies\SuperadminOnlyPolicy;
@@ -30,9 +33,14 @@ class AppServiceProvider extends ServiceProvider
         // En desarrollo y en las pruebas, error ante consultas N+1 o atributos inexistentes.
         Model::shouldBeStrict($this->app->isLocal() || $this->app->runningUnitTests());
 
-        // Tiendas y catálogo: solo superadministradores.
-        foreach ([Artist::class, Store::class, BaseGarment::class, Product::class, ProductVariant::class, ProductImage::class, Collection::class] as $model) {
+        // Artistas, tiendas y usuarios (datos fiscales y cuentas): solo superadministradores.
+        foreach ([Artist::class, Store::class, User::class] as $model) {
             Gate::policy($model, SuperadminOnlyPolicy::class);
+        }
+
+        // Catálogo de todas las tiendas: superadministradores y gestores de catálogo.
+        foreach ([BaseGarment::class, GarmentSize::class, Product::class, ProductVariant::class, ProductImage::class, Collection::class] as $model) {
+            Gate::policy($model, CatalogPolicy::class);
         }
 
         Gate::policy(StockLevel::class, StockLevelPolicy::class);

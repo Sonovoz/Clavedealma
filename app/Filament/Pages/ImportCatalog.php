@@ -24,7 +24,7 @@ use UnitEnum;
 /**
  * "Importar artículos": alta de productos con la hoja del protocolo y el ZIP de fotos
  * (docs/protocolo/README.md). Primero se comprueba; si no hay errores, se importa.
- * Solo para superadministradores.
+ * Para superadministradores y gestores de catálogo.
  *
  * @property-read Schema $form
  */
@@ -58,7 +58,7 @@ class ImportCatalog extends Page
     {
         $user = auth()->user();
 
-        return $user instanceof User && $user->isSuperadmin();
+        return $user instanceof User && $user->managesCatalog();
     }
 
     public function mount(): void

@@ -1,6 +1,7 @@
 <?php
 
 use App\Filament\Resources\Products\Pages\CreateProduct;
+use App\Filament\Resources\Products\Pages\EditProduct;
 use App\Modules\Catalog\Contracts\ProductStatus;
 use App\Modules\Catalog\Infrastructure\Models\Product;
 use App\Modules\Identity\Contracts\Role;
@@ -70,4 +71,66 @@ it('la comisión propia del producto sustituye a la de la tienda solo si se rell
     $product = Product::factory()->create(['store_id' => $store->id, 'commission_bps' => 3000]);
 
     expect($product->commission_bps)->toBe(3000);
+});
+
+it('genera de una vez todas las tallas y colores, con su venta limitada', function () {
+    $store = Store::factory()->create(['subdomain' => 'gira']);
+
+    Livewire::test(CreateProduct::class)
+        ->fillForm([
+            'store_id' => $store->id,
+            'reference' => 'GI-01',
+            'name' => 'Camiseta gira',
+            'price_cents' => '29,90',
+            'vat_rate_bps' => '21',
+            'lead_time_min_days' => 5,
+            'lead_time_max_days' => 7,
+            'generator' => [
+                'colors' => [['name' => 'negro', 'hex' => '#111111'], ['name' => 'Blanco', 'hex' => null]],
+                'sizes' => ['XL', 'S', 'M'],
+                'stock_mode' => StockMode::LimitedThenSoldOut->value,
+                'units' => 10,
+                'threshold' => 2,
+            ],
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $variants = Product::sole()->variants()->get();
+    expect($variants->map(fn ($v) => $v->color.' '.$v->size)->all())
+        ->toBe(['Negro S', 'Negro M', 'Negro XL', 'Blanco S', 'Blanco M', 'Blanco XL'])
+        ->and($variants->first()->sku)->toBe('GIRA-GI-01-S-NEGRO')
+        ->and(StockLevel::pluck('quantity')->unique()->all())->toBe([10])
+        ->and(StockLevel::first()->mode)->toBe(StockMode::LimitedThenSoldOut);
+});
+
+it('al editar solo añade las combinaciones que faltan', function () {
+    $product = Product::factory()->create(['store_id' => Store::factory()->create()->id, 'reference' => 'X-1']);
+    $product->variants()->create(['sku' => 'X-1-M', 'size' => 'M']);
+
+    Livewire::test(EditProduct::class, ['record' => $product->getRouteKey()])
+        ->fillForm(['generator' => ['sizes' => ['M', 'L', '3XL']]])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect($product->variants()->pluck('size')->all())->toBe(['M', 'L', '3XL']);
+});
+
+it('no publica un artículo incompleto: lo guarda como borrador y explica qué falta', function () {
+    Livewire::test(CreateProduct::class)
+        ->fillForm([
+            'store_id' => Store::factory()->create()->id,
+            'name' => 'Sin fotos',
+            'price_cents' => '10',
+            'vat_rate_bps' => '21',
+            'status' => ProductStatus::Published->value,
+            'lead_time_min_days' => 5,
+            'lead_time_max_days' => 7,
+            'generator' => ['one_size' => true],
+        ])
+        ->call('create')
+        ->assertNotified('Guardado como borrador: aún no se puede publicar');
+
+    expect(Product::sole()->status)->toBe(ProductStatus::Draft)
+        ->and(Product::sole()->variants()->count())->toBe(1);
 });

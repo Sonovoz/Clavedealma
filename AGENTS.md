@@ -13,7 +13,8 @@ Documento de bases y arquitectura completa: ver `docs/README.md`.
 - La interfaz (`app/Http`, `app/Filament`, `resources/views`) es la capa externa: no contiene reglas de negocio.
 - Servicios externos (Stripe, correo, transporte, Veri*Factu) siempre detrás de un contrato propio con driver.
 - **Dinero en céntimos enteros** (`int`, `App\Support\Money`) y porcentajes en puntos básicos (`2500` = 25 %), nunca `float` (ADR 0005).
-- Los artículos reales entran por el protocolo de `docs/protocolo` (hoja + fotos de nombre fijo), nunca a mano en el código ni en seeders con datos inventados.
+- Los artículos reales entran por la ficha del panel o por el protocolo de `docs/protocolo` (hoja + fotos de nombre fijo), con las mismas reglas (`PublicationCheck`, `SetStockMode`); nunca a mano en el código ni en seeders con datos inventados.
+- El precio tachado de las rebajas lo calcula el sistema con el historial de precios (30 días, ADR 0008): nunca se guarda un «precio anterior» escrito a mano.
 - Pedidos, apuntes contables, movimientos de stock y facturas son inmutables: se corrigen con un registro nuevo.
 - El mismo código corre en Hostinger (drivers `database`) y en Docker/OVH (Redis, Meilisearch, S3). No uses nada que solo exista en un entorno sin su alternativa.
 

@@ -2,6 +2,7 @@
 
 use App\Filament\Pages\ImportCatalog;
 use App\Modules\Catalog\Contracts\ProductStatus;
+use App\Modules\Catalog\Infrastructure\Models\BaseGarment;
 use App\Modules\Catalog\Infrastructure\Models\Collection;
 use App\Modules\Catalog\Infrastructure\Models\Product;
 use App\Modules\Catalog\Infrastructure\Models\ProductVariant;
@@ -224,4 +225,63 @@ it('comprueba e importa desde el panel', function () {
     $page->callAction(TestAction::make('import')->schemaComponent('form-actions', schema: 'form'));
     expect($page->get('result.applied'))->toBeTrue()
         ->and(Product::count())->toBe(1);
+});
+
+it('importa la ficha textil y la guía de tallas de las pestañas Prendas y Tallas', function () {
+    $path = $this->dir.'/libro.xlsx';
+    app(TemplateWriter::class)->write($path,
+        camiseta(['prenda' => 'PR-CAM', 'info_modelo' => 'Mide 1,80 y lleva M']),
+        [['codigo' => 'pr-cam', 'nombre' => 'Camiseta de prueba', 'composicion' => '100 % algodón', 'corte' => 'Oversize', 'cuidados' => 'Lavar a 30 °C']],
+        [
+            ['prenda' => 'PR-CAM', 'talla' => '2XL', 'pecho' => '64', 'largo' => '78', 'manga' => '25,5'],
+            ['prenda' => 'PR-CAM', 'talla' => 'S', 'pecho' => '52', 'largo' => '70', 'manga' => '22'],
+        ],
+    );
+
+    $report = importar($path);
+    $garment = BaseGarment::where('code', 'PR-CAM')->with('sizes')->sole();
+
+    expect($report->errors)->toBe([])
+        ->and($report->summary['prendas_nuevas'])->toBe(1)
+        ->and($report->summary['tallas_guia'])->toBe(2)
+        ->and($garment->composition)->toBe('100 % algodón')
+        ->and($garment->sizes->pluck('size')->all())->toBe(['S', 'XXL'])
+        ->and($garment->sizes->last()->sleeve_cm)->toBe('25.5')
+        ->and(Product::sole()->base_garment_id)->toBe($garment->id)
+        ->and(Product::sole()->model_info)->toBe('Mide 1,80 y lleva M');
+});
+
+it('no importa nada si un artículo publicado está incompleto', function () {
+    $rows = camiseta(['estado' => 'publicado']); // sin fotos y con prenda sin composición
+
+    $report = importar(hoja($this->dir, $rows));
+
+    expect(collect($report->errors)->pluck('campo')->unique()->all())->toBe(['estado'])
+        ->and(Product::count())->toBe(0);
+});
+
+it('la foto 00 de un color es su muestra de tejido', function () {
+    $fotos = [];
+    foreach (['PR-01_01.jpg', 'PR-01_NEGRO_00.jpg', 'PR-01_00.jpg'] as $name) {
+        file_put_contents($fotos[$name] = $this->dir.'/'.$name, 'img-'.$name);
+    }
+
+    $report = importar(hoja($this->dir, camiseta()), PhotoSet::fromFiles($fotos));
+    expect(collect($report->errors)->pluck('mensaje')->implode(' '))->toContain('PR-01_00.jpg');
+
+    unset($fotos['PR-01_00.jpg']);
+    importar(hoja($this->dir, camiseta()), PhotoSet::fromFiles($fotos));
+
+    $swatch = Product::sole()->images()->where('is_swatch', true)->sole();
+    expect($swatch->color)->toBe('Negro');
+});
+
+it('unifica las tallas: 2XL y XXL son la misma', function () {
+    $rows = camiseta();
+    $rows[2]['talla'] = '2xl';
+    $rows[] = ['tienda' => 'prueba', 'modelo' => 'PR-01', 'color' => 'Blanco', 'talla' => 'XXL', 'precio' => '32,90'];
+
+    $report = importar(hoja($this->dir, $rows));
+
+    expect(collect($report->errors)->pluck('campo')->all())->toBe(['talla']);
 });

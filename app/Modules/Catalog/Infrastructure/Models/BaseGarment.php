@@ -12,6 +12,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property string $code
  * @property string $name
+ * @property ?string $composition
+ * @property ?string $fit
+ * @property ?string $care
+ * @property ?string $origin_country
+ * @property ?string $size_guide_note
  */
 #[UseFactory(BaseGarmentFactory::class)]
 class BaseGarment extends Model
@@ -24,6 +29,16 @@ class BaseGarment extends Model
     protected function casts(): array
     {
         return ['active' => 'boolean', 'weight_grams' => 'integer'];
+    }
+
+    /**
+     * Guía de tallas, en el orden de la escala.
+     *
+     * @return HasMany<GarmentSize, $this>
+     */
+    public function sizes(): HasMany
+    {
+        return $this->hasMany(GarmentSize::class)->orderBy('position');
     }
 
     /**
