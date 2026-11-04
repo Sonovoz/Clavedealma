@@ -3,6 +3,7 @@
 use App\Modules\Catalog\CatalogServiceProvider;
 use App\Modules\Identity\IdentityServiceProvider;
 use App\Modules\Inventory\InventoryServiceProvider;
+use App\Modules\Shipping\ShippingServiceProvider;
 use App\Modules\Stores\StoresServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Providers\Filament\AdminPanelProvider;
@@ -13,5 +14,6 @@ return [
     StoresServiceProvider::class,
     CatalogServiceProvider::class,
     InventoryServiceProvider::class,
+    ShippingServiceProvider::class,
     AdminPanelProvider::class,
 ];

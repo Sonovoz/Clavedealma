@@ -6,7 +6,9 @@ use App\Filament\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Products\Pages\EditProduct;
 use App\Filament\Resources\Products\Pages\ListProducts;
 use App\Filament\Resources\Products\RelationManagers\VariantsRelationManager;
+use App\Filament\Support\ActiveStore;
 use App\Filament\Support\Fields;
+use App\Filament\Support\ScopedToActiveStore;
 use App\Modules\Catalog\Application\PublicationCheck;
 use App\Modules\Catalog\Contracts\ProductStatus;
 use App\Modules\Catalog\Domain\SizeScale;
@@ -49,6 +51,8 @@ use UnitEnum;
 
 class ProductResource extends Resource
 {
+    use ScopedToActiveStore;
+
     protected static ?string $slug = 'productos';
 
     protected static ?string $model = Product::class;
@@ -87,15 +91,13 @@ class ProductResource extends Resource
     private static function generalTab(): array
     {
         return [
-            Select::make('store_id')
+            TextEntry::make('store_label')
                 ->label('Tienda')
-                ->options(fn (): array => Store::query()->orderBy('name')->pluck('name', 'id')->all())
-                ->searchable()
-                ->required()
-                ->live(),
+                ->state(fn (?Product $record): string => (string) Store::query()->whereKey($record->store_id ?? ActiveStore::id())->value('name'))
+                ->helperText('Se cambia arriba, en «Tienda». Todo lo que crees aquí va a esta tienda.'),
             Select::make('collections')
                 ->label('Colecciones')
-                ->relationship('collections', 'name', fn (Builder $query, Get $get) => $query->where('store_id', $get('store_id')))
+                ->relationship('collections', 'name', fn (Builder $query) => $query->where('store_id', ActiveStore::id()))
                 ->multiple()
                 ->preload(),
             TextInput::make('reference')
@@ -103,11 +105,12 @@ class ProductResource extends Resource
                 ->helperText('Código del artículo, p. ej. FQ-OS-01. Da nombre a las fotos en la hoja de importación.')
                 ->maxLength(40)
                 ->regex('/^[A-Za-z0-9][A-Za-z0-9-]*$/')
-                ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule, Get $get) => $rule->where('store_id', $get('store_id'))),
+                ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('store_id', ActiveStore::id())),
             TextInput::make('name')->label('Nombre')->required()->maxLength(200),
             Select::make('base_garment_id')
                 ->label('Prenda base')
-                ->relationship('baseGarment', 'name', fn (Builder $query) => $query->where('active', true))
+                ->relationship('baseGarment', 'name', fn (Builder $query) => $query->where('active', true)->where('store_id', ActiveStore::id()))
+                ->default(fn (): ?int => request()->integer('prenda') ?: null)
                 ->searchable()
                 ->preload()
                 ->live()
@@ -302,12 +305,10 @@ class ProductResource extends Resource
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query
-                ->addSelect(['store_name' => Store::query()->select('name')->whereColumn('stores.id', 'products.store_id')])
                 ->withCount('variants'))
             ->columns([
                 TextColumn::make('reference')->label('Modelo')->searchable()->sortable()->placeholder('—'),
                 TextColumn::make('name')->label('Producto')->searchable()->sortable(),
-                TextColumn::make('store_name')->label('Tienda')->sortable(),
                 Fields::moneyColumn('price_cents')->label('Precio'),
                 TextColumn::make('variants_count')->label('Variantes')->alignEnd(),
                 TextColumn::make('status')
@@ -318,7 +319,6 @@ class ProductResource extends Resource
                 TextColumn::make('updated_at')->label('Actualizado')->since()->sortable()->toggleable(),
             ])
             ->filters([
-                SelectFilter::make('store_id')->label('Tienda')->options(fn (): array => Store::query()->orderBy('name')->pluck('name', 'id')->all()),
                 SelectFilter::make('status')->label('Estado')->options(Fields::options(ProductStatus::class)),
                 TrashedFilter::make(),
             ])

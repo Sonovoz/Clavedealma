@@ -5,9 +5,13 @@ namespace App\Filament\Resources\BaseGarments;
 use App\Filament\Resources\BaseGarments\Pages\CreateBaseGarment;
 use App\Filament\Resources\BaseGarments\Pages\EditBaseGarment;
 use App\Filament\Resources\BaseGarments\Pages\ListBaseGarments;
+use App\Filament\Resources\Products\ProductResource;
+use App\Filament\Support\ActiveStore;
+use App\Filament\Support\ScopedToActiveStore;
 use App\Modules\Catalog\Domain\SizeScale;
 use App\Modules\Catalog\Infrastructure\Models\BaseGarment;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Repeater\TableColumn;
@@ -26,6 +30,8 @@ use UnitEnum;
 
 class BaseGarmentResource extends Resource
 {
+    use ScopedToActiveStore;
+
     protected static ?string $slug = 'prendas-base';
 
     protected static ?string $model = BaseGarment::class;
@@ -53,10 +59,9 @@ class BaseGarmentResource extends Resource
             Section::make('Prenda')
                 ->columns(2)
                 ->schema([
-                    TextInput::make('code')->label('Código')->required()->maxLength(30)->unique(ignoreRecord: true)->placeholder('SUD-320'),
+                    TextInput::make('code')->label('Código')->required()->maxLength(30)->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('store_id', ActiveStore::id()))->placeholder('SUD-320'),
                     TextInput::make('name')->label('Nombre')->required()->placeholder('Sudadera con capucha 320 g'),
                     TextInput::make('material')->label('Tejido')->placeholder('Felpa perchada 320 g/m²'),
-                    TextInput::make('weight_grams')->label('Peso de la prenda')->numeric()->suffix('g')->helperText('Sirve para calcular el envío.'),
                     Textarea::make('description')->label('Descripción interna')->columnSpanFull(),
                     Toggle::make('active')->label('Disponible para nuevos productos')->default(true),
                 ]),
@@ -74,6 +79,19 @@ class BaseGarmentResource extends Resource
                     TextInput::make('fit')->label('Corte')->datalist(self::FITS)->maxLength(40),
                     TextInput::make('origin_country')->label('País de fabricación')->placeholder('España')->maxLength(60),
                     Textarea::make('care')->label('Cuidados')->placeholder("Lavar a 30 °C del revés.\nNo usar secadora.")->rows(3)->columnSpanFull(),
+                ]),
+
+            Section::make('Envío')
+                ->description('El precio del envío lo calcula el baremo de cada destino (Envíos → Tarifas) con el peso del pedido.')
+                ->columnSpanFull()
+                ->schema([
+                    TextInput::make('weight_grams')
+                        ->label('Peso para el envío')
+                        ->numeric()
+                        ->minValue(1)
+                        ->maxValue(30000)
+                        ->suffix('g')
+                        ->helperText('La prenda doblada con su bolsa, tal como sale del taller.'),
                 ]),
 
             Section::make('Guía de tallas')
@@ -123,7 +141,13 @@ class BaseGarmentResource extends Resource
                 TextColumn::make('products_count')->label('Productos')->alignEnd(),
                 IconColumn::make('active')->label('Activa')->boolean(),
             ])
-            ->recordActions([EditAction::make()])
+            ->recordActions([
+                EditAction::make(),
+                Action::make('newArticle')
+                    ->label('Crear artículo')
+                    ->icon(Heroicon::OutlinedPlus)
+                    ->url(fn (BaseGarment $record): string => ProductResource::getUrl('create', ['prenda' => $record->getKey()])),
+            ])
             ->defaultSort('code');
     }
 

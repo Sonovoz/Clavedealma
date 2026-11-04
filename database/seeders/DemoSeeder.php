@@ -32,10 +32,11 @@ class DemoSeeder extends Seeder
             return;
         }
 
-        $garments = [
-            'tee' => BaseGarment::query()->firstOrCreate(['code' => 'CAM-180'], ['name' => 'Camiseta unisex 180 g', 'material' => 'Algodón orgánico', 'weight_grams' => 180]),
-            'hoodie' => BaseGarment::query()->firstOrCreate(['code' => 'SUD-320'], ['name' => 'Sudadera con capucha 320 g', 'material' => 'Algodón y poliéster reciclado', 'weight_grams' => 620]),
-            'cap' => BaseGarment::query()->firstOrCreate(['code' => 'GOR-01'], ['name' => 'Gorra de béisbol', 'material' => 'Algodón', 'weight_grams' => 110]),
+        // Cada tienda tiene sus prendas base (se crean dentro del bucle).
+        $garmentData = [
+            'tee' => ['CAM-180', 'Camiseta unisex 180 g', 'Algodón orgánico', '100 % algodón orgánico', 180],
+            'hoodie' => ['SUD-320', 'Sudadera con capucha 320 g', 'Algodón y poliéster reciclado', '80 % algodón, 20 % poliéster reciclado', 620],
+            'cap' => ['GOR-01', 'Gorra de béisbol', 'Algodón', '100 % algodón', 110],
         ];
 
         $stores = [
@@ -52,6 +53,14 @@ class DemoSeeder extends Seeder
                 'commission_bps' => $data['commission'],
                 'tagline' => $data['tagline'],
             ]);
+
+            $garments = [];
+            foreach ($garmentData as $key => [$code, $name, $material, $composition, $grams]) {
+                $garments[$key] = BaseGarment::query()->firstOrCreate(
+                    ['store_id' => $store->id, 'code' => $code],
+                    ['name' => $name, 'material' => $material, 'composition' => $composition, 'weight_grams' => $grams],
+                );
+            }
 
             $collection = Collection::query()->firstOrCreate(['store_id' => $store->id, 'slug' => 'gira-2026'], ['name' => 'Gira 2026']);
 

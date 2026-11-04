@@ -23,6 +23,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0007](adr/0007-protocolo-de-articulos.md) | Alta de artículos con hoja y fotos de nombre fijo |
 | [0008](adr/0008-ficha-de-articulo.md) | Ficha de artículo, ficha textil y precio de referencia de las rebajas |
 | [0009](adr/0009-esquema-de-tienda.md) | Tiendas: diseño propio y pasarela común |
+| [0010](adr/0010-tienda-activa-y-envios.md) | Tienda activa en el panel, prendas por tienda y envíos por peso |
 
 ## Orden de construcción
 
@@ -36,6 +37,8 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 8. Capa visual: plantilla común y temas.
 9. Pruebas completas en staging y lanzamiento.
 
+Más adelante, como opción: un servicio de IA en el panel (ofertas, artículo destacado por día o semana, análisis de ventas). Irá detrás de un contrato propio, como los demás servicios externos.
+
 ## Módulos
 
 `app/Modules/`: Identity, Stores, Catalog, Inventory, Cart, Orders, Payments, Production, Shipping, Returns, Settlements, Invoicing, Notifications, Audit. Existen ya `Identity`, `Stores`, `Catalog` e `Inventory`; el resto se crea al llegar a su fase, con la misma estructura de carpetas.
@@ -45,11 +48,12 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | Sección | Superadmin | Gestor de catálogo | Fabricante | Artista |
 | --- | --- | --- | --- | --- |
 | Tiendas: artistas y tiendas (datos fiscales) | ✓ | — | — | — |
-| Catálogo de todas las tiendas: productos, colecciones, prendas base | ✓ | ✓ | — | — |
-| Catálogo: importar artículos | ✓ | ✓ | — | — |
+| Catálogo de la tienda elegida («Tienda: …»): productos, colecciones, prendas base | ✓ | ✓ | — | — |
 | Operación: stock | ✓ | — | ✓ | — |
+| Envíos: tarifas por destino y transportistas | ✓ | — | — | — |
 | Administración: usuarios y sistema | ✓ | — | — | — |
 
+- El catálogo se trabaja siempre **dentro de una tienda**, la que se elige arriba en «Tienda: …». Cada tienda tiene sus propias prendas base.
 - El **gestor de catálogo** es equipo interno. Da de alta y edita los artículos de cualquier tienda, pero no ve datos fiscales ni bancarios, ni pedidos o pagos.
 - Los **artistas** solo consultan su información y no pueden editar nada.
 - Las cuentas se crean en *Administración → Usuarios*.

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Products\Pages;
 
 use App\Filament\Resources\Products\Pages\Concerns\SavesArticle;
 use App\Filament\Resources\Products\ProductResource;
+use App\Filament\Support\ActiveStore;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateProduct extends CreateRecord
@@ -14,6 +15,8 @@ class CreateProduct extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        $data['store_id'] = ActiveStore::id(); // siempre la tienda activa
+
         return $this->takeGenerator($data);
     }
 

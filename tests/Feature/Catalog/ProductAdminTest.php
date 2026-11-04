@@ -41,9 +41,11 @@ it('crea un producto con el precio en céntimos y slug automático', function ()
 });
 
 it('rechaza un plazo máximo menor que el mínimo', function () {
+    $store = Store::factory()->create();
+
     Livewire::test(CreateProduct::class)
         ->fillForm([
-            'store_id' => Store::factory()->create()->id,
+            'store_id' => $store->id,
             'name' => 'X',
             'price_cents' => '10',
             'vat_rate_bps' => '21',
@@ -117,9 +119,11 @@ it('al editar solo añade las combinaciones que faltan', function () {
 });
 
 it('no publica un artículo incompleto: lo guarda como borrador y explica qué falta', function () {
+    $store = Store::factory()->create();
+
     Livewire::test(CreateProduct::class)
         ->fillForm([
-            'store_id' => Store::factory()->create()->id,
+            'store_id' => $store->id,
             'name' => 'Sin fotos',
             'price_cents' => '10',
             'vat_rate_bps' => '21',

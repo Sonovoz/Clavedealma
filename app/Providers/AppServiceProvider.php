@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Filament\Livewire\StoreSwitcher;
 use App\Modules\Catalog\Infrastructure\Models\BaseGarment;
 use App\Modules\Catalog\Infrastructure\Models\Collection;
 use App\Modules\Catalog\Infrastructure\Models\GarmentSize;
@@ -11,6 +12,9 @@ use App\Modules\Catalog\Infrastructure\Models\ProductVariant;
 use App\Modules\Identity\Infrastructure\Models\User;
 use App\Modules\Inventory\Infrastructure\Models\StockLevel;
 use App\Modules\Inventory\Infrastructure\Models\StockMovement;
+use App\Modules\Shipping\Infrastructure\Models\Carrier;
+use App\Modules\Shipping\Infrastructure\Models\RateBand;
+use App\Modules\Shipping\Infrastructure\Models\ZoneRate;
 use App\Modules\Stores\Infrastructure\Models\Artist;
 use App\Modules\Stores\Infrastructure\Models\Store;
 use App\Policies\CatalogPolicy;
@@ -20,6 +24,7 @@ use App\Policies\SuperadminOnlyPolicy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,11 +35,13 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Livewire::component('store-switcher', StoreSwitcher::class);
+
         // En desarrollo y en las pruebas, error ante consultas N+1 o atributos inexistentes.
         Model::shouldBeStrict($this->app->isLocal() || $this->app->runningUnitTests());
 
-        // Artistas, tiendas y usuarios (datos fiscales y cuentas): solo superadministradores.
-        foreach ([Artist::class, Store::class, User::class] as $model) {
+        // Artistas, tiendas, usuarios y envíos (logística de Clave de Alma): solo superadministradores.
+        foreach ([Artist::class, Store::class, User::class, Carrier::class, ZoneRate::class, RateBand::class] as $model) {
             Gate::policy($model, SuperadminOnlyPolicy::class);
         }
 
