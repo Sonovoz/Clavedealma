@@ -4,6 +4,8 @@ namespace App\Filament\Pages;
 
 use App\Modules\Identity\Infrastructure\Models\User;
 use App\Platform\ApplyUpdate;
+use App\Platform\Security\SecurityEventType;
+use App\Platform\Security\SecurityLog;
 use App\Platform\SystemStatus;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -78,6 +80,7 @@ class System extends Page
                 ->action(function (ApplyUpdate $applyUpdate): void {
                     $this->lastUpdate = $applyUpdate(auth()->id());
                     $failed = collect($this->lastUpdate)->contains(fn (array $r): bool => ! $r['ok']);
+                    SecurityLog::record(SecurityEventType::UpdateApplied, $failed ? 'Actualización aplicada con errores.' : 'Actualización aplicada.');
 
                     $notification = Notification::make();
                     $failed
@@ -95,6 +98,7 @@ class System extends Page
                 ->visible(fn (): bool => ! app()->isDownForMaintenance())
                 ->action(function (): void {
                     Artisan::call('down', ['--retry' => 60]);
+                    SecurityLog::record(SecurityEventType::Maintenance, 'Modo mantenimiento activado.');
                     Notification::make()->title('Modo mantenimiento activado')->warning()->send();
                 }),
 
@@ -105,6 +109,7 @@ class System extends Page
                 ->visible(fn (): bool => app()->isDownForMaintenance())
                 ->action(function (): void {
                     Artisan::call('up');
+                    SecurityLog::record(SecurityEventType::Maintenance, 'Modo mantenimiento desactivado.');
                     Notification::make()->title('La web vuelve a estar disponible')->success()->send();
                 }),
         ];

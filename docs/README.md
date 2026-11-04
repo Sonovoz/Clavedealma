@@ -4,6 +4,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 
 ## Guías
 
+- [**Cómo está hecho (para desarrolladores)**](desarrollo/README.md). También en el panel: *Desarrollo*
 - [Instalación de pruebas en Hostinger](instalacion-hostinger.md)
 - [Despliegue con Docker en OVH](despliegue-docker.md)
 - [Prototipos de diseño: matriz y tienda Farruquito](diseno/README.md)
@@ -37,6 +38,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0016](adr/0016-devoluciones.md) | Devoluciones de piezas (derecho de desistimiento) |
 | [0017](adr/0017-documentos-pdf.md) | Documentos PDF del panel (dompdf por contrato) |
 | [0018](adr/0018-facturacion-y-verifactu.md) | Facturación (simplificadas y rectificativas) y Veri*Factu |
+| [0019](adr/0019-registro-de-seguridad.md) | Registro de seguridad |
 
 ## Orden de construcción
 
@@ -65,7 +67,8 @@ IA: el asistente SEO del panel ya está (ADR 0012, `docs/seo`). Más adelante, s
 | Catálogo de la tienda elegida («Tienda: …»): productos, colecciones, prendas base | ✓ | ✓ | — | — |
 | Operación: fabricación y su PDF (sin datos del cliente) y stock | ✓ | — | ✓ | — |
 | Envíos: tarifas por destino y transportistas | ✓ | — | — | — |
-| Administración: usuarios, sistema, copias de seguridad y datos de facturación | ✓ | — | — | — |
+| Administración: usuarios, sistema, copias de seguridad, datos de facturación y registro de seguridad | ✓ | — | — | — |
+| Desarrollo: guía, árbol del sistema y decisiones | ✓ | — | — | — |
 
 - El catálogo se trabaja siempre **dentro de una tienda**, la que se elige arriba en «Tienda: …». Cada tienda tiene sus propias prendas base.
 - **Ver tienda** abre la tienda en una pestaña nueva. Está junto al selector, en la franja «Tienda: …», y en el listado y la ficha de *Tiendas*. Cada artículo tiene **Ver en la tienda**, que funciona también con borradores y tiendas ocultas, en vista previa para el equipo.

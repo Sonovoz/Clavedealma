@@ -56,6 +56,11 @@ return [
         'alert_email' => env('ORDERS_ALERT_EMAIL'),
     ],
 
+    'security' => [
+        // Días que se conserva el registro de seguridad (guarda IPs: dato personal).
+        'retention_days' => (int) env('SECURITY_LOG_DAYS', 365),
+    ],
+
     'backups' => [
         'disk' => env('BACKUP_DISK', 'backups'),
         'timezone' => env('BACKUP_TIMEZONE', 'Europe/Madrid'),
