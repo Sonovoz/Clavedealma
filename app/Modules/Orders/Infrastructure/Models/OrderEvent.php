@@ -44,6 +44,8 @@ class OrderEvent extends Model
             'delivered' => 'Entregado',
             'refunded' => 'Importe devuelto',
             'refund_failed' => 'Devolución de dinero fallida',
+            'invoiced' => 'Factura emitida',
+            'invoice_pending' => 'Factura pendiente',
             'return_requested' => 'Devolución pedida',
             'return_approved' => 'Devolución aprobada',
             'return_rejected' => 'Devolución rechazada',

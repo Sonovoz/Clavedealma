@@ -15,5 +15,8 @@ final readonly class OrderLineSummary
         public int $unitPriceCents,
         public bool $personalized,
         public ?string $imagePath,
+        public int $vatRateBps = 2100,
+        /** Importe de la línea con IVA incluido. */
+        public int $totalCents = 0,
     ) {}
 }

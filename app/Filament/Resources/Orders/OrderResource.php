@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources\Orders;
 
+use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Resources\Orders\Pages\ListOrders;
 use App\Filament\Resources\Orders\Pages\ViewOrder;
 use App\Filament\Resources\Returns\ReturnResource;
 use App\Filament\Support\Fields;
+use App\Modules\Invoicing\Infrastructure\Models\Invoice;
 use App\Modules\Orders\Contracts\OrderStatus;
 use App\Modules\Orders\Infrastructure\Models\Order;
 use App\Modules\Orders\Infrastructure\Models\OrderEvent;
@@ -184,6 +186,15 @@ class OrderResource extends Resource
                     TextEntry::make('returns')->hiddenLabel()->html()->state(fn (Order $record): string => ReturnRequest::query()->where('order_id', $record->id)->get()
                         ->map(fn (ReturnRequest $r): string => '<a href="'.e(ReturnResource::getUrl('view', ['record' => $r])).'" style="text-decoration:underline">'.e((string) $r->reference).'</a> · '
                             .e($r->status->label()).' · '.e(Money::fromCents($r->refund_cents)->format()))
+                        ->implode('<br>')),
+                ]),
+
+            Section::make('Facturas')->columnSpan(2)
+                ->visible(fn (Order $record): bool => Invoice::query()->where('order_id', $record->id)->exists())
+                ->schema([
+                    TextEntry::make('invoices')->hiddenLabel()->html()->state(fn (Order $record): string => Invoice::query()->where('order_id', $record->id)->orderBy('id')->get()
+                        ->map(fn (Invoice $i): string => '<a href="'.e(InvoiceResource::getUrl('view', ['record' => $i])).'" style="text-decoration:underline">'.e($i->code).'</a> · '
+                            .e($i->type->label()).' · '.e(Money::fromCents($i->total_cents)->format()))
                         ->implode('<br>')),
                 ]),
 

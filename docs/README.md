@@ -13,6 +13,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 - [SEO: reglas obligatorias, estrategia y asistente de IA](seo/README.md)
 - [Compra y pago: cesta, pedidos, Stripe y pago simulado](compra/README.md)
 - [Documentos PDF: fabricación, albaranes e informes](informes.md)
+- [Facturación y Veri*Factu](facturacion.md)
 
 ## Decisiones técnicas (ADR)
 
@@ -35,6 +36,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0015](adr/0015-fabricacion-envio-y-cancelacion.md) | Fabricación, envío y cancelación con devolución del importe |
 | [0016](adr/0016-devoluciones.md) | Devoluciones de piezas (derecho de desistimiento) |
 | [0017](adr/0017-documentos-pdf.md) | Documentos PDF del panel (dompdf por contrato) |
+| [0018](adr/0018-facturacion-y-verifactu.md) | Facturación (simplificadas y rectificativas) y Veri*Factu |
 
 ## Orden de construcción
 
@@ -42,8 +44,8 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 2. ✓ Tiendas y catálogo en el panel (ficha de artículo, protocolo de importación, gestor de catálogo).
 3. ✓ Tiendas públicas: diseño propio + pasarela común (primera: Farruquito).
 4. ✓ Compra y pago con Stripe (modo test).
-5. **Operación: producción, envíos, devoluciones** ← fase actual (5a fabricación y envío; 5b devoluciones).
-6. Artistas, liquidaciones y autofacturación.
+5. ✓ Operación: producción, envíos, devoluciones.
+6. **Facturación (Veri*Factu), artistas, liquidaciones y autofacturación** ← fase actual (6a facturas; 6b liquidaciones).
 7. Centro de control para superadministradores.
 8. Capa visual: plantilla común y temas.
 9. Pruebas completas en staging y lanzamiento.
@@ -52,18 +54,18 @@ IA: el asistente SEO del panel ya está (ADR 0012, `docs/seo`). Más adelante, s
 
 ## Módulos
 
-`app/Modules/`: Identity, Stores, Catalog, Inventory, Cart, Orders, Payments, Production, Shipping, Returns, Settlements, Invoicing, Notifications, Audit. Existen ya `Identity`, `Stores`, `Catalog`, `Inventory`, `Shipping`, `Cart`, `Orders`, `Payments` y `Returns`; el resto se crea al llegar a su fase, con la misma estructura de carpetas.
+`app/Modules/`: Identity, Stores, Catalog, Inventory, Cart, Orders, Payments, Production, Shipping, Returns, Settlements, Invoicing, Notifications, Audit. Existen ya `Identity`, `Stores`, `Catalog`, `Inventory`, `Shipping`, `Cart`, `Orders`, `Payments`, `Returns` e `Invoicing`; el resto se crea al llegar a su fase, con la misma estructura de carpetas.
 
 ## Panel por rol
 
 | Sección | Superadmin | Gestor de catálogo | Fabricante | Artista |
 | --- | --- | --- | --- | --- |
-| Ventas: pedidos, devoluciones, informes y PDF (datos de clientes y cobros) | ✓ | — | — | — |
+| Ventas: pedidos, devoluciones, facturas, informes y PDF (datos de clientes y cobros) | ✓ | — | — | — |
 | Tiendas: artistas y tiendas (datos fiscales) | ✓ | — | — | — |
 | Catálogo de la tienda elegida («Tienda: …»): productos, colecciones, prendas base | ✓ | ✓ | — | — |
 | Operación: fabricación y su PDF (sin datos del cliente) y stock | ✓ | — | ✓ | — |
 | Envíos: tarifas por destino y transportistas | ✓ | — | — | — |
-| Administración: usuarios, sistema y copias de seguridad | ✓ | — | — | — |
+| Administración: usuarios, sistema, copias de seguridad y datos de facturación | ✓ | — | — | — |
 
 - El catálogo se trabaja siempre **dentro de una tienda**, la que se elige arriba en «Tienda: …». Cada tienda tiene sus propias prendas base.
 - **Ver tienda** abre la tienda en una pestaña nueva. Está junto al selector, en la franja «Tienda: …», y en el listado y la ficha de *Tiendas*. Cada artículo tiene **Ver en la tienda**, que funciona también con borradores y tiendas ocultas, en vista previa para el equipo.

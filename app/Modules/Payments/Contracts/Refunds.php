@@ -10,6 +10,13 @@ interface Refunds
 {
     public function refund(int $orderId, int $amountCents, string $idempotencyKey, string $reason): RefundResult;
 
+    /**
+     * Devoluciones de dinero hechas, por orden.
+     *
+     * @return list<array{id: int, order_id: int, amount_cents: int, reason: string}>
+     */
+    public function succeeded(): array;
+
     /** Lo ya devuelto de un pedido, en céntimos. */
     public function refundedCents(int $orderId): int;
 }

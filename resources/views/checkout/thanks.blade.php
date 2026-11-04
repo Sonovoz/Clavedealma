@@ -54,6 +54,14 @@
                 @if (session('return.error'))
                     <p class="co-alert" role="alert">{{ session('return.error') }}</p>
                 @endif
+                @if ($invoices !== [])
+                    <h2 class="co-h2">Facturas</h2>
+                    <ul class="co-returns">
+                        @foreach ($invoices as $inv)
+                            <li><span><a href="{{ $inv['url'] }}">{{ $inv['label'] }} {{ $inv['code'] }}</a></span><span>{{ $inv['total'] }}</span></li>
+                        @endforeach
+                    </ul>
+                @endif
                 @if ($returns !== [])
                     <h2 class="co-h2">Devoluciones</h2>
                     <ul class="co-returns">

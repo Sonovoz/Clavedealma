@@ -47,6 +47,7 @@ Route::get('/pedido/{token}/pagar', [CheckoutController::class, 'pay'])->where('
 Route::post('/pedido/{token}/simular', [CheckoutController::class, 'simulate'])->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:20,1')->name('checkout.simulate');
 Route::get('/pedido/{token}/devolucion', [ReturnController::class, 'show'])->where('token', '[A-Za-z0-9]{48}')->name('returns.create');
 Route::post('/pedido/{token}/devolucion', [ReturnController::class, 'store'])->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:10,1')->name('returns.store');
+Route::get('/pedido/{token}/factura/{code}', [CheckoutController::class, 'invoice'])->where(['token' => '[A-Za-z0-9]{48}', 'code' => '[A-Za-z0-9\-]{3,30}'])->name('checkout.invoice');
 Route::get('/pedido/{token}', [CheckoutController::class, 'thanks'])->where('token', '[A-Za-z0-9]{48}')->name('checkout.thanks');
 Route::post('/webhooks/stripe', PaymentWebhookController::class)->name('payments.webhook.stripe');
 
