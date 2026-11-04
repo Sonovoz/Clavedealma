@@ -32,6 +32,8 @@ use App\Platform\Ai\Drivers\NullTextGenerator;
 use App\Platform\Ai\Drivers\OpenAiCompatibleTextGenerator;
 use App\Platform\Ai\TextGenerator;
 use App\Platform\Backup\Backup;
+use App\Platform\Legal\LegalDocument;
+use App\Platform\Legal\LegalGenerator;
 use App\Platform\Pdf\DompdfRenderer;
 use App\Platform\Pdf\PdfRenderer;
 use App\Platform\Security\SecurityEvent;
@@ -69,7 +71,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Artistas, tiendas, usuarios, envíos, pedidos y pagos: solo superadministradores
         // (el gestor de catálogo no ve datos de clientes ni de cobros).
-        foreach ([Artist::class, Store::class, User::class, Carrier::class, ZoneRate::class, RateBand::class, Backup::class, Order::class, OrderLine::class, OrderEvent::class, Payment::class, Refund::class, ReturnRequest::class, ReturnLine::class, Invoice::class, InvoiceLine::class, InvoiceIssuer::class, SecurityEvent::class] as $model) {
+        foreach ([Artist::class, Store::class, User::class, Carrier::class, ZoneRate::class, RateBand::class, Backup::class, Order::class, OrderLine::class, OrderEvent::class, Payment::class, Refund::class, ReturnRequest::class, ReturnLine::class, Invoice::class, InvoiceLine::class, InvoiceIssuer::class, SecurityEvent::class, LegalDocument::class] as $model) {
             Gate::policy($model, SuperadminOnlyPolicy::class);
         }
 
@@ -83,6 +85,13 @@ class AppServiceProvider extends ServiceProvider
 
         // Registro de seguridad: accesos y cambios en las cuentas (las acciones del panel se anotan en cada acción).
         SecurityListeners::register();
+
+        // Textos legales de cada tienda: al crearla o cambiar su nombre o dirección (si ya se generaron los de Clave de Alma).
+        Store::saved(function (Store $store): void {
+            if (($store->wasRecentlyCreated || $store->wasChanged(['name', 'subdomain', 'artist_id'])) && LegalDocument::query()->exists()) {
+                app(LegalGenerator::class)->generateFor($store->loadMissing('artist'));
+            }
+        });
 
         // Número de piezas de la cesta en la cabecera de todas las tiendas y de la matriz.
         View::composer(['storefront.market', 'storefront.designs.*.layout', 'checkout.*'], function ($view): void {

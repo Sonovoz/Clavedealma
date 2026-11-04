@@ -119,3 +119,6 @@
   .sf-product__grid { grid-template-columns: minmax(0, 1fr); }
   .sf-buy { position: static; }
 }
+.sf-legal-links { font-size: 12px; }
+.sf-legal-links a { color: inherit; text-decoration: none; }
+.sf-legal-links a:hover { text-decoration: underline; }

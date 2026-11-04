@@ -11,6 +11,7 @@ use App\Http\Controllers\Storefront\SitemapController;
 use App\Http\Controllers\Storefront\StorefrontController;
 use App\Http\Controllers\Storefront\StoreRedirectController;
 use App\Modules\Stores\Domain\Subdomain;
+use App\Platform\Legal\LegalPage;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -51,8 +52,9 @@ Route::get('/pedido/{token}/factura/{code}', [CheckoutController::class, 'invoic
 Route::get('/pedido/{token}', [CheckoutController::class, 'thanks'])->where('token', '[A-Za-z0-9]{48}')->name('checkout.thanks');
 Route::post('/webhooks/stripe', PaymentWebhookController::class)->name('payments.webhook.stripe');
 
-// Textos legales (pendientes de la asesoría; docs/compra).
-Route::get('/legal/{page}', LegalController::class)->whereIn('page', ['condiciones-de-venta', 'privacidad', 'envios-y-devoluciones'])->name('legal');
+// Textos legales de Clave de Alma; los de cada tienda en /<tienda>/legal/… (ADR 0020).
+$legalPages = array_map(fn (LegalPage $p): string => $p->value, LegalPage::cases());
+Route::get('/legal/{page}', [LegalController::class, 'market'])->whereIn('page', $legalPages)->name('legal');
 
 // Matriz: portada del market.
 Route::get('/', MarketController::class)->name('market');
@@ -61,8 +63,9 @@ Route::get('/', MarketController::class)->name('market');
 Route::prefix('{store}')
     ->where(['store' => $key])
     ->name('storefront.')
-    ->group(function (): void {
+    ->group(function () use ($legalPages): void {
         Route::get('/', [StorefrontController::class, 'home'])->name('home');
         Route::get('/coleccion/{collection}', [StorefrontController::class, 'collection'])->name('collection');
         Route::get('/p/{product}', [StorefrontController::class, 'product'])->name('product');
+        Route::get('/legal/{page}', [LegalController::class, 'store'])->whereIn('page', $legalPages)->name('legal');
     });

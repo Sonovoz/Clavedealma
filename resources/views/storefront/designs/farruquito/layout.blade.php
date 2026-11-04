@@ -54,7 +54,7 @@
       <div><h4>Ayuda</h4><ul><li><a href="{{ $home }}#coleccion">Envíos</a></li><li><a href="{{ $home }}#coleccion">Devoluciones</a></li><li><a href="{{ $home }}#coleccion">Guía de tallas</a></li><li><a href="{{ $home }}#coleccion">Fabricación bajo pedido</a></li></ul></div>
       <div><h4>Pago seguro</h4><div class="pagos"><span>Tarjeta</span><span>Bizum</span><span>Apple Pay</span><span>Google Pay</span></div></div>
     </div>
-    <div class="pie__legal"><span>© Clave de Alma · Premium Artists Platform</span><span>Aviso legal · Privacidad · Cookies · Condiciones de venta</span></div>
+    <div class="pie__legal"><span>© Clave de Alma · Premium Artists Platform</span>@include('storefront.partials.legal-links')</div>
   </div>
 </footer>
 @endsection

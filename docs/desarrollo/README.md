@@ -60,7 +60,7 @@ Fuera de los módulos está la **capa exterior**, que pinta y conecta pero no de
 | `app/Http` | Controladores de la tienda y de la compra, y `FormRequest` |
 | `app/Filament` | El panel: recursos, páginas, acciones y la tienda activa |
 | `app/Storefront` | Lectura del catálogo para las tiendas, SEO, direcciones y cesta para pintar |
-| `app/Platform` | Servicios transversales: IA, copias, PDF, documentos, importador, ajustes y registro de seguridad |
+| `app/Platform` | Servicios transversales: IA, copias, PDF, documentos, importador, ajustes, textos legales y registro de seguridad |
 | `app/Support` | Utilidades sin negocio: `Money` y `HasLabel` |
 | `resources/views` | Blade: `storefront/` (tiendas), `checkout/` (compra), `pdf/`, `mail/` y `filament/` |
 
@@ -128,6 +128,10 @@ Fuera de los módulos está la **capa exterior**, que pinta y conecta pero no de
   - un diseño **nunca** calcula precios ni disponibilidad.
 - **SEO** (ADR 0012): toda página pública pasa por `SeoBuilder` (título, canónica, JSON-LD). Fuera de producción no se indexa nada.
 - **Compra** (`resources/views/checkout`): imagen de Clave de Alma, común a todas las tiendas, siempre `noindex`.
+
+## Textos legales
+
+`App\Platform\Legal\LegalGenerator` genera el aviso legal, la privacidad, las cookies, las condiciones y los envíos de Clave de Alma y de cada tienda. Usa solo datos del sistema y las plantillas Markdown de `resources/views/legal/*`. Cada cambio es una versión nueva (`LegalDocument`, inmutable) y la asesoría la marca como revisada (ADR 0020). Si cambias una regla de negocio que aparece en los textos (plazos, devoluciones, cookies…), **actualiza la plantilla**.
 
 ## 9. El panel
 

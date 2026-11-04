@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property ?string $province
  * @property string $country
  * @property ?string $email
+ * @property ?string $phone
+ * @property ?string $registry_details
  * @property string $simplified_series
  * @property string $rectifying_series
  */

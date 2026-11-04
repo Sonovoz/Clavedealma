@@ -6,10 +6,12 @@ use App\Modules\Identity\Infrastructure\Models\User;
 use App\Modules\Invoicing\Contracts\VerifactuSender;
 use App\Modules\Invoicing\Infrastructure\Models\Invoice;
 use App\Modules\Invoicing\Infrastructure\Models\InvoiceIssuer;
+use App\Platform\Legal\LegalGenerator;
 use App\Platform\Security\SecurityEventType;
 use App\Platform\Security\SecurityLog;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -52,8 +54,8 @@ class InvoicingSettings extends Page
             Action::make('edit')
                 ->label('Editar datos fiscales')
                 ->icon(Heroicon::OutlinedPencilSquare)
-                ->modalDescription('Se copian en cada factura al emitirla: un cambio no altera las facturas ya emitidas.')
-                ->fillForm(fn (): array => InvoiceIssuer::current()->only(['legal_name', 'nif', 'address', 'postal_code', 'city', 'province', 'email', 'simplified_series', 'rectifying_series']))
+                ->modalDescription('Se copian en cada factura al emitirla (un cambio no altera las ya emitidas) y con ellos se generan los textos legales de Clave de Alma y de cada tienda.')
+                ->fillForm(fn (): array => InvoiceIssuer::current()->only(['legal_name', 'nif', 'address', 'postal_code', 'city', 'province', 'email', 'phone', 'registry_details', 'simplified_series', 'rectifying_series']))
                 ->schema([
                     TextInput::make('legal_name')->label('Razón social')->required()->maxLength(255),
                     TextInput::make('nif')->label('NIF')->required()->maxLength(20)->regex('/^[A-Za-z0-9]{8,12}$/'),
@@ -61,7 +63,11 @@ class InvoicingSettings extends Page
                     TextInput::make('postal_code')->label('Código postal')->required()->maxLength(12),
                     TextInput::make('city')->label('Población')->required()->maxLength(120),
                     TextInput::make('province')->label('Provincia')->maxLength(120),
-                    TextInput::make('email')->label('Email de facturación')->email()->maxLength(255),
+                    TextInput::make('email')->label('Email de contacto y facturación')->email()->maxLength(255)
+                        ->helperText('Sale en las facturas y en los textos legales (para ejercer los derechos de privacidad).'),
+                    TextInput::make('phone')->label('Teléfono de contacto')->tel()->maxLength(30),
+                    Textarea::make('registry_details')->label('Datos registrales')->rows(2)->maxLength(500)
+                        ->helperText('Para el aviso legal: Registro Mercantil de…, tomo, folio, hoja e inscripción. Lo indica la gestoría.'),
                     TextInput::make('simplified_series')->label('Serie de facturas simplificadas')->required()->maxLength(10)->alphaNum()
                         ->disabled($issued)->helperText($issued ? 'Ya hay facturas emitidas: la serie no se cambia.' : 'Por ejemplo, T.'),
                     TextInput::make('rectifying_series')->label('Serie de rectificativas')->required()->maxLength(10)->alphaNum()
@@ -78,7 +84,14 @@ class InvoicingSettings extends Page
                     if ($changed !== []) {
                         SecurityLog::record(SecurityEventType::FiscalDataChanged, 'Datos de facturación cambiados: '.implode(', ', $changed).'.');
                     }
-                    Notification::make()->title('Datos de facturación guardados')->success()->send();
+                    // Con los datos fiscales se generan los textos legales de Clave de Alma y de cada tienda.
+                    $created = app(LegalGenerator::class)->generateAll();
+                    if ($created > 0) {
+                        SecurityLog::record(SecurityEventType::LegalGenerated, "Textos legales generados: {$created} versiones nuevas.");
+                    }
+                    Notification::make()->title('Datos de facturación guardados')
+                        ->body($created > 0 ? "Textos legales actualizados: {$created} versiones nuevas, pendientes de revisión (Administración → Textos legales)." : 'Los textos legales ya estaban al día.')
+                        ->success()->send();
                 }),
             Action::make('issuePending')
                 ->label('Emitir facturas pendientes')

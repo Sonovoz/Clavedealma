@@ -2,10 +2,15 @@
 
 @section('content')
     <article class="co-card co-legal">
-        <h1 class="co-h1">{{ $title }}</h1>
-        <p class="co-alert">Texto pendiente: lo redacta la asesoría legal de Clave de Alma antes de abrir la venta al público.</p>
-        @if ($page === 'envios-y-devoluciones')
-            <p>Mientras tanto, lo que ya aplica la tienda: Clave de Alma elige la empresa de transporte de cada destino, el envío se paga según el peso del pedido y las piezas no personalizadas se pueden devolver en los 14 días siguientes a la entrega.</p>
+        @if ($doc === null)
+            <h1 class="co-h1">{{ $title }}</h1>
+            <p class="co-alert">Texto pendiente: se genera al completar los datos fiscales de Clave de Alma.</p>
+        @else
+            @if (! $doc->approved_at)
+                <p class="co-alert">Borrador pendiente de revisión por la asesoría legal.</p>
+            @endif
+            <div class="co-legal__body">{!! $html !!}</div>
+            <p class="co-fine">Versión {{ $doc->version }} · {{ $doc->generated_at->timezone('Europe/Madrid')->format('d/m/Y') }}</p>
         @endif
     </article>
 @endsection
