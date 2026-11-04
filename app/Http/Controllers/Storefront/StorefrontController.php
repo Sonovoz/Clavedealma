@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Storefront;
 use App\Modules\Catalog\Infrastructure\Models\Collection;
 use App\Modules\Stores\Infrastructure\Models\Store;
 use App\Storefront\Designs;
+use App\Storefront\Seo\SeoBuilder;
 use App\Storefront\StoreAccess;
 use App\Storefront\StoreCatalog;
 use Illuminate\Contracts\View\View;
@@ -16,15 +17,18 @@ use Illuminate\Http\Request;
  */
 class StorefrontController
 {
-    public function __construct(private readonly StoreCatalog $catalog) {}
+    public function __construct(private readonly StoreCatalog $catalog, private readonly SeoBuilder $seo) {}
 
     public function home(Request $request, string $store): View
     {
         $shop = $this->store($request, $store);
 
+        $cards = $this->catalog->cards($shop);
+
         return view(Designs::view($shop->design, 'home'), $this->shared($request, $shop) + [
-            'cards' => $this->catalog->cards($shop),
+            'cards' => $cards,
             'activeCollection' => null,
+            'seo' => $this->seo->store($shop, $cards),
         ]);
     }
 
@@ -34,9 +38,12 @@ class StorefrontController
         $current = Collection::query()->where('store_id', $shop->id)->where('slug', $collection)->first();
         abort_if($current === null, 404);
 
+        $cards = $this->catalog->cards($shop, $current);
+
         return view(Designs::view($shop->design, 'collection'), $this->shared($request, $shop) + [
-            'cards' => $this->catalog->cards($shop, $current),
+            'cards' => $cards,
             'activeCollection' => $current,
+            'seo' => $this->seo->collection($shop, $current, $cards),
         ]);
     }
 
@@ -46,7 +53,10 @@ class StorefrontController
         $item = $this->catalog->product($shop, $product, StoreAccess::isStaff($request->user()));
         abort_if($item === null, 404);
 
-        return view(Designs::view($shop->design, 'product'), $this->shared($request, $shop) + ['item' => $item]);
+        return view(Designs::view($shop->design, 'product'), $this->shared($request, $shop) + [
+            'item' => $item,
+            'seo' => $this->seo->product($shop, $item),
+        ]);
     }
 
     private function store(Request $request, string $subdomain): Store

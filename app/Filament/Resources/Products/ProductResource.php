@@ -16,8 +16,15 @@ use App\Modules\Catalog\Infrastructure\Models\BaseGarment;
 use App\Modules\Catalog\Infrastructure\Models\Product;
 use App\Modules\Inventory\Contracts\StockMode;
 use App\Modules\Stores\Infrastructure\Models\Store;
+use App\Platform\Ai\AiException;
+use App\Storefront\Seo\SeoAssistant;
+use App\Storefront\Seo\SeoAudit;
+use App\Storefront\Seo\SeoBuilder;
+use App\Storefront\Seo\SeoText;
+use App\Storefront\Urls;
 use App\Support\Money;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\ColorPicker;
@@ -27,16 +34,20 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -80,6 +91,7 @@ class ProductResource extends Resource
                     Tab::make('Tallas y colores')->icon(Heroicon::OutlinedSwatch)->schema(self::variantsTab()),
                     Tab::make('Fotos')->icon(Heroicon::OutlinedPhoto)->schema(self::photosTab()),
                     Tab::make('Precio y fabricación')->icon(Heroicon::OutlinedCurrencyEuro)->columns(2)->schema(self::priceTab()),
+                    Tab::make('SEO')->icon(Heroicon::OutlinedMagnifyingGlass)->schema(self::seoTab()),
                     Tab::make('Publicación')->icon(Heroicon::OutlinedGlobeAlt)->schema(self::publicationTab()),
                 ]),
         ]);
@@ -270,6 +282,129 @@ class ProductResource extends Resource
     }
 
     /**
+     * Pestaña SEO: cómo se verá en Google, campos propios, semáforo y asistente de IA.
+     *
+     * @return array<\Filament\Schemas\Components\Component|Field>
+     */
+    private static function seoTab(): array
+    {
+        $count = fn (?string $state, int $min, int $max): string => mb_strlen((string) $state).' / '.$max.' caracteres'
+            .(filled($state) && (mb_strlen((string) $state) < $min || mb_strlen((string) $state) > $max) ? ' · ideal entre '.$min.' y '.$max : '');
+        $ai = fn (): SeoAssistant => app(SeoAssistant::class);
+        $aiHint = fn (): ?string => $ai()->available() ? null : 'La IA no está configurada (AI_DRIVER, AI_API_KEY y AI_MODEL en el .env).';
+
+        return [
+            Callout::make(fn (?Product $record): string => $record === null ? 'Semáforo SEO' : 'Semáforo SEO: '.app(SeoAudit::class)->product($record)['score'].' / 100')
+                ->description(fn (?Product $record): string => $record === null
+                    ? 'Guarda el artículo para ver su nota SEO.'
+                    : (collect(app(SeoAudit::class)->product($record)['checks'])->where('level', '!=', 'ok')->pluck('message')->implode(' · ') ?: 'Todo en orden.'))
+                ->color(fn (?Product $record): string => $record === null ? 'gray' : SeoAudit::color(app(SeoAudit::class)->product($record)['score']))
+                ->icon(Heroicon::OutlinedChartBar),
+
+            Section::make('Cómo se verá en Google')
+                ->description('Si dejas los campos vacíos, se generan solos con el nombre y la descripción. Escritos a mano posicionan mejor.')
+                ->schema([
+                    TextEntry::make('google_preview')
+                        ->hiddenLabel()
+                        ->html()
+                        ->state(function (Get $get, ?Product $record): string {
+                            $store = $record?->store_id === null ? null : Store::query()->find($record->store_id);
+                            $title = filled($get('seo_title')) ? (string) $get('seo_title') : ($record && $store ? SeoBuilder::productTitle($record, $store, $record->baseGarment?->name) : (string) $get('name'));
+                            $desc = filled($get('seo_description')) ? (string) $get('seo_description') : ($record && $store ? SeoBuilder::productDescription($record, $store, $record->baseGarment?->name) : '');
+                            $url = $record && $store ? Urls::product($store, $record->slug) : 'clavedealma.es/…';
+
+                            return '<div style="font-family:arial,sans-serif;max-width:600px">'
+                                .'<div style="font-size:12px;color:#4d5156">'.e($url).'</div>'
+                                .'<div style="font-size:20px;line-height:1.3;color:#1a0dab">'.e(SeoText::limit($title, 62)).'</div>'
+                                .'<div style="font-size:14px;line-height:1.58;color:#4d5156">'.e(SeoText::limit($desc, 160)).'</div></div>';
+                        }),
+                    TextInput::make('seo_title')
+                        ->label('Título para Google')
+                        ->maxLength(70)
+                        ->placeholder('Camiseta «La esencia» · Merchandising Farruquito')
+                        ->live(debounce: 600)
+                        ->helperText(fn (?string $state): string => $count($state, SeoText::TITLE_MIN, SeoText::TITLE_MAX)),
+                    Textarea::make('seo_description')
+                        ->label('Descripción para Google')
+                        ->maxLength(170)
+                        ->rows(3)
+                        ->live(debounce: 600)
+                        ->helperText(fn (?string $state): string => $count($state, SeoText::DESCRIPTION_MIN, SeoText::DESCRIPTION_MAX)),
+                ]),
+
+            Section::make('Asistente de IA')
+                ->description('La IA propone; tú revisas y pulsas «Guardar cambios». Solo usa los datos del artículo y no inventa nada.')
+                ->visible(fn (?Product $record): bool => $record !== null)
+                ->schema([
+                    Actions::make([
+                        Action::make('aiSeo')
+                            ->label('Sugerir título y descripción')
+                            ->icon(Heroicon::OutlinedSparkles)
+                            ->disabled(fn (): bool => ! $ai()->available())
+                            ->tooltip($aiHint)
+                            ->action(function (Set $set, Product $record) use ($ai): void {
+                                $s = self::askAi(fn () => $ai()->productSeo($record));
+                                if ($s !== null) {
+                                    $set('seo_title', $s['seo_title']);
+                                    $set('seo_description', $s['seo_description']);
+                                    Notification::make()->title('Propuesta lista: revísala y guarda')->success()->send();
+                                }
+                            }),
+                        Action::make('aiDescription')
+                            ->label('Mejorar la descripción del artículo')
+                            ->icon(Heroicon::OutlinedPencilSquare)
+                            ->disabled(fn (): bool => ! $ai()->available())
+                            ->tooltip($aiHint)
+                            ->requiresConfirmation()
+                            ->modalDescription('Sustituye el texto de «Descripción» (pestaña General) por una propuesta de la IA. No se guarda hasta que pulses «Guardar cambios».')
+                            ->action(function (Set $set, Product $record) use ($ai): void {
+                                $d = self::askAi(fn () => $ai()->productDescription($record));
+                                if ($d !== null) {
+                                    $set('description', $d);
+                                    Notification::make()->title('Descripción propuesta en la pestaña General: revísala y guarda')->success()->send();
+                                }
+                            }),
+                        Action::make('aiAlts')
+                            ->label('Sugerir textos de las fotos')
+                            ->icon(Heroicon::OutlinedPhoto)
+                            ->disabled(fn (): bool => ! $ai()->available())
+                            ->tooltip($aiHint)
+                            ->action(function (Get $get, Set $set, Product $record) use ($ai): void {
+                                $images = (array) $get('images');
+                                $photos = array_values(array_map(fn ($i): array => ['color' => $i['color'] ?? null, 'swatch' => (bool) ($i['is_swatch'] ?? false)], $images));
+                                $alts = self::askAi(fn () => $ai()->altTexts($record, $photos));
+                                if ($alts !== null && $alts !== []) {
+                                    $k = 0;
+                                    foreach ($images as $key => $image) {
+                                        $images[$key]['alt'] = $alts[$k++] ?? ($image['alt'] ?? null);
+                                    }
+                                    $set('images', $images);
+                                    Notification::make()->title('Textos propuestos en la pestaña Fotos: comprueba que cada uno coincide con su foto')->success()->send();
+                                }
+                            }),
+                    ])->key('seo-ai'),
+                ]),
+        ];
+    }
+
+    /**
+     * @template T
+     *
+     * @param  \Closure(): T  $call
+     * @return T|null
+     */
+    private static function askAi(\Closure $call): mixed
+    {
+        try {
+            return $call();
+        } catch (AiException $e) {
+            Notification::make()->title('La IA no ha podido responder')->body($e->getMessage())->danger()->send();
+
+            return null;
+        }
+    }
+
+    /**
      * Colores para asignar fotos: los del generador y los de las variantes ya creadas.
      *
      * @return array<string, string>
@@ -316,6 +451,13 @@ class ProductResource extends Resource
                     ->badge()
                     ->formatStateUsing(fn (ProductStatus $state): string => $state->label())
                     ->color(fn (ProductStatus $state): string => $state->color()),
+                TextColumn::make('seo_score')
+                    ->label('SEO')
+                    ->badge()
+                    ->state(fn (Product $record): int => app(SeoAudit::class)->product($record)['score'])
+                    ->color(fn (int $state): string => SeoAudit::color($state))
+                    ->suffix(' / 100')
+                    ->toggleable(),
                 TextColumn::make('updated_at')->label('Actualizado')->since()->sortable()->toggleable(),
             ])
             ->filters([

@@ -9,8 +9,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#070707">
-    <title>Clave de Alma · Tiendas oficiales de artistas</title>
-    <meta name="description" content="Merchandising oficial de artistas: cada tienda con su universo, un solo carrito y un solo pago.">
+    @include('storefront.partials.seo')
     @vite(['resources/css/storefront/matriz.css', 'resources/js/storefront/matriz.js'])
 </head>
 <body>

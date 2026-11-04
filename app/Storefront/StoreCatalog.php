@@ -127,10 +127,14 @@ class StoreCatalog
                 'size' => $v->size,
                 'color' => $v->color,
                 'price' => Money::fromCents($cents)->format(),
+                'price_cents' => $cents,
                 'before' => $discount === null ? null : Money::fromCents($discount['cents'])->format(),
                 'percent' => $discount['percent'] ?? null,
                 'available' => ! $soldOut,
                 'limited' => $level !== null && $level->mode !== StockMode::OnDemand && ! $soldOut ? $level->quantity : null,
+                // Se fabrica al pedirla (sin stock propio o con stock agotado que pasa a bajo pedido).
+                'made_to_order' => $level === null || $level->mode === StockMode::OnDemand
+                    || ($level->mode === StockMode::LimitedThenOnDemand && $level->quantity <= 0),
             ];
         })->values()->all();
 

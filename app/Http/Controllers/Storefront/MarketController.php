@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Storefront;
 use App\Modules\Stores\Contracts\StoreStatus;
 use App\Modules\Stores\Infrastructure\Models\Store;
 use App\Storefront\Designs;
+use App\Storefront\Seo\SeoBuilder;
 use App\Storefront\StoreAccess;
 use App\Storefront\StoreCatalog;
 use App\Storefront\Urls;
@@ -46,6 +47,7 @@ class MarketController
             ->all();
 
         return view('storefront.market', [
+            'seo' => app(SeoBuilder::class)->market(array_values(array_filter($stores, fn (array $s): bool => ! $s['hidden']))),
             'stores' => $stores,
             'staff' => $staff,
             'domain' => (string) config('clavedealma.domain'),

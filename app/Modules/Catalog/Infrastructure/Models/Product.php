@@ -21,10 +21,13 @@ use Illuminate\Support\Str;
  * (módulo Stores); Catálogo no depende de sus clases internas.
  *
  * @property int $id
+ * @property ?Carbon $updated_at
  * @property int $store_id
  * @property ?int $base_garment_id
  * @property ?string $reference
  * @property ?string $model_info
+ * @property ?string $seo_title
+ * @property ?string $seo_description
  * @property string $name
  * @property string $slug
  * @property ?string $description
