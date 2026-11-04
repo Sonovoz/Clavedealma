@@ -31,7 +31,7 @@
     <a class="cab__logo" href="{{ $home }}" aria-label="Serás Farruquito, inicio"><img src="{{ $a('logo-farruquito.png') }}" alt="Serás Farruquito · El Musical" width="897" height="364"></a>
     <div class="cab__acc">
       <button class="ico" type="button" aria-label="Buscar"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button>
-      <button class="ico" type="button" id="abrir-carrito" aria-label="Carrito (la compra se activa en la fase de pagos)" disabled><svg viewBox="0 0 24 24"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg><span class="badge" id="badge">0</span></button>
+      <a class="ico" href="{{ route('cart.show') }}" id="abrir-carrito" aria-label="Cesta ({{ $cartCount ?? 0 }})"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg><span @class(['badge', 'on' => ($cartCount ?? 0) > 0]) id="badge" data-cart-count>{{ $cartCount ?? 0 }}</span></a>
     </div>
   </div>
 </header>

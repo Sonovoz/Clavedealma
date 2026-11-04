@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Filament\Livewire\StoreSwitcher;
+use App\Modules\Cart\Application\CartStore;
 use App\Modules\Catalog\Infrastructure\Models\BaseGarment;
 use App\Modules\Catalog\Infrastructure\Models\Collection;
 use App\Modules\Catalog\Infrastructure\Models\GarmentSize;
@@ -12,6 +13,10 @@ use App\Modules\Catalog\Infrastructure\Models\ProductVariant;
 use App\Modules\Identity\Infrastructure\Models\User;
 use App\Modules\Inventory\Infrastructure\Models\StockLevel;
 use App\Modules\Inventory\Infrastructure\Models\StockMovement;
+use App\Modules\Orders\Infrastructure\Models\Order;
+use App\Modules\Orders\Infrastructure\Models\OrderEvent;
+use App\Modules\Orders\Infrastructure\Models\OrderLine;
+use App\Modules\Payments\Infrastructure\Models\Payment;
 use App\Modules\Shipping\Infrastructure\Models\Carrier;
 use App\Modules\Shipping\Infrastructure\Models\RateBand;
 use App\Modules\Shipping\Infrastructure\Models\ZoneRate;
@@ -27,6 +32,7 @@ use App\Policies\StockMovementPolicy;
 use App\Policies\SuperadminOnlyPolicy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
@@ -48,8 +54,9 @@ class AppServiceProvider extends ServiceProvider
         // En desarrollo y en las pruebas, error ante consultas N+1 o atributos inexistentes.
         Model::shouldBeStrict($this->app->isLocal() || $this->app->runningUnitTests());
 
-        // Artistas, tiendas, usuarios y envíos (logística de Clave de Alma): solo superadministradores.
-        foreach ([Artist::class, Store::class, User::class, Carrier::class, ZoneRate::class, RateBand::class, Backup::class] as $model) {
+        // Artistas, tiendas, usuarios, envíos, pedidos y pagos: solo superadministradores
+        // (el gestor de catálogo no ve datos de clientes ni de cobros).
+        foreach ([Artist::class, Store::class, User::class, Carrier::class, ZoneRate::class, RateBand::class, Backup::class, Order::class, OrderLine::class, OrderEvent::class, Payment::class] as $model) {
             Gate::policy($model, SuperadminOnlyPolicy::class);
         }
 
@@ -60,5 +67,10 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(StockLevel::class, StockLevelPolicy::class);
         Gate::policy(StockMovement::class, StockMovementPolicy::class);
+
+        // Número de piezas de la cesta en la cabecera de todas las tiendas y de la matriz.
+        View::composer(['storefront.market', 'storefront.designs.*.layout', 'checkout.*'], function ($view): void {
+            $view->with('cartCount', app(CartStore::class)->count());
+        });
     }
 }

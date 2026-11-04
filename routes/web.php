@@ -1,6 +1,10 @@
 <?php
 
+use App\Http\Controllers\Checkout\CartController;
+use App\Http\Controllers\Checkout\CheckoutController;
+use App\Http\Controllers\Checkout\PaymentWebhookController;
 use App\Http\Controllers\Storefront\DesignAssetController;
+use App\Http\Controllers\Storefront\LegalController;
 use App\Http\Controllers\Storefront\MarketController;
 use App\Http\Controllers\Storefront\SitemapController;
 use App\Http\Controllers\Storefront\StorefrontController;
@@ -30,6 +34,21 @@ Route::get('/_diseno/{design}/{file}', DesignAssetController::class)->name('stor
 // SEO: mapa del sitio y robots (docs/seo).
 Route::get('/sitemap.xml', [SitemapController::class, 'sitemap'])->name('seo.sitemap');
 Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('seo.robots');
+
+// Compra: una cesta y un pago para todas las tiendas (docs/compra). Nunca se indexa.
+Route::get('/carrito', [CartController::class, 'show'])->name('cart.show');
+Route::post('/carrito', [CartController::class, 'add'])->middleware('throttle:60,1')->name('cart.add');
+Route::post('/carrito/actualizar', [CartController::class, 'update'])->middleware('throttle:60,1')->name('cart.update');
+Route::get('/pedido', [CheckoutController::class, 'show'])->name('checkout.show');
+Route::get('/pedido/envio', [CheckoutController::class, 'quote'])->middleware('throttle:60,1')->name('checkout.quote');
+Route::post('/pedido', [CheckoutController::class, 'place'])->middleware('throttle:10,1')->name('checkout.place');
+Route::get('/pedido/{token}/pagar', [CheckoutController::class, 'pay'])->where('token', '[A-Za-z0-9]{48}')->name('checkout.pay');
+Route::post('/pedido/{token}/simular', [CheckoutController::class, 'simulate'])->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:20,1')->name('checkout.simulate');
+Route::get('/pedido/{token}', [CheckoutController::class, 'thanks'])->where('token', '[A-Za-z0-9]{48}')->name('checkout.thanks');
+Route::post('/webhooks/stripe', PaymentWebhookController::class)->name('payments.webhook.stripe');
+
+// Textos legales (pendientes de la asesoría; docs/compra).
+Route::get('/legal/{page}', LegalController::class)->whereIn('page', ['condiciones-de-venta', 'privacidad', 'envios-y-devoluciones'])->name('legal');
 
 // Matriz: portada del market.
 Route::get('/', MarketController::class)->name('market');

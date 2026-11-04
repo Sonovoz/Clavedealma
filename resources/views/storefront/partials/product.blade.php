@@ -74,7 +74,14 @@
                 @endif
 
                 <p class="sf-stock" data-stock aria-live="polite"></p>
-                <button class="sf-add" type="button" disabled>Añadir a la cesta · próximamente</button>
+                <form class="sf-add-form" method="post" action="{{ route('cart.add') }}" data-add-form>
+                    @csrf
+                    <input type="hidden" name="variant_id" value="" data-variant-input>
+                    <button class="sf-add" type="submit" data-add disabled>{{ $item['sizes'] !== [] ? 'Elige una talla' : 'Añadir a la cesta' }}</button>
+                </form>
+                <p class="sf-added" data-add-message aria-live="polite" @if (! session('cart.added') && ! session('cart.error')) hidden @endif>
+                    {{ session('cart.added') ?? session('cart.error') }} <a href="{{ route('cart.show') }}">Ver la cesta</a>
+                </p>
 
                 @if ($item['description'])
                     <div class="sf-desc">{!! $item['description'] !!}</div>

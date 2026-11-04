@@ -88,7 +88,41 @@ if (ficha) {
     const v = sel.size ? match(sel.color, sel.size) : (variants.find(x => lower(x.color) === lower(sel.color)) || variants[0]);
     renderPrice(v);
     if (stock) stock.textContent = v && v.limited !== null && v.limited <= 10 ? `Edición limitada: quedan ${v.limited}` : '';
+
+    // Botón de compra: solo con una variante concreta y disponible.
+    const chosen = sizes.length ? (sel.size ? match(sel.color, sel.size) : null) : (variants.find(x => lower(x.color) === lower(sel.color)) || variants[0]);
+    if (addInput) addInput.value = chosen?.id ?? '';
+    if (addButton) {
+      addButton.disabled = !chosen || !chosen.available;
+      addButton.textContent = !chosen ? 'Elige una talla' : (chosen.available ? 'Añadir a la cesta' : 'Agotado');
+    }
   };
+
+  const addForm = $('[data-add-form]', ficha);
+  const addInput = $('[data-variant-input]', ficha);
+  const addButton = $('[data-add]', ficha);
+  const addMessage = $('[data-add-message]', ficha);
+  addForm?.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!addInput.value) return;
+    addButton.disabled = true;
+    try {
+      const res = await fetch(addForm.action, { method: 'POST', body: new FormData(addForm), headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+      const data = await res.json();
+      addMessage.hidden = false;
+      addMessage.innerHTML = '';
+      addMessage.append(document.createTextNode(`${data.message} `));
+      if (data.ok) {
+        const link = Object.assign(document.createElement('a'), { href: data.cart_url, textContent: 'Ver la cesta' });
+        addMessage.append(link);
+        document.querySelectorAll('[data-cart-count]').forEach(b => { b.textContent = data.count; b.classList.toggle('on', data.count > 0); b.classList.add('pop'); setTimeout(() => b.classList.remove('pop'), 600); });
+      }
+    } catch {
+      addForm.submit();
+    } finally {
+      addButton.disabled = false;
+    }
+  });
 
   $$('button.sf-swatch', ficha).forEach(b => b.addEventListener('click', () => { sel.color = b.dataset.color; render(); }));
   sizes.forEach(b => b.addEventListener('click', () => { sel.size = b.dataset.size; render(); }));

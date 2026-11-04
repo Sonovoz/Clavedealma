@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin/*',
             'livewire*',
         ]);
+        // Los avisos de la pasarela llegan firmados por ella, no con el token del formulario.
+        $middleware->validateCsrfTokens(except: ['webhooks/*']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

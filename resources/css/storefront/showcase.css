@@ -91,6 +91,9 @@
 .sf-link { background: none; border: 0; padding: 0; color: var(--sf-ink); font: 500 13px/1 var(--sf-font-text); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
 .sf-add { width: 100%; padding: 18px; border: 0; background: var(--sf-accent); color: var(--sf-accent-ink); font: 600 13px/1 var(--sf-font-text); letter-spacing: .2em; text-transform: uppercase; cursor: pointer; }
 .sf-add:disabled { opacity: .55; cursor: not-allowed; }
+.sf-add-form { margin: 0; }
+.sf-added { margin: 12px 0 0; font-size: 14px; }
+.sf-added a { color: inherit; font-weight: 600; }
 .sf-stock { margin: -10px 0 0; font-size: 13px; color: var(--sf-sale); min-height: 1em; }
 .sf-facts { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--sf-line); }
 .sf-facts li { display: flex; justify-content: space-between; gap: 18px; padding: 12px 0; border-bottom: 1px solid var(--sf-line); font-size: 14px; }
