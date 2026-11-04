@@ -52,6 +52,8 @@ class AdminPanelProvider extends PanelProvider
             ->defaultAvatarProvider(InitialsAvatarProvider::class)
             ->brandName('Clave de Alma')
             ->navigationGroups(['Ventas', 'Tiendas', 'Catálogo', 'Operación', 'Envíos', 'Administración'])
+            // Barra de desplazamiento fina y discreta en el menú lateral.
+            ->renderHook(PanelsRenderHook::HEAD_END, fn (): View => view('filament.panel-styles'))
             // Selector «Tienda: X»: el catálogo se trabaja siempre dentro de una tienda.
             ->renderHook(PanelsRenderHook::TOPBAR_START, fn (): string => Blade::render('@livewire(\'store-switcher\')'))
             // Y en cada página del catálogo, en grande: «Tienda: X».
