@@ -46,6 +46,11 @@ return [
         'terms_version' => env('SHOP_TERMS_VERSION', 'borrador-2026-11'),
     ],
 
+    'returns' => [
+        // Dirección a la que el cliente envía las piezas devueltas (va en las instrucciones).
+        'address' => env('RETURNS_ADDRESS'),
+    ],
+
     'orders' => [
         // Quién recibe el aviso de cada pedido pagado (por defecto, el superadministrador).
         'alert_email' => env('ORDERS_ALERT_EMAIL'),

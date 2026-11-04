@@ -6,6 +6,7 @@ use App\Modules\Identity\IdentityServiceProvider;
 use App\Modules\Inventory\InventoryServiceProvider;
 use App\Modules\Orders\OrdersServiceProvider;
 use App\Modules\Payments\PaymentsServiceProvider;
+use App\Modules\Returns\ReturnsServiceProvider;
 use App\Modules\Shipping\ShippingServiceProvider;
 use App\Modules\Stores\StoresServiceProvider;
 use App\Providers\AppServiceProvider;
@@ -21,5 +22,6 @@ return [
     CartServiceProvider::class,
     OrdersServiceProvider::class,
     PaymentsServiceProvider::class,
+    ReturnsServiceProvider::class,
     AdminPanelProvider::class,
 ];
