@@ -132,7 +132,7 @@ Solo lo ve el superadministrador. El gestor de catálogo no ve datos de clientes
 
 ## Antes de vender de verdad
 
-- [ ] Textos legales definitivos (condiciones de venta, privacidad, envíos y devoluciones) de la asesoría legal. Hoy `/legal/…` dice que están pendientes. Al publicarlos, cambiar `SHOP_TERMS_VERSION`.
+- [ ] Textos legales revisados por la asesoría. Se generan solos al guardar los datos fiscales (ADR 0020) y se marcan como revisados en *Administración → Textos legales*. Cada pedido guarda la versión de las condiciones que aceptó.
 - [ ] Datos fiscales de Clave de Alma en el pie y en los emails. Las facturas llegan en la fase 6.
 - [ ] Decisión fiscal sobre Canarias, Ceuta y Melilla, y sobre el umbral de la UE (OSS).
 - [ ] Tarifas de envío reales en el panel.

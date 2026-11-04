@@ -39,6 +39,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0017](adr/0017-documentos-pdf.md) | Documentos PDF del panel (dompdf por contrato) |
 | [0018](adr/0018-facturacion-y-verifactu.md) | Facturación (simplificadas y rectificativas) y Veri*Factu |
 | [0019](adr/0019-registro-de-seguridad.md) | Registro de seguridad |
+| [0020](adr/0020-textos-legales.md) | Textos legales generados con los datos del sistema |
 
 ## Orden de construcción
 
@@ -67,7 +68,7 @@ IA: el asistente SEO del panel ya está (ADR 0012, `docs/seo`). Más adelante, s
 | Catálogo de la tienda elegida («Tienda: …»): productos, colecciones, prendas base | ✓ | ✓ | — | — |
 | Operación: fabricación y su PDF (sin datos del cliente) y stock | ✓ | — | ✓ | — |
 | Envíos: tarifas por destino y transportistas | ✓ | — | — | — |
-| Administración: usuarios, sistema, copias de seguridad, datos de facturación y registro de seguridad | ✓ | — | — | — |
+| Administración: usuarios, sistema, copias de seguridad, datos de facturación, textos legales y registro de seguridad | ✓ | — | — | — |
 | Desarrollo: guía, árbol del sistema y decisiones | ✓ | — | — | — |
 
 - El catálogo se trabaja siempre **dentro de una tienda**, la que se elige arriba en «Tienda: …». Cada tienda tiene sus propias prendas base.

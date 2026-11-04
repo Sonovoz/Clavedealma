@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Modules\Orders\Contracts\CheckoutDetails;
+use App\Platform\Legal\LegalDocument;
+use App\Platform\Legal\LegalPage;
 use App\Storefront\Checkout\Countries;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -74,7 +76,8 @@ class CheckoutRequest extends FormRequest
             province: isset($v['province']) ? trim((string) $v['province']) : null,
             country: strtoupper((string) $v['country']),
             note: isset($v['note']) ? trim((string) $v['note']) : null,
-            termsVersion: (string) config('clavedealma.shop.terms_version'),
+            // Versión de las condiciones de venta que acepta el cliente (se guarda en el pedido).
+            termsVersion: LegalDocument::current(LegalPage::Terms, null)?->label() ?? (string) config('clavedealma.shop.terms_version'),
         );
     }
 }

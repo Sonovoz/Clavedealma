@@ -35,6 +35,12 @@ final class Urls
         return self::to($store, 'product', ['product' => $slug]);
     }
 
+    /** Texto legal de una tienda: clavedealma.es/<clave>/legal/<página>. */
+    public static function legal(Store|string $store, string $page): string
+    {
+        return self::to($store, 'legal', ['page' => $page]);
+    }
+
     /** Dirección principal tal y como se enseña en el panel: clavedealma.es/<clave>. */
     public static function label(Store|string $store): string
     {

@@ -147,3 +147,17 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .co-returns { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; width: 100%; }
 .co-returns li { display: flex; justify-content: space-between; gap: 12px; border: 1px solid var(--line); padding: 10px 14px; font-size: 14px; }
 .co-ok { border-left: 3px solid var(--ok); background: rgba(63, 178, 127, .08); padding: 12px 14px; margin: 0; font-size: 14px; }
+
+/* Textos legales */
+.co-legal { max-width: 820px; }
+.co-legal__body h1 { font: 400 clamp(34px, 5vw, 48px)/1 var(--f-cartel); letter-spacing: .03em; margin: 0 0 18px; }
+.co-legal__body h2 { font: 400 22px/1.1 var(--f-cartel); letter-spacing: .05em; margin: 28px 0 10px; }
+.co-legal__body p, .co-legal__body li { color: var(--ink); font-size: 15px; }
+.co-legal__body ul, .co-legal__body ol { padding-left: 22px; }
+.co-legal__body a { color: var(--ink); }
+.co-legal__body table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; display: block; overflow-x: auto; }
+.co-legal__body th, .co-legal__body td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.co-legal__body th:empty { display: none; }
+.co-legal__body blockquote { margin: 12px 0; padding: 12px 16px; border-left: 3px solid var(--line); color: var(--muted); }
+.co-legal__body code { font: 13px var(--f-mono); }
+.co-legal__body strong { color: var(--ink); }
