@@ -77,9 +77,10 @@ class CatalogImporter
 
         $garments = $this->garmentParser->garments($book['prendas'], $report);
         $sizes = $this->garmentParser->sizes($book['tallas'], $report);
-        $this->checkGarments($garments, $sizes, $report);
         $products = $this->parser->parse($book['articulos'], $report);
         $stores = $this->checkDatabase($products, $report);
+        $garmentStore = $this->garmentStore($stores, $garments + $sizes !== [], $report);
+        $this->checkGarments($garmentStore, $garments, $sizes, $report);
         $plan = $photos !== null ? $this->matchPhotos($products, $photos, $report) : [];
 
         if ($report->hasErrors()) {
@@ -88,7 +89,9 @@ class CatalogImporter
 
         DB::beginTransaction();
         try {
-            $this->saveGarments($garments, $sizes, $report);
+            if ($garmentStore !== null) {
+                $this->saveGarments($garmentStore, $garments, $sizes, $report);
+            }
             $position = 0;
             foreach ($products as $key => $draft) {
                 $this->saveProduct($draft, $stores[$draft['tienda']], $plan[$key] ?? null, $photos !== null, $position++, $report);
@@ -136,9 +139,12 @@ class CatalogImporter
      * @param  array<string, GarmentDraft>  $garments
      * @param  array<string, list<SizeDraft>>  $sizes
      */
-    private function checkGarments(array $garments, array $sizes, ImportReport $report): void
+    private function checkGarments(?Store $store, array $garments, array $sizes, ImportReport $report): void
     {
-        $known = BaseGarment::query()->whereIn('code', array_keys($sizes + $garments))->pluck('code')->all();
+        if ($store === null) {
+            return;
+        }
+        $known = BaseGarment::query()->where('store_id', $store->id)->whereIn('code', array_keys($sizes + $garments))->pluck('code')->all();
         foreach ($garments as $code => $garment) {
             if ($garment['nombre'] === null && ! in_array($code, $known, true)) {
                 $report->error($garment['fila'], 'Prendas · nombre', "La prenda {$code} es nueva: necesita nombre.");
@@ -158,12 +164,12 @@ class CatalogImporter
      * @param  array<string, GarmentDraft>  $garments
      * @param  array<string, list<SizeDraft>>  $sizes
      */
-    private function saveGarments(array $garments, array $sizes, ImportReport $report): void
+    private function saveGarments(Store $store, array $garments, array $sizes, ImportReport $report): void
     {
         foreach ($garments as $code => $draft) {
-            $garment = BaseGarment::query()->firstWhere('code', $code);
+            $garment = BaseGarment::query()->where('store_id', $store->id)->firstWhere('code', $code);
             $isNew = $garment === null;
-            $garment ??= new BaseGarment(['code' => $code]);
+            $garment ??= new BaseGarment(['store_id' => $store->id, 'code' => $code]);
             $garment->fill(array_filter([
                 'name' => $draft['nombre'],
                 'material' => $draft['tejido'],
@@ -183,7 +189,7 @@ class CatalogImporter
         }
 
         foreach ($sizes as $code => $rows) {
-            $garment = BaseGarment::query()->where('code', $code)->firstOrFail();
+            $garment = BaseGarment::query()->where('store_id', $store->id)->where('code', $code)->firstOrFail();
             $garment->sizes()->delete();
             foreach ($rows as $position => $row) {
                 $garment->sizes()->create([
@@ -348,7 +354,7 @@ class CatalogImporter
         $product->fill([
             'reference' => $draft['modelo'],
             'name' => $draft['nombre'],
-            'base_garment_id' => $draft['prenda'] === null ? null : $this->garment($draft['prenda'], $report),
+            'base_garment_id' => $draft['prenda'] === null ? null : $this->garment($store, $draft['prenda'], $report),
             'description' => $draft['descripcion'],
             'model_info' => $draft['info_modelo'],
             'price_cents' => $minPrice,
@@ -523,23 +529,42 @@ class CatalogImporter
         return Str::slug($draft['nombre'].' '.$draft['modelo']);
     }
 
-    private function garment(string $value, ImportReport $report): int
+    /**
+     * Las pestañas Prendas y Tallas son de la tienda de la hoja: una hoja, una tienda.
+     *
+     * @param  array<string, Store>  $stores
+     */
+    private function garmentStore(array $stores, bool $hasGarmentTabs, ImportReport $report): ?Store
     {
-        $key = Str::lower($value);
+        if (count($stores) === 1) {
+            return reset($stores);
+        }
+        if ($hasGarmentTabs && count($stores) > 1) {
+            $report->error(null, 'Prendas', 'Las pestañas Prendas y Tallas son de una sola tienda: prepara una hoja por tienda.');
+        }
+
+        return null;
+    }
+
+    /** Prenda base de la tienda por código o por nombre; si no existe, se crea en esa tienda. */
+    private function garment(Store $store, string $value, ImportReport $report): int
+    {
+        $key = $store->id.'|'.Str::lower($value);
         if (isset($this->garments[$key])) {
             return $this->garments[$key];
         }
 
-        $garment = BaseGarment::query()->where('code', Str::upper($value))->first()
-            ?? BaseGarment::query()->whereRaw('LOWER(name) = ?', [$key])->first();
+        $inStore = fn () => BaseGarment::query()->where('store_id', $store->id);
+        $garment = $inStore()->where('code', Str::upper($value))->first()
+            ?? $inStore()->whereRaw('LOWER(name) = ?', [Str::lower($value)])->first();
 
         if ($garment === null) {
             $code = Str::upper(Str::limit(Str::slug($value), 24, ''));
             $base = $code;
-            for ($i = 2; BaseGarment::query()->where('code', $code)->exists(); $i++) {
+            for ($i = 2; $inStore()->where('code', $code)->exists(); $i++) {
                 $code = $base.'-'.$i;
             }
-            $garment = BaseGarment::query()->create(['code' => $code, 'name' => $value]);
+            $garment = BaseGarment::query()->create(['store_id' => $store->id, 'code' => $code, 'name' => $value]);
             $report->count('prendas_nuevas');
         }
 

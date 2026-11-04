@@ -2,10 +2,9 @@
 
 Cómo se pasan los artículos reales de cada tienda para que salgan con sus fotos, tallas, colores, detalles y precio sin tocar nada a mano. Se usa igual para la primera carga y para los cambios posteriores.
 
-Hay dos caminos, con **las mismas reglas**:
+Los artículos se dan de alta con **la ficha del panel** (*Catálogo → Productos*, apartado 5), siempre dentro de la tienda elegida arriba en «Tienda».
 
-- **La ficha del panel** (*Catálogo → Productos*), para altas sueltas y cambios. Ver el apartado 5.
-- **La hoja**, para cargas grandes (una colección entera). Es lo que se describe a continuación.
+Para cargas grandes (una colección entera) existe además **la hoja**, que importa el equipo técnico por consola con las mismas reglas que la ficha. La hoja se describe a continuación.
 
 **Qué se entrega por cada tienda:**
 
@@ -104,26 +103,19 @@ Son **errores** que paran la importación:
 
 Si un artículo queda sin fotos, se avisa.
 
-## 3. Importar
+## 3. Importar (herramienta interna)
 
-**Desde el panel** (superadmin y gestor de catálogo): *Catálogo → Importar artículos*.
-
-1. Sube la hoja y el ZIP y pulsa **Comprobar**. El sistema hace la importación completa y la deshace, y enseña los errores fila a fila y lo que cambiaría.
-2. Corrige y vuelve a comprobar hasta que no haya errores.
-3. Pulsa **Importar**. Con un solo error no se cambia nada.
-
-**Desde la consola** (OVH, o en local):
+En el panel no hay pantalla de importación: los artículos se dan de alta con la **ficha** (apartado 5). La hoja se importa por consola, cuando haya que cargar de una vez una colección grande:
 
 ```bash
 php artisan catalogo:importar ruta/articulos.xlsx --fotos=ruta/fotos.zip
 php artisan catalogo:importar ruta/articulos.xlsx --fotos=ruta/fotos.zip --aplicar
 ```
 
-`--fotos` acepta un ZIP o una carpeta. Sin `--aplicar` solo comprueba.
-
-Una plantilla vacía y actualizada se descarga desde el botón **Descargar plantilla** del panel o se genera con `php artisan catalogo:plantilla`.
-
-> **Hostinger:** el tamaño del ZIP lo limita PHP (`upload_max_filesize` y `post_max_size`, en hPanel → PHP). Si las fotos no caben, se puede dividir el ZIP por colecciones e importar la hoja varias veces.
+- `--fotos` acepta un ZIP o una carpeta.
+- Sin `--aplicar`, solo comprueba: hace la importación completa, la deshace y enseña los errores fila a fila. Con un solo error no se cambia nada.
+- **Una hoja es una tienda**: las pestañas Prendas y Tallas se guardan en la tienda de los artículos de la hoja, porque cada tienda tiene sus propias prendas base.
+- La plantilla vacía se genera con `php artisan catalogo:plantilla`.
 
 ## 4. Qué hace falta para publicar
 
@@ -134,11 +126,18 @@ Un artículo con `estado` = `publicado` tiene que tener:
 - al menos una foto;
 - una prenda base con composición.
 
-Si a un artículo publicado le falta algo, la importación da error y no se aplica nada. La ficha del panel, en ese caso, lo guarda como borrador y explica qué falta.
+Si a un artículo publicado le falta algo, la ficha del panel lo guarda como borrador y explica qué falta. La importación por hoja, en cambio, da error y no aplica nada.
 
 ## 5. La ficha del panel
 
-*Catálogo → Productos → Crear* (superadmin y gestor de catálogo). Está organizada en pestañas:
+Se trabaja siempre **dentro de una tienda**. Arriba del panel, en **«Tienda: …»**, se elige la del artista. *Productos*, *Colecciones* y *Prendas base* muestran solo lo de esa tienda, y todo lo que se crea va a ella.
+
+El recorrido habitual es:
+
+1. *Catálogo → Prendas base*: crear la prenda, con su composición, cuidados, guía de tallas y peso para el envío.
+2. En esa prenda, pulsar **«Crear artículo con esta prenda»**.
+
+La ficha del artículo (superadmin y gestor de catálogo) está organizada en pestañas:
 
 | Pestaña | Qué tiene |
 | --- | --- |

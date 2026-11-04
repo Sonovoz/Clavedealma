@@ -1,6 +1,5 @@
 <?php
 
-use App\Filament\Pages\ImportCatalog;
 use App\Modules\Catalog\Contracts\ProductStatus;
 use App\Modules\Catalog\Infrastructure\Models\BaseGarment;
 use App\Modules\Catalog\Infrastructure\Models\Collection;
@@ -17,11 +16,8 @@ use App\Platform\CatalogImport\CatalogImporter;
 use App\Platform\CatalogImport\PhotoSet;
 use App\Platform\CatalogImport\SheetReader;
 use App\Platform\CatalogImport\TemplateWriter;
-use Filament\Actions\Testing\TestAction;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
-use Livewire\Livewire;
 
 beforeEach(function () {
     Storage::fake('public');
@@ -192,7 +188,7 @@ it('lee la plantilla xlsx que genera el propio sistema', function () {
         ->and(importar($path)->errors)->toBe([]);
 });
 
-it('importa desde la consola', function () {
+it('importa desde la consola (herramienta interna: el panel ya no tiene esta pantalla)', function () {
     $sheet = hoja($this->dir, camiseta());
 
     $this->artisan('catalogo:importar', ['hoja' => $sheet])->expectsOutputToContain('Comprobación correcta')->assertSuccessful();
@@ -200,31 +196,6 @@ it('importa desde la consola', function () {
 
     $this->artisan('catalogo:importar', ['hoja' => $sheet, '--aplicar' => true])->expectsOutputToContain('Importación aplicada')->assertSuccessful();
     expect(Product::count())->toBe(1);
-});
-
-it('muestra «Importar artículos» solo al superadministrador', function (Role $role, int $status) {
-    $this->actingAs(User::factory()->withRole($role)->create())->get('/admin/importar-articulos')->assertStatus($status);
-})->with([
-    'superadmin' => [Role::Superadmin, 200],
-    'fabricante' => [Role::Manufacturer, 403],
-    'artista' => [Role::Artist, 403],
-]);
-
-it('comprueba e importa desde el panel', function () {
-    Storage::fake('local');
-    $this->actingAs(User::factory()->withRole(Role::Superadmin)->create());
-    $sheet = UploadedFile::fake()->createWithContent('articulos.csv', file_get_contents(hoja($this->dir, camiseta())));
-
-    $page = Livewire::test(ImportCatalog::class)
-        ->fillForm(['sheet' => $sheet])
-        ->callAction(TestAction::make('check')->schemaComponent('form-actions', schema: 'form'));
-    expect($page->get('result.applied'))->toBeFalse()
-        ->and($page->get('result.errors'))->toBe([])
-        ->and(Product::count())->toBe(0);
-
-    $page->callAction(TestAction::make('import')->schemaComponent('form-actions', schema: 'form'));
-    expect($page->get('result.applied'))->toBeTrue()
-        ->and(Product::count())->toBe(1);
 });
 
 it('importa la ficha textil y la guía de tallas de las pestañas Prendas y Tallas', function () {
@@ -284,4 +255,9 @@ it('unifica las tallas: 2XL y XXL son la misma', function () {
     $report = importar(hoja($this->dir, $rows));
 
     expect(collect($report->errors)->pluck('campo')->all())->toBe(['talla']);
+});
+
+it('el panel ya no tiene la pantalla de importar', function () {
+    $this->actingAs(User::factory()->withRole(Role::Superadmin)->create())
+        ->get('/admin/importar-articulos')->assertNotFound();
 });
