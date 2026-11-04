@@ -5,9 +5,11 @@ Referencia visual para la fase 8 (capa visual). Son páginas HTML estáticas: se
 | Carpeta | Qué es | Origen |
 | --- | --- | --- |
 | [`matriz/`](matriz/index.html) | Web matriz de Clave de Alma: foco interactivo, tiendas, merchan dinámico, drop de ejemplo, The Club | Inspiration Book v4.0 y dosier del Club v2.0 |
-| [`farruquito/`](farruquito/index.html) | Primera tienda: Serás Farruquito · Colección On Stage | Libro de colección "Serás Farruquito" |
+| [`farruquito/`](farruquito/index.html) | Primera tienda: Farruquito, con las colecciones On Stage, Artist Voice e Iconic (35 piezas) | Libros de colección "Serás Farruquito", "Artist Voice" e "Iconic" |
 
 ## Uso
+
+- La tarjeta "Farruquito" de la matriz enlaza con su tienda (solo en esta copia del repositorio, no en la versión publicada).
 
 - Abrir `index.html` de cada carpeta con el navegador (mejor en ordenador: muchos efectos responden al cursor).
 - Precios, fechas de agenda, ediciones limitadas y formularios son **de ejemplo**: nada se envía ni se cobra.
@@ -42,6 +44,14 @@ La carpeta `farruquito/` contiene la imagen y la marca de un artista real. No pu
 | Titulares | Cinzel |
 | Voz | Cormorant Garamond |
 | Interfaz | Jost |
+
+### Colecciones de Farruquito (ambiente propio dentro de la tienda)
+
+| Colección | Ambiente | Tipografía |
+| --- | --- | --- |
+| On Stage | Piedra, oro y sombra | Cinzel + Cormorant |
+| Artist Voice | Muro urbano: blanco, negro y rojo `#d6222a` | Anton + Permanent Marker |
+| Iconic | Emblema bordado: crema `#ece3d0` y arena `#b9a27f` | Anton |
 
 ### Estructura común
 

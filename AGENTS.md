@@ -23,6 +23,7 @@ composer install && npm install
 cp .env.example .env && php artisan key:generate
 php artisan migrate --seed        # crea roles y el superadmin de SUPERADMIN_*
 php artisan db:seed --class=DemoSeeder   # datos ficticios para ver el panel
+php artisan db:seed --class=FarruquitoSeeder   # primera tienda de prueba (precios de ejemplo)
 composer test                     # pruebas (Pest)
 composer lint                     # Pint + Larastan
 bash scripts/build-zip.sh         # ZIP para Hostinger
