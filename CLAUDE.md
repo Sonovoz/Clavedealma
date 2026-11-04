@@ -17,6 +17,8 @@ Documento de bases y arquitectura completa: ver `docs/README.md`.
 - En el panel el catálogo se trabaja siempre dentro de la **tienda activa** (`ActiveStore`, `ScopedToActiveStore`): productos, colecciones y prendas base son de una tienda (ADR 0010).
 - Envíos: Clave de Alma elige el transportista de cada destino; el cliente paga según el baremo por peso (`Shipping\Application\QuoteShipping`). Las tarifas se configuran en el panel, nunca en el código.
 - Cada tienda = diseño propio (`storefront/designs/<clave>`) + pasarela común (`storefront/partials`, `App\Storefront\StoreCatalog`). Un diseño nunca calcula precios, rebajas ni disponibilidad (ADR 0009, `docs/tiendas`).
+- SEO: toda página pública pasa por `App\Storefront\Seo\SeoBuilder` (título, canónica, JSON-LD) y las reglas de `docs/seo/README.md`; un diseño nunca escribe sus propias metaetiquetas. Fuera de producción no se indexa nada.
+- IA: siempre por el contrato `App\Platform\Ai\TextGenerator` (driver en `config/ai.php`); solo propone textos que revisa una persona y nunca recibe datos de clientes.
 - El precio tachado de las rebajas lo calcula el sistema con el historial de precios (30 días, ADR 0008): nunca se guarda un «precio anterior» escrito a mano.
 - Pedidos, apuntes contables, movimientos de stock y facturas son inmutables: se corrigen con un registro nuevo.
 - El mismo código corre en Hostinger (drivers `database`) y en Docker/OVH (Redis, Meilisearch, S3). No uses nada que solo exista en un entorno sin su alternativa.

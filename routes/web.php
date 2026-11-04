@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Storefront\DesignAssetController;
 use App\Http\Controllers\Storefront\MarketController;
+use App\Http\Controllers\Storefront\SitemapController;
 use App\Http\Controllers\Storefront\StorefrontController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +27,10 @@ Route::prefix('tienda/{store}')
     ->group($tienda);
 
 Route::get('/_diseno/{design}/{file}', DesignAssetController::class)->name('storefront.design-asset');
+
+// SEO: mapa del sitio y robots (docs/seo).
+Route::get('/sitemap.xml', [SitemapController::class, 'sitemap'])->name('seo.sitemap');
+Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('seo.robots');
 
 // Matriz: portada del market.
 Route::get('/', MarketController::class)->name('market');

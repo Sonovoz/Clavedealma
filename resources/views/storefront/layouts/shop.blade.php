@@ -11,10 +11,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>@yield('title', $store->name) · Clave de Alma</title>
-    @if ($preview)
-        <meta name="robots" content="noindex, nofollow">
-    @endif
+    @include('storefront.partials.seo')
     @yield('head')
     @vite($assets)
 </head>

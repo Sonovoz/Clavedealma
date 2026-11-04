@@ -17,6 +17,9 @@ use App\Modules\Shipping\Infrastructure\Models\RateBand;
 use App\Modules\Shipping\Infrastructure\Models\ZoneRate;
 use App\Modules\Stores\Infrastructure\Models\Artist;
 use App\Modules\Stores\Infrastructure\Models\Store;
+use App\Platform\Ai\Drivers\NullTextGenerator;
+use App\Platform\Ai\Drivers\OpenAiCompatibleTextGenerator;
+use App\Platform\Ai\TextGenerator;
 use App\Platform\Backup\Backup;
 use App\Policies\CatalogPolicy;
 use App\Policies\StockLevelPolicy;
@@ -31,7 +34,11 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // Proveedor de IA según config/ai.php (contrato propio con driver).
+        $this->app->singleton(TextGenerator::class, fn (): TextGenerator => match (config('ai.driver')) {
+            'openai' => new OpenAiCompatibleTextGenerator((array) config('ai.openai')),
+            default => new NullTextGenerator,
+        });
     }
 
     public function boot(): void

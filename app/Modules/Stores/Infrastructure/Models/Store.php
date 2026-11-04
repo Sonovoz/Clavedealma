@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property ?Carbon $updated_at
  * @property int $artist_id
  * @property string $name
  * @property string $subdomain
@@ -24,6 +25,8 @@ use Illuminate\Support\Carbon;
  * @property string $design
  * @property ?string $tagline
  * @property ?string $bio
+ * @property ?string $seo_title
+ * @property ?string $seo_description
  * @property ?Carbon $published_at
  */
 #[UseFactory(StoreFactory::class)]

@@ -9,17 +9,24 @@ use App\Filament\Support\Fields;
 use App\Modules\Stores\Contracts\StoreStatus;
 use App\Modules\Stores\Domain\Subdomain;
 use App\Modules\Stores\Infrastructure\Models\Store;
+use App\Platform\Ai\AiException;
 use App\Storefront\Designs;
 use App\Storefront\Genres;
+use App\Storefront\Seo\SeoAssistant;
+use App\Storefront\Seo\SeoText;
 use App\Storefront\Urls;
 use BackedEnum;
 use Closure;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -100,6 +107,39 @@ class StoreResource extends Resource
                         ->multiple(),
                     TextInput::make('tagline')->label('Frase de portada')->maxLength(255),
                     Textarea::make('bio')->label('Biografía del artista')->rows(5),
+                ]),
+
+            Section::make('SEO de la portada de la tienda')
+                ->description('Cómo aparece la tienda en Google. Vacío = se genera con el nombre, la frase de portada y las prendas.')
+                ->schema([
+                    TextInput::make('seo_title')
+                        ->label('Título para Google')
+                        ->maxLength(70)
+                        ->placeholder('Farruquito · Tienda oficial de merchandising')
+                        ->helperText('Entre '.SeoText::TITLE_MIN.' y '.SeoText::TITLE_MAX.' caracteres, con el nombre del artista.'),
+                    Textarea::make('seo_description')
+                        ->label('Descripción para Google')
+                        ->maxLength(170)
+                        ->rows(3)
+                        ->helperText('Entre '.SeoText::DESCRIPTION_MIN.' y '.SeoText::DESCRIPTION_MAX.' caracteres: qué se puede comprar y que es oficial.'),
+                    Actions::make([
+                        Action::make('aiStoreSeo')
+                            ->label('Sugerir con IA')
+                            ->icon(Heroicon::OutlinedSparkles)
+                            ->visible(fn (?Store $record): bool => $record !== null)
+                            ->disabled(fn (): bool => ! app(SeoAssistant::class)->available())
+                            ->tooltip(fn (): ?string => app(SeoAssistant::class)->available() ? null : 'La IA no está configurada (AI_DRIVER, AI_API_KEY y AI_MODEL en el .env).')
+                            ->action(function (Set $set, Store $record): void {
+                                try {
+                                    $s = app(SeoAssistant::class)->storeSeo($record);
+                                    $set('seo_title', $s['seo_title']);
+                                    $set('seo_description', $s['seo_description']);
+                                    Notification::make()->title('Propuesta lista: revísala y guarda')->success()->send();
+                                } catch (AiException $e) {
+                                    Notification::make()->title('La IA no ha podido responder')->body($e->getMessage())->danger()->send();
+                                }
+                            }),
+                    ]),
                 ]),
         ]);
     }

@@ -10,6 +10,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 - [Protocolo de alta de artículos: hoja, fotos e importación](protocolo/README.md)
 - [Esquema de tienda: diseño propio y pasarela común](tiendas/README.md)
 - [Copias de seguridad: qué se guarda, programación y cómo restaurar](copias-de-seguridad.md)
+- [SEO: reglas obligatorias, estrategia y asistente de IA](seo/README.md)
 
 ## Decisiones técnicas (ADR)
 
@@ -26,6 +27,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0009](adr/0009-esquema-de-tienda.md) | Tiendas: diseño propio y pasarela común |
 | [0010](adr/0010-tienda-activa-y-envios.md) | Tienda activa en el panel, prendas por tienda y envíos por peso |
 | [0011](adr/0011-copias-de-seguridad.md) | Copias de seguridad programables desde el panel |
+| [0012](adr/0012-seo-e-ia.md) | SEO técnico en todo el portal e IA por contrato con driver |
 
 ## Orden de construcción
 
@@ -39,7 +41,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 8. Capa visual: plantilla común y temas.
 9. Pruebas completas en staging y lanzamiento.
 
-Más adelante, como opción: un servicio de IA en el panel (ofertas, artículo destacado por día o semana, análisis de ventas). Irá detrás de un contrato propio, como los demás servicios externos.
+IA: el asistente SEO del panel ya está (ADR 0012, `docs/seo`). Más adelante, sobre el mismo contrato: ofertas, artículo destacado por día o semana y análisis de ventas.
 
 ## Módulos
 

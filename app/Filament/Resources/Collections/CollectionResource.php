@@ -47,7 +47,9 @@ class CollectionResource extends Resource
             TextInput::make('name')->label('Nombre')->required()->maxLength(255),
             TextInput::make('slug')->label('Dirección (slug)')->helperText('Se genera del nombre si se deja vacío.'),
             TextInput::make('position')->label('Orden')->numeric()->default(0),
-            Textarea::make('description')->label('Descripción')->columnSpanFull(),
+            Textarea::make('description')->label('Descripción')->helperText('Se ve en la página de la colección y ayuda a Google a entenderla.')->columnSpanFull(),
+            TextInput::make('seo_title')->label('Título para Google')->maxLength(70)->helperText('Vacío = «Colección · Artista | Clave de Alma».'),
+            TextInput::make('seo_description')->label('Descripción para Google')->maxLength(170)->helperText('Vacío = se resume la descripción.'),
             Select::make('products')
                 ->label('Productos')
                 ->relationship('products', 'name', fn (Builder $query) => $query->where('store_id', ActiveStore::id()))
