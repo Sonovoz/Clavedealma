@@ -9,6 +9,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 - [Prototipos de diseño: matriz y tienda Farruquito](diseno/README.md)
 - [Protocolo de alta de artículos: hoja, fotos e importación](protocolo/README.md)
 - [Esquema de tienda: diseño propio y pasarela común](tiendas/README.md)
+- [Copias de seguridad: qué se guarda, programación y cómo restaurar](copias-de-seguridad.md)
 
 ## Decisiones técnicas (ADR)
 
@@ -24,6 +25,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0008](adr/0008-ficha-de-articulo.md) | Ficha de artículo, ficha textil y precio de referencia de las rebajas |
 | [0009](adr/0009-esquema-de-tienda.md) | Tiendas: diseño propio y pasarela común |
 | [0010](adr/0010-tienda-activa-y-envios.md) | Tienda activa en el panel, prendas por tienda y envíos por peso |
+| [0011](adr/0011-copias-de-seguridad.md) | Copias de seguridad programables desde el panel |
 
 ## Orden de construcción
 
@@ -51,7 +53,7 @@ Más adelante, como opción: un servicio de IA en el panel (ofertas, artículo d
 | Catálogo de la tienda elegida («Tienda: …»): productos, colecciones, prendas base | ✓ | ✓ | — | — |
 | Operación: stock | ✓ | — | ✓ | — |
 | Envíos: tarifas por destino y transportistas | ✓ | — | — | — |
-| Administración: usuarios y sistema | ✓ | — | — | — |
+| Administración: usuarios, sistema y copias de seguridad | ✓ | — | — | — |
 
 - El catálogo se trabaja siempre **dentro de una tienda**, la que se elige arriba en «Tienda: …». Cada tienda tiene sus propias prendas base.
 - El **gestor de catálogo** es equipo interno. Da de alta y edita los artículos de cualquier tienda, pero no ve datos fiscales ni bancarios, ni pedidos o pagos.

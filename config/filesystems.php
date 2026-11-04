@@ -47,6 +47,16 @@ return [
             'report' => false,
         ],
 
+        // Copias de seguridad en el propio servidor (fuera de public/). Para una copia
+        // fuera del servidor: BACKUP_DISK=s3 (Object Storage de OVH).
+        'backups' => [
+            'driver' => 'local',
+            'root' => storage_path('app/backups'),
+            'serve' => false,
+            'throw' => true,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

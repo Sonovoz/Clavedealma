@@ -28,7 +28,7 @@ Resultado: `dist/clavedealma-<versión>-<fecha>.zip`. Incluye `vendor/` y los re
    cd /home/<usuario>/clavedealma && php artisan schedule:run >> /dev/null 2>&1
    ```
 
-   El programador procesa también las colas (driver `database`).
+   El programador procesa también las colas (driver `database`). Y hace las **copias de seguridad** a la hora elegida en el panel ([copias de seguridad](copias-de-seguridad.md)): sin este cron no se hacen solas.
 8. Crear las tablas y el superadministrador con un cron de una sola ejecución (no hay instalador web, a propósito):
 
    ```text

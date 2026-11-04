@@ -17,4 +17,13 @@ return [
         'password' => env('SUPERADMIN_PASSWORD'),
     ],
 
+    /*
+    | Copias de seguridad (Administración → Copias de seguridad). La frecuencia, la hora
+    | y cuántas se conservan se eligen en el panel; aquí solo el disco donde se guardan.
+    */
+    'backups' => [
+        'disk' => env('BACKUP_DISK', 'backups'),
+        'timezone' => env('BACKUP_TIMEZONE', 'Europe/Madrid'),
+    ],
+
 ];
