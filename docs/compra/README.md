@@ -17,7 +17,7 @@ Ninguna página de compra se indexa (`noindex` y `robots.txt`).
 ## Reglas
 
 - **Precios, envío e IVA se calculan siempre en el servidor.** La cesta solo guarda «variante y unidades» y se recalcula al abrirla, al pagar y al crear el pedido.
-- **El envío** lo cobra el baremo por peso del destino (*Envíos → Tarifas por destino*):
+- **El envío** lo cobra el baremo por peso del destino (*Ajustes → Zonas de envío*):
   - Se usa el peso de la prenda base. Si no lo tiene, 400 g por pieza (`SHOP_DEFAULT_WEIGHT_GRAMS`).
   - Si el destino no tiene tarifa activa, el cliente lee «Todavía no enviamos a…».
 - **Canarias, Ceuta y Melilla están cerradas** aunque tengan tarifa, porque llevan otros impuestos (IGIC, IPSI) y aduana. Se abrirán cuando la asesoría fiscal lo resuelva (`clavedealma.shop.blocked_zones`).
@@ -84,15 +84,15 @@ Pagado · por fabricar → En fabricación → Listo para enviar → Enviado →
 
 | Paso | Quién | Dónde |
 | --- | --- | --- |
-| Empezar fabricación | Fabricante (o superadmin) | *Operación → Fabricación* |
-| Listo para enviar | Fabricante (o superadmin) | *Operación → Fabricación* |
-| Marcar enviado | Superadmin | *Ventas → Pedidos → el pedido*: transportista + número de seguimiento. El cliente recibe un email con el enlace. |
-| Marcar entregado | Superadmin | *Ventas → Pedidos → el pedido* |
+| Empezar fabricación | Fabricante (o superadmin) | *Comercio → Fabricación* |
+| Listo para enviar | Fabricante (o superadmin) | *Comercio → Fabricación* |
+| Marcar enviado | Superadmin | *Comercio → Pedidos → el pedido*: transportista + número de seguimiento. El cliente recibe un email con el enlace. |
+| Marcar entregado | Superadmin | *Comercio → Pedidos → el pedido* |
 
 - **Fabricación** enseña solo lo que hay que fabricar: piezas, SKU, talla, color, si es personalizada y la fecha en que debe estar lista, en rojo si se pasa. **No enseña nombre, email ni dirección del cliente.**
-- **El enlace de seguimiento** sale de la plantilla del transportista en *Envíos → Transportistas*, por ejemplo `https://…?numero={codigo}`. También se puede pegar a mano al enviar.
+- **El enlace de seguimiento** sale de la plantilla del transportista en *Ajustes → Transportistas*, por ejemplo `https://…?numero={codigo}`. También se puede pegar a mano al enviar.
 - **El cliente** ve en la página de su pedido (el enlace «Ver mi pedido» de los emails) en qué paso está y el seguimiento.
-- **Cancelar y devolver el importe** (*Ventas → Pedidos → el pedido*):
+- **Cancelar y devolver el importe** (*Comercio → Pedidos → el pedido*):
   - Se puede hasta que el pedido sale.
   - Devuelve todo lo cobrado al medio de pago del cliente.
   - Repone en el stock las piezas que salieron de él.
@@ -104,7 +104,7 @@ Pagado · por fabricar → En fabricación → Listo para enviar → Enviado →
 El cliente tiene **14 días naturales desde la entrega** para devolver las piezas que no sean personalizadas. Si no se marcó la entrega, el plazo se cuenta desde el envío más el plazo de entrega.
 
 1. **El cliente lo pide** desde la página de su pedido (botón **Devolver piezas**, en el enlace «Ver mi pedido» de los emails). Elige qué piezas y cuántas, el motivo y, si quiere, un comentario. Recibe un email y el equipo recibe un aviso.
-2. **El equipo revisa** en *Ventas → Devoluciones → Por revisar* y decide:
+2. **El equipo revisa** en *Comercio → Devoluciones → Por revisar* y decide:
    - **Aprobar**: se envían al cliente las instrucciones, que vienen ya escritas con la dirección de `RETURNS_ADDRESS` y se pueden cambiar.
    - **Rechazar**: con el motivo, que se le envía por email.
 3. **Al recibir el paquete**, pulsa **Recibida: devolver X €**. Si las piezas están bien, deja marcado «reponerlas en el stock». El dinero vuelve al medio de pago del cliente y se le avisa.
@@ -120,7 +120,7 @@ Configura en el `.env` la dirección a la que se envían las devoluciones:
 RETURNS_ADDRESS="Clave de Alma · Devoluciones, Calle …, CP Ciudad"
 ```
 
-## Panel: Ventas → Pedidos
+## Panel: Comercio → Pedidos
 
 Solo lo ve el superadministrador. El gestor de catálogo no ve datos de clientes ni de cobros.
 
@@ -132,7 +132,7 @@ Solo lo ve el superadministrador. El gestor de catálogo no ve datos de clientes
 
 ## Antes de vender de verdad
 
-- [ ] Textos legales revisados por la asesoría. Se generan solos al guardar los datos fiscales (ADR 0020) y se marcan como revisados en *Administración → Textos legales*. Cada pedido guarda la versión de las condiciones que aceptó.
+- [ ] Textos legales revisados por la asesoría. Se generan solos al guardar los datos fiscales (ADR 0020) y se marcan como revisados en *Ajustes → Textos legales*. Cada pedido guarda la versión de las condiciones que aceptó.
 - [ ] Datos fiscales de Clave de Alma en el pie y en los emails. Las facturas llegan en la fase 6.
 - [ ] Decisión fiscal sobre Canarias, Ceuta y Melilla, y sobre el umbral de la UE (OSS).
 - [ ] Tarifas de envío reales en el panel.

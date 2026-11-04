@@ -27,7 +27,7 @@ class SecurityEventResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Administración';
+    protected static string|UnitEnum|null $navigationGroup = 'Herramientas';
 
     protected static ?string $navigationLabel = 'Registro de seguridad';
 
@@ -37,7 +37,7 @@ class SecurityEventResource extends Resource
 
     protected static ?string $breadcrumb = 'Registro de seguridad';
 
-    protected static ?int $navigationSort = 60;
+    protected static ?int $navigationSort = 3;
 
     public static function canCreate(): bool
     {
@@ -86,7 +86,7 @@ class SecurityEventResource extends Resource
                 SelectFilter::make('level')->label('Importancia')->options(['danger' => 'Alta', 'warning' => 'Media', 'info' => 'Normal']),
                 Filter::make('dates')
                     ->schema([DatePicker::make('from')->label('Desde'), DatePicker::make('until')->label('Hasta')])
-                    ->query(fn (Builder $q, array $data) => $q
+                    ->query(fn (Builder $query, array $data) => $query
                         ->when($data['from'] ?? null, fn (Builder $q, $d) => $q->whereDate('created_at', '>=', $d))
                         ->when($data['until'] ?? null, fn (Builder $q, $d) => $q->whereDate('created_at', '<=', $d))),
             ])

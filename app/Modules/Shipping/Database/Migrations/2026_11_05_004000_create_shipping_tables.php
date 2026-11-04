@@ -43,7 +43,7 @@ return new class extends Migration
         });
 
         // Destinos y transportistas de partida. El baremo NO se inventa: se rellena en el
-        // panel (Envíos → Tarifas); cada destino nace desactivado hasta tenerlo.
+        // panel (Ajustes → Zonas de envío); cada destino nace desactivado hasta tenerlo.
         $now = now();
         foreach (['NACEX', 'GLS'] as $name) {
             DB::table('carriers')->insert(['name' => $name, 'active' => true, 'created_at' => $now, 'updated_at' => $now]);

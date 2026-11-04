@@ -12,7 +12,7 @@ Clave de Alma vende a consumidores y debe emitir factura de cada venta y rectifi
 - **Módulo `Invoicing`.** Escucha `OrderPaid` (factura) y `Payments\Contracts\Events\RefundIssued` (rectificativa). Lee el pedido por `Orders\Contracts\OrderLookup`.
 - **Tipos**: F2, factura simplificada, para ventas a consumidores, y R5, rectificativa de simplificada, en negativo por el dinero devuelto. La rectificativa se reparte entre los tipos de IVA de la factura original y cuadra al céntimo.
 - **Numeración**: correlativa por serie y año (`T2026-000001`, `R2026-000001`). Se calcula bajo bloqueo para que no haya huecos ni duplicados. Las series se eligen en el panel y no se cambian después de la primera factura.
-- **Emisor**: los datos fiscales se rellenan en *Administración → Datos de facturación* y se copian en cada factura. Mientras falten, no se factura: el pedido anota «Factura pendiente» y `facturas:emitir-pendientes` las emite después, en orden.
+- **Emisor**: los datos fiscales se rellenan en *Ajustes → Datos de facturación* y se copian en cada factura. Mientras falten, no se factura: el pedido anota «Factura pendiente» y `facturas:emitir-pendientes` las emite después, en orden.
 - **Inmutables**: una factura no se edita ni se borra. Solo cambia su estado de envío a la AEAT.
 - **Compras de prueba**: no se facturan, para no gastar numeración.
 - **Veri*Factu desactivado hasta que sea obligatorio** (`VERIFACTU_ENABLED=false`, valor por defecto):

@@ -12,7 +12,7 @@ Los textos legales se **generan solos** para Clave de Alma (`/legal/…`) y para
 - condiciones de venta (con el formulario de desistimiento);
 - envíos y devoluciones.
 
-Se generan al guardar los datos fiscales, al crear una tienda o cambiar su nombre o dirección, y con «Regenerar textos» en *Administración → Textos legales*.
+Se generan al guardar los datos fiscales, al crear una tienda o cambiar su nombre o dirección, y con «Regenerar textos» en *Ajustes → Textos legales*.
 
 - **Solo usan datos reales del sistema** (`App\Platform\Legal\LegalGenerator`, plantillas en `resources/views/legal/*`):
   - los datos fiscales del emisor (*Datos de facturación*);

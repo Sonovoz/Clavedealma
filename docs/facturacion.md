@@ -4,7 +4,7 @@ Cada venta cobrada genera su **factura simplificada**. Cada devolución de diner
 
 ## Antes de facturar: datos fiscales
 
-En *Administración → Datos de facturación* → **Editar datos fiscales** se rellenan:
+En *Ajustes → Datos de facturación* → **Editar datos fiscales** se rellenan:
 - razón social, NIF y domicilio fiscal de Clave de Alma;
 - email de facturación (opcional);
 - **series**: por ejemplo, `T` para las simplificadas y `R` para las rectificativas. No se pueden cambiar una vez emitida la primera factura.
@@ -27,7 +27,7 @@ Los datos se copian en cada factura al emitirla. Cambiarlos después no altera l
 - Las **compras de prueba** no se facturan.
 - Una factura **no se edita ni se borra**. Un error se corrige con una rectificativa.
 - **El cliente** descarga sus facturas en PDF desde la página de su pedido (el enlace «Ver mi pedido» de sus emails).
-- **En el panel** están en *Ventas → Facturas* y también enlazadas desde cada pedido.
+- **En el panel** están en *Comercio → Facturas* y también enlazadas desde cada pedido.
 
 ## Veri*Factu
 

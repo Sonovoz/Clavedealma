@@ -1,6 +1,6 @@
 # Copias de seguridad
 
-Panel: **Administración → Copias de seguridad** (solo superadmin).
+Panel: **Herramientas → Copias de seguridad** (solo superadmin).
 
 ## Qué se guarda
 
@@ -48,7 +48,7 @@ El botón **Hacer copia ahora** hace una copia al momento. Conviene usarlo antes
 Restaurar sustituye los datos actuales por los de la copia, así que hacedlo con calma:
 
 1. Si el sitio sigue funcionando, haced antes una copia del estado actual.
-2. Activad el modo mantenimiento (*Administración → Sistema*).
+2. Activad el modo mantenimiento (*Herramientas → Estado del sistema*).
 
 ### Hostinger
 

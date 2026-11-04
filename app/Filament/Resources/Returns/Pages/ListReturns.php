@@ -17,7 +17,7 @@ class ListReturns extends ListRecords
     {
         $tab = fn (string $label, ReturnStatus $status): Tab => Tab::make($label)
             ->badge(fn (): ?int => ($n = ReturnRequest::query()->where('status', $status)->count()) > 0 ? $n : null)
-            ->modifyQueryUsing(fn (Builder $q) => $q->where('status', $status));
+            ->modifyQueryUsing(fn (Builder $query) => $query->where('status', $status));
 
         return [
             'por_revisar' => $tab('Por revisar', ReturnStatus::Requested),

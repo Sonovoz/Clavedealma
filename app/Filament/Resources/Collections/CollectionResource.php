@@ -31,13 +31,15 @@ class CollectionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSquares2x2;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Catálogo';
+    protected static string|UnitEnum|null $navigationGroup = 'Productos';
 
     protected static ?int $navigationSort = 2;
 
-    protected static ?string $modelLabel = 'colección';
+    protected static ?string $navigationLabel = 'Categorías';
 
-    protected static ?string $pluralModelLabel = 'colecciones';
+    protected static ?string $modelLabel = 'categoría';
+
+    protected static ?string $pluralModelLabel = 'categorías';
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -47,7 +49,7 @@ class CollectionResource extends Resource
             TextInput::make('name')->label('Nombre')->required()->maxLength(255),
             TextInput::make('slug')->label('Dirección (slug)')->helperText('Se genera del nombre si se deja vacío.'),
             TextInput::make('position')->label('Orden')->numeric()->default(0),
-            Textarea::make('description')->label('Descripción')->helperText('Se ve en la página de la colección y ayuda a Google a entenderla.')->columnSpanFull(),
+            Textarea::make('description')->label('Descripción')->helperText('Se ve en la página de la categoría (la colección de la tienda) y ayuda a Google a entenderla.')->columnSpanFull(),
             TextInput::make('seo_title')->label('Título para Google')->maxLength(70)->helperText('Vacío = «Colección · Artista | Clave de Alma».'),
             TextInput::make('seo_description')->label('Descripción para Google')->maxLength(170)->helperText('Vacío = se resume la descripción.'),
             Select::make('products')
@@ -64,7 +66,7 @@ class CollectionResource extends Resource
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->withCount('products'))
             ->columns([
-                TextColumn::make('name')->label('Colección')->searchable()->sortable(),
+                TextColumn::make('name')->label('Categoría')->searchable()->sortable(),
                 TextColumn::make('products_count')->label('Productos')->alignEnd(),
                 TextColumn::make('position')->label('Orden')->sortable(),
             ])

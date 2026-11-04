@@ -35,7 +35,7 @@ Además, el equipo interno necesita dar de alta artículos desde el panel sin pr
    - gestiona el catálogo de todas las tiendas e importa (`CatalogPolicy`);
    - no accede a artistas (datos fiscales e IBAN), tiendas, usuarios, sistema ni stock;
    - solo el superadministrador borra definitivamente.
-   - Las cuentas se crean en *Administración → Usuarios*.
+   - Las cuentas se crean en *Herramientas → Usuarios*.
 
 ## Consecuencias
 

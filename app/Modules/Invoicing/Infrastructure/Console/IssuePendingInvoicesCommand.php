@@ -32,7 +32,7 @@ class IssuePendingInvoicesCommand extends Command
                 }
             }
         } catch (IssuerIncomplete $e) {
-            $this->error($e->getMessage().' Rellénalos en el panel: Administración → Datos de facturación.');
+            $this->error($e->getMessage().' Rellénalos en el panel: Ajustes → Datos de facturación.');
 
             return self::FAILURE;
         }

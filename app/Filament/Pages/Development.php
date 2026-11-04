@@ -22,7 +22,9 @@ class Development extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCodeBracketSquare;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Desarrollo';
+    protected static string|UnitEnum|null $navigationGroup = 'Herramientas';
+
+    protected static ?int $navigationSort = 5;
 
     protected static ?string $navigationLabel = 'Desarrollo';
 

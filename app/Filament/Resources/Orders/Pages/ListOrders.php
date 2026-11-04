@@ -23,18 +23,20 @@ class ListOrders extends ListRecords
     {
         $tab = fn (string $label, array $statuses): Tab => Tab::make($label)
             ->badge(fn (): ?int => ($n = Order::query()->whereIn('status', $statuses)->count()) > 0 ? $n : null)
-            ->modifyQueryUsing(fn (Builder $q) => $q->whereIn('status', $statuses));
+            ->modifyQueryUsing(fn (Builder $query) => $query->whereIn('status', $statuses));
 
         return [
+            // Como la lista de pedidos de WooCommerce. El detalle de fabricación está en Comercio → Fabricación.
             'todos' => Tab::make('Todos'),
-            'por_fabricar' => $tab('Por fabricar', [OrderStatus::Paid]),
-            'en_fabricacion' => $tab('En fabricación', [OrderStatus::InProduction]),
-            'para_enviar' => $tab('Para enviar', [OrderStatus::ReadyToShip]),
+            'pendiente' => $tab('Pendiente de pago', [OrderStatus::PendingPayment]),
+            'procesando' => $tab('Procesando', OrderStatus::processing()),
             'enviados' => $tab('Enviados', [OrderStatus::Shipped]),
+            'completados' => $tab('Completados', [OrderStatus::Delivered]),
+            'cancelados' => $tab('Cancelados', [OrderStatus::Cancelled]),
             'a_revisar' => Tab::make('A revisar')
                 ->badge(fn (): ?int => ($n = Order::query()->whereNotNull('review_reason')->whereIn('status', OrderStatus::paid())->count()) > 0 ? $n : null)
                 ->badgeColor('danger')
-                ->modifyQueryUsing(fn (Builder $q) => $q->whereNotNull('review_reason')),
+                ->modifyQueryUsing(fn (Builder $query) => $query->whereNotNull('review_reason')),
         ];
     }
 }

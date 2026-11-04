@@ -93,7 +93,7 @@ Fuera de los módulos está la **capa exterior**, que pinta y conecta pero no de
 
 ### Después del pago
 `OrderFlow` define los pasos: pagado → en fabricación → listo → enviado → entregado.
-- El **fabricante** trabaja en *Operación → Fabricación*. Esa pantalla no muestra datos del cliente.
+- El **fabricante** trabaja en *Comercio → Fabricación*. Esa pantalla no muestra datos del cliente.
 - El **superadmin** envía el pedido con su seguimiento (`OrderShipped` → email).
 - **Cancelar un pedido pagado** devuelve el dinero primero con `Refunds`. Después `PaidOrderCancelled` repone el stock y avisa al cliente, y `RefundIssued` emite la rectificativa.
 
@@ -138,9 +138,11 @@ Fuera de los módulos está la **capa exterior**, que pinta y conecta pero no de
 - **`strictAuthorization`**: cada modelo del panel tiene una política con **todas** sus acciones declaradas. Para lo que solo puede tocar el superadmin está `SuperadminOnlyPolicy`.
 - **Roles**:
   - el gestor de catálogo no ve clientes ni cobros;
-  - el fabricante solo ve Fabricación y Stock;
+  - el fabricante solo ve Fabricación e Inventario;
   - el artista solo podrá consultar (fase 6b).
 - Las **acciones con reglas** (enviar, cancelar, devolver) llaman a los casos de uso del módulo (`OrderActions`, `ProcessReturn`). El panel nunca escribe en las tablas por su cuenta.
+- **Menú como WooCommerce**: los grupos se declaran en `AdminPanelProvider` (Comercio, Productos, Análisis, Marketing, Tiendas, Ajustes, Herramientas), y cada recurso o página fija su `$navigationGroup` y su `$navigationSort`. Una pantalla nueva va al grupo donde estaría en WooCommerce. Los nombres son también los de WooCommerce: *Todos los productos*, *Categorías* (son las colecciones), *Inventario*, *Zonas de envío*, *Estado del sistema*. El recuadro «Estado de la tienda» del Escritorio es `App\Filament\Widgets\StoreStatusWidget`.
+- **Estados del pedido**: en el panel se leen como en WooCommerce (`OrderStatus::label()`). *Procesando* agrupa los pagados sin enviar (`OrderStatus::processing()`), y *Completado* es el entregado. El valor guardado no cambia.
 - **Los PDF** se generan en `App\Platform\Documents\*`, con las plantillas en `resources/views/pdf/*`.
 
 ## 10. Servicios externos, siempre por contrato
@@ -161,7 +163,7 @@ Para añadir un proveedor se escribe otro driver del mismo contrato y se registr
 - **Pago**: la tarjeta no pasa por nuestro servidor (PCI SAQ A).
 - **Enlaces privados de cliente**: `/pedido/<token>` con 48 caracteres aleatorios.
 - **Datos personales**: el fabricante no los ve y la IA nunca los recibe.
-- **Registro de seguridad** (*Administración → Registro de seguridad*):
+- **Registro de seguridad** (*Herramientas → Registro de seguridad*):
   - anota accesos, intentos fallidos, cambios de usuarios y roles, devoluciones de dinero, cancelaciones, datos fiscales y copias;
   - no se puede modificar y se purga a los 12 meses (`seguridad:purgar`).
 

@@ -63,19 +63,22 @@ IA: el asistente SEO del panel ya está (ADR 0012, `docs/seo`). Más adelante, s
 
 | Sección | Superadmin | Gestor de catálogo | Fabricante | Artista |
 | --- | --- | --- | --- | --- |
-| Ventas: pedidos, devoluciones, facturas, informes y PDF (datos de clientes y cobros) | ✓ | — | — | — |
+| Comercio: pedidos, devoluciones y facturas (datos de clientes y cobros) | ✓ | — | — | — |
+| Comercio → Fabricación y su PDF (sin datos del cliente) | ✓ | — | ✓ | — |
+| Productos de la tienda elegida («Tienda: …»): todos los productos, categorías (colecciones), prendas base | ✓ | ✓ | — | — |
+| Productos → Inventario (stock) | ✓ | — | ✓ | — |
+| Análisis: informes y PDF de ventas | ✓ | — | — | — |
 | Tiendas: artistas y tiendas (datos fiscales) | ✓ | — | — | — |
-| Catálogo de la tienda elegida («Tienda: …»): productos, colecciones, prendas base | ✓ | ✓ | — | — |
-| Operación: fabricación y su PDF (sin datos del cliente) y stock | ✓ | — | ✓ | — |
-| Envíos: tarifas por destino y transportistas | ✓ | — | — | — |
-| Administración: usuarios, sistema, copias de seguridad, datos de facturación, textos legales y registro de seguridad | ✓ | — | — | — |
-| Desarrollo: guía, árbol del sistema y decisiones | ✓ | — | — | — |
+| Ajustes: datos de facturación, zonas de envío, transportistas y textos legales | ✓ | — | — | — |
+| Herramientas: usuarios, copias de seguridad, registro de seguridad, estado del sistema y Desarrollo | ✓ | — | — | — |
+
+El menú sigue el orden de WooCommerce en WordPress (Escritorio, WooCommerce → Pedidos, Productos, Análisis, Marketing, Ajustes, Herramientas), para que resulte familiar. En el Escritorio, el superadministrador ve «Estado de la tienda»: ventas netas del mes, pedidos procesando, pendientes de pago y devoluciones por revisar. Los estados del pedido se nombran también como en WooCommerce: *Pendiente de pago*, *Procesando* (por fabricar, en fabricación o listo para enviar), *Enviado*, *Completado* y *Cancelado*. *Marketing* aparecerá con los cupones.
 
 - El catálogo se trabaja siempre **dentro de una tienda**, la que se elige arriba en «Tienda: …». Cada tienda tiene sus propias prendas base.
 - **Ver tienda** abre la tienda en una pestaña nueva. Está junto al selector, en la franja «Tienda: …», y en el listado y la ficha de *Tiendas*. Cada artículo tiene **Ver en la tienda**, que funciona también con borradores y tiendas ocultas, en vista previa para el equipo.
 - El **gestor de catálogo** es equipo interno. Da de alta y edita los artículos de cualquier tienda, pero no ve datos fiscales ni bancarios, ni pedidos o pagos.
 - Los **artistas** solo consultan su información y no pueden editar nada.
-- Las cuentas se crean en *Administración → Usuarios*.
+- Las cuentas se crean en *Herramientas → Usuarios*.
 
 ## Datos de demostración
 

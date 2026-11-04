@@ -6,6 +6,9 @@ use App\Support\Contracts\HasLabel;
 
 /**
  * Estados del pedido. Solo se avanza por los pasos de OrderFlow (Domain).
+ *
+ * En el panel se nombran como en WooCommerce: «Procesando» es un pedido pagado que
+ * aún no ha salido (por fabricar, en fabricación o listo) y «Completado», el entregado.
  */
 enum OrderStatus: string implements HasLabel
 {
@@ -21,13 +24,27 @@ enum OrderStatus: string implements HasLabel
     {
         return match ($this) {
             self::PendingPayment => 'Pendiente de pago',
-            self::Paid => 'Pagado · por fabricar',
-            self::InProduction => 'En fabricación',
-            self::ReadyToShip => 'Listo para enviar',
+            self::Paid => 'Procesando · por fabricar',
+            self::InProduction => 'Procesando · en fabricación',
+            self::ReadyToShip => 'Procesando · listo para enviar',
             self::Shipped => 'Enviado',
-            self::Delivered => 'Entregado',
+            self::Delivered => 'Completado',
             self::Cancelled => 'Cancelado',
         };
+    }
+
+    /** Pagado y todavía sin enviar: lo que WooCommerce llama «Procesando». */
+    public function isProcessing(): bool
+    {
+        return in_array($this, [self::Paid, self::InProduction, self::ReadyToShip], true);
+    }
+
+    /**
+     * @return list<self>
+     */
+    public static function processing(): array
+    {
+        return array_values(array_filter(self::cases(), fn (self $s): bool => $s->isProcessing()));
     }
 
     /** Cómo lo lee el cliente en la página de su pedido. */
@@ -47,12 +64,13 @@ enum OrderStatus: string implements HasLabel
     public function color(): string
     {
         return match ($this) {
-            self::PendingPayment => 'warning',
-            self::Paid => 'info',
-            self::InProduction => 'primary',
-            self::ReadyToShip => 'primary',
-            self::Shipped => 'success',
-            self::Delivered => 'success',
+            // Colores de WooCommerce: pendiente gris, procesando verde, completado azul.
+            self::PendingPayment => 'gray',
+            self::Paid => 'success',
+            self::InProduction => 'success',
+            self::ReadyToShip => 'success',
+            self::Shipped => 'primary',
+            self::Delivered => 'info',
             self::Cancelled => 'gray',
         };
     }

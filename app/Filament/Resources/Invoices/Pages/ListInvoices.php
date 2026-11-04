@@ -15,6 +15,6 @@ class ListInvoices extends ListRecords
     {
         $issuer = InvoiceIssuer::current();
 
-        return $issuer->complete() ? null : 'No se emiten facturas: faltan los datos fiscales ('.implode(', ', $issuer->missing()).'). Rellénalos en Administración → Datos de facturación.';
+        return $issuer->complete() ? null : 'No se emiten facturas: faltan los datos fiscales ('.implode(', ', $issuer->missing()).'). Rellénalos en Ajustes → Datos de facturación.';
     }
 }
