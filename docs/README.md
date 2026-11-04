@@ -8,6 +8,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 - [Despliegue con Docker en OVH](despliegue-docker.md)
 - [Prototipos de diseño: matriz y tienda Farruquito](diseno/README.md)
 - [Protocolo de alta de artículos: hoja, fotos e importación](protocolo/README.md)
+- [Esquema de tienda: diseño propio y pasarela común](tiendas/README.md)
 
 ## Decisiones técnicas (ADR)
 
@@ -21,12 +22,13 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0006](adr/0006-eventos-entre-modulos.md) | Los módulos se comunican con eventos |
 | [0007](adr/0007-protocolo-de-articulos.md) | Alta de artículos con hoja y fotos de nombre fijo |
 | [0008](adr/0008-ficha-de-articulo.md) | Ficha de artículo, ficha textil y precio de referencia de las rebajas |
+| [0009](adr/0009-esquema-de-tienda.md) | Tiendas: diseño propio y pasarela común |
 
 ## Orden de construcción
 
 1. ✓ Cimientos: proyecto, módulos, roles, panel, entornos, CI.
-2. **Tiendas y catálogo en el panel** ← fase actual.
-3. Tienda "en blanco" para probar flujos.
+2. ✓ Tiendas y catálogo en el panel (ficha de artículo, protocolo de importación, gestor de catálogo).
+3. **Tiendas públicas: diseño propio + pasarela común** (primera: Farruquito) ← fase actual.
 4. Compra y pago con Stripe (modo test).
 5. Operación: producción, envíos, devoluciones.
 6. Artistas, liquidaciones y autofacturación.

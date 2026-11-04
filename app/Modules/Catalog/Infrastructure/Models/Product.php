@@ -27,6 +27,7 @@ use Illuminate\Support\Str;
  * @property ?string $model_info
  * @property string $name
  * @property string $slug
+ * @property ?string $description
  * @property int $price_cents
  * @property int $vat_rate_bps
  * @property ?int $commission_bps

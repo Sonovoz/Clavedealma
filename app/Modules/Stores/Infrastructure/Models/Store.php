@@ -21,6 +21,9 @@ use Illuminate\Support\Carbon;
  * @property StoreStatus $status
  * @property int $commission_bps
  * @property ?array<string, mixed> $theme
+ * @property string $design
+ * @property ?string $tagline
+ * @property ?string $bio
  * @property ?Carbon $published_at
  */
 #[UseFactory(StoreFactory::class)]
@@ -33,6 +36,7 @@ class Store extends Model
 
     protected $attributes = [
         'status' => 'draft',
+        'design' => 'base',
     ];
 
     protected function casts(): array

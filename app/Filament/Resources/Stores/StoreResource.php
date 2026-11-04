@@ -9,6 +9,8 @@ use App\Filament\Support\Fields;
 use App\Modules\Stores\Contracts\StoreStatus;
 use App\Modules\Stores\Domain\Subdomain;
 use App\Modules\Stores\Infrastructure\Models\Store;
+use App\Storefront\Designs;
+use App\Storefront\Urls;
 use BackedEnum;
 use Closure;
 use Filament\Actions\EditAction;
@@ -83,6 +85,13 @@ class StoreResource extends Resource
 
             Section::make('Presentación')
                 ->schema([
+                    Select::make('design')
+                        ->label('Diseño de la tienda')
+                        ->options(Designs::options())
+                        ->default('base')
+                        ->selectablePlaceholder(false)
+                        ->required()
+                        ->helperText('Portada y ambiente hechos a medida para el artista. La pasarela de productos es la misma en todas las tiendas.'),
                     TextInput::make('tagline')->label('Frase de portada')->maxLength(255),
                     Textarea::make('bio')->label('Biografía del artista')->rows(5),
                 ]),
@@ -99,7 +108,7 @@ class StoreResource extends Resource
                 TextColumn::make('subdomain')
                     ->label('Dirección')
                     ->formatStateUsing(fn (string $state): string => $state.'.'.config('clavedealma.domain'))
-                    ->url(fn (Store $record): string => $record->url(), shouldOpenInNewTab: true)
+                    ->url(fn (Store $record): string => Urls::home($record), shouldOpenInNewTab: true)
                     ->searchable(),
                 TextColumn::make('status')
                     ->label('Estado')

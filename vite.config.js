@@ -2,12 +2,19 @@ import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 
-// Las tipografías de cada tienda se alojarán en nuestro propio servidor
-// (fase de capa visual); de momento se usa la tipografía del sistema.
+// Tipografías alojadas en nuestro servidor (@fontsource): nada se carga de Google Fonts.
+// Cada diseño de tienda declara sus entradas en config/storefront.php y deben figurar aquí.
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            input: [
+                'resources/css/app.css',
+                'resources/js/app.js',
+                'resources/css/storefront/base.css',
+                'resources/js/storefront/app.js',
+                'resources/css/storefront/designs/farruquito.css',
+                'resources/js/storefront/designs/farruquito.js',
+            ],
             refresh: true,
         }),
         tailwindcss(),
