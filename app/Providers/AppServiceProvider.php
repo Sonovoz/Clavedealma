@@ -17,6 +17,7 @@ use App\Modules\Shipping\Infrastructure\Models\RateBand;
 use App\Modules\Shipping\Infrastructure\Models\ZoneRate;
 use App\Modules\Stores\Infrastructure\Models\Artist;
 use App\Modules\Stores\Infrastructure\Models\Store;
+use App\Platform\Backup\Backup;
 use App\Policies\CatalogPolicy;
 use App\Policies\StockLevelPolicy;
 use App\Policies\StockMovementPolicy;
@@ -41,7 +42,7 @@ class AppServiceProvider extends ServiceProvider
         Model::shouldBeStrict($this->app->isLocal() || $this->app->runningUnitTests());
 
         // Artistas, tiendas, usuarios y envíos (logística de Clave de Alma): solo superadministradores.
-        foreach ([Artist::class, Store::class, User::class, Carrier::class, ZoneRate::class, RateBand::class] as $model) {
+        foreach ([Artist::class, Store::class, User::class, Carrier::class, ZoneRate::class, RateBand::class, Backup::class] as $model) {
             Gate::policy($model, SuperadminOnlyPolicy::class);
         }
 

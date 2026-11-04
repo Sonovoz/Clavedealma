@@ -32,6 +32,7 @@ php artisan db:seed --class=FarruquitoSeeder   # primera tienda de prueba (preci
 php artisan catalogo:importar hoja.xlsx --fotos=fotos.zip [--aplicar]   # alta de artículos (docs/protocolo)
 composer test                     # pruebas (Pest)
 composer lint                     # Pint + Larastan
+php artisan copias:crear          # copia de seguridad ahora (se programa en el panel; docs/copias-de-seguridad.md)
 bash scripts/build-zip.sh         # ZIP para Hostinger
 ```
 
