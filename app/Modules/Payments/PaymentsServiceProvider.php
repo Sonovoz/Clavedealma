@@ -3,7 +3,9 @@
 namespace App\Modules\Payments;
 
 use App\Modules\Orders\Contracts\Events\OrderCancelled;
+use App\Modules\Payments\Application\IssueRefund;
 use App\Modules\Payments\Contracts\PaymentGateway;
+use App\Modules\Payments\Contracts\Refunds;
 use App\Modules\Payments\Infrastructure\Drivers\FakeGateway;
 use App\Modules\Payments\Infrastructure\Drivers\StripeGateway;
 use App\Modules\Payments\Infrastructure\Listeners\CancelPendingPayments;
@@ -18,6 +20,8 @@ class PaymentsServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->bind(Refunds::class, IssueRefund::class);
+
         $this->app->singleton(PaymentGateway::class, function ($app): PaymentGateway {
             $driver = (string) config('payments.driver', 'fake');
 

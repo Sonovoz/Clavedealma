@@ -153,7 +153,7 @@ class CheckoutController
             $order->refresh();
         }
 
-        if ($order->status === OrderStatus::Paid && in_array($order->token, (array) $request->session()->get('checkout.orders', []), true)) {
+        if ($order->status->isPaid() && in_array($order->token, (array) $request->session()->get('checkout.orders', []), true)) {
             $this->cart->clear();
         }
 

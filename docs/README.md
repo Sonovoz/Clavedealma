@@ -31,14 +31,15 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0012](adr/0012-seo-e-ia.md) | SEO técnico en todo el portal e IA por contrato con driver |
 | [0013](adr/0013-direccion-de-las-tiendas.md) | Dirección única de las tiendas: `clavedealma.es/<clave>` |
 | [0014](adr/0014-compra-pedidos-y-pagos.md) | Compra: cesta única, pedidos inmutables y pago por contrato |
+| [0015](adr/0015-fabricacion-envio-y-cancelacion.md) | Fabricación, envío y cancelación con devolución del importe |
 
 ## Orden de construcción
 
 1. ✓ Cimientos: proyecto, módulos, roles, panel, entornos, CI.
 2. ✓ Tiendas y catálogo en el panel (ficha de artículo, protocolo de importación, gestor de catálogo).
 3. ✓ Tiendas públicas: diseño propio + pasarela común (primera: Farruquito).
-4. **Compra y pago con Stripe (modo test)** ← fase actual.
-5. Operación: producción, envíos, devoluciones.
+4. ✓ Compra y pago con Stripe (modo test).
+5. **Operación: producción, envíos, devoluciones** ← fase actual (5a fabricación y envío; 5b devoluciones).
 6. Artistas, liquidaciones y autofacturación.
 7. Centro de control para superadministradores.
 8. Capa visual: plantilla común y temas.
@@ -57,7 +58,7 @@ IA: el asistente SEO del panel ya está (ADR 0012, `docs/seo`). Más adelante, s
 | Ventas: pedidos (datos de clientes y cobros) | ✓ | — | — | — |
 | Tiendas: artistas y tiendas (datos fiscales) | ✓ | — | — | — |
 | Catálogo de la tienda elegida («Tienda: …»): productos, colecciones, prendas base | ✓ | ✓ | — | — |
-| Operación: stock | ✓ | — | ✓ | — |
+| Operación: fabricación (sin datos del cliente) y stock | ✓ | — | ✓ | — |
 | Envíos: tarifas por destino y transportistas | ✓ | — | — | — |
 | Administración: usuarios, sistema y copias de seguridad | ✓ | — | — | — |
 

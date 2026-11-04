@@ -9,6 +9,7 @@ use App\Modules\Orders\Contracts\OrderStatus;
 use App\Modules\Orders\Infrastructure\Models\Order;
 use App\Modules\Orders\Infrastructure\Models\OrderEvent;
 use App\Modules\Orders\Infrastructure\Models\OrderLine;
+use App\Modules\Payments\Contracts\Refunds;
 use App\Modules\Payments\Infrastructure\Models\Payment;
 use App\Modules\Shipping\Contracts\ShippingZone;
 use App\Storefront\Checkout\Countries;
@@ -54,7 +55,7 @@ class OrderResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        $count = Order::query()->where('status', OrderStatus::Paid)->whereNotNull('review_reason')->count();
+        $count = Order::query()->whereIn('status', OrderStatus::paid())->whereNotNull('review_reason')->count();
 
         return $count > 0 ? (string) $count : null;
     }
@@ -99,6 +100,7 @@ class OrderResource extends Resource
                 TernaryFilter::make('is_test')->label('Compras de prueba'),
             ])
             ->recordActions([ViewAction::make()])
+            ->recordUrl(fn (Order $record): string => self::getUrl('view', ['record' => $record]))
             ->defaultSort('created_at', 'desc');
     }
 
@@ -144,6 +146,17 @@ class OrderResource extends Resource
                     ->color(fn (OrderStatus $state): string => $state->color()),
                 TextEntry::make('created_at')->label('Creado')->dateTime('d/m/Y H:i'),
                 TextEntry::make('paid_at')->label('Pagado')->dateTime('d/m/Y H:i')->placeholder('—'),
+                TextEntry::make('production_started_at')->label('Fabricación empezada')->dateTime('d/m/Y H:i')->visible(fn (Order $record): bool => $record->production_started_at !== null),
+                TextEntry::make('ready_at')->label('Listo para enviar')->dateTime('d/m/Y H:i')->visible(fn (Order $record): bool => $record->ready_at !== null),
+                TextEntry::make('shipped_at')->label('Enviado')->dateTime('d/m/Y H:i')->visible(fn (Order $record): bool => $record->shipped_at !== null),
+                TextEntry::make('tracking_number')->label('Seguimiento')
+                    ->state(fn (Order $record): string => $record->tracking_carrier.' · '.$record->tracking_number)
+                    ->url(fn (Order $record): ?string => $record->tracking_url, shouldOpenInNewTab: true)
+                    ->visible(fn (Order $record): bool => $record->tracking_number !== null),
+                TextEntry::make('delivered_at')->label('Entregado')->dateTime('d/m/Y H:i')->visible(fn (Order $record): bool => $record->delivered_at !== null),
+                TextEntry::make('refunded')->label('Devuelto')
+                    ->state(fn (Order $record): string => Money::fromCents(app(Refunds::class)->refundedCents($record->id))->format())
+                    ->visible(fn (Order $record): bool => app(Refunds::class)->refundedCents($record->id) > 0),
                 TextEntry::make('payment')->label('Cobro')->state(function (Order $record): string {
                     $payment = Payment::query()->where('order_id', $record->id)->latest('id')->first();
 

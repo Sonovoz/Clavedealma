@@ -76,6 +76,29 @@ Al confirmarse el pago se envían dos correos:
 
 En local (`MAIL_MAILER=log`) los correos quedan en `storage/logs/laravel.log`. Si un correo falla, el pago no se pierde: queda anotado en el historial del pedido.
 
+## Después del pago: fabricación y envío
+
+```text
+Pagado · por fabricar → En fabricación → Listo para enviar → Enviado → Entregado
+```
+
+| Paso | Quién | Dónde |
+| --- | --- | --- |
+| Empezar fabricación | Fabricante (o superadmin) | *Operación → Fabricación* |
+| Listo para enviar | Fabricante (o superadmin) | *Operación → Fabricación* |
+| Marcar enviado | Superadmin | *Ventas → Pedidos → el pedido*: transportista + número de seguimiento. El cliente recibe un email con el enlace. |
+| Marcar entregado | Superadmin | *Ventas → Pedidos → el pedido* |
+
+- **Fabricación** enseña solo lo que hay que fabricar: piezas, SKU, talla, color, si es personalizada y la fecha en que debe estar lista, en rojo si se pasa. **No enseña nombre, email ni dirección del cliente.**
+- **El enlace de seguimiento** sale de la plantilla del transportista en *Envíos → Transportistas*, por ejemplo `https://…?numero={codigo}`. También se puede pegar a mano al enviar.
+- **El cliente** ve en la página de su pedido (el enlace «Ver mi pedido» de los emails) en qué paso está y el seguimiento.
+- **Cancelar y devolver el importe** (*Ventas → Pedidos → el pedido*):
+  - Se puede hasta que el pedido sale.
+  - Devuelve todo lo cobrado al medio de pago del cliente.
+  - Repone en el stock las piezas que salieron de él.
+  - Envía un email al cliente con el motivo.
+  - Si la pasarela no hace la devolución, el pedido no se cancela y el fallo queda en el historial.
+
 ## Panel: Ventas → Pedidos
 
 Solo lo ve el superadministrador. El gestor de catálogo no ve datos de clientes ni de cobros.
@@ -83,7 +106,8 @@ Solo lo ve el superadministrador. El gestor de catálogo no ve datos de clientes
 - **Listado**: referencia (`CDA-26-000123`), cliente, destino, total y estado. Tiene filtros por estado, «a revisar» y «compras de prueba». El contador rojo del menú indica los pedidos a revisar.
 - **Detalle**: piezas, importes con IVA, cobro, plazo, dirección e historial.
 - El pedido no tiene botón de editar ni de borrar.
-- La fabricación, el envío y las devoluciones llegan en la fase 5.
+- Tiene pestañas: Por fabricar, En fabricación, Para enviar, Enviados y A revisar.
+- Las devoluciones de piezas llegan en la fase 5b.
 
 ## Antes de vender de verdad
 

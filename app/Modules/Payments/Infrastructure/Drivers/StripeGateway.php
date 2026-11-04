@@ -7,6 +7,7 @@ use App\Modules\Payments\Contracts\InvalidWebhook;
 use App\Modules\Payments\Contracts\PaymentGateway;
 use App\Modules\Payments\Contracts\PaymentRequest;
 use App\Modules\Payments\Contracts\PaymentUnavailable;
+use App\Modules\Payments\Contracts\RefundResult;
 use App\Modules\Payments\Contracts\StartedPayment;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\SignatureVerificationException;
@@ -101,6 +102,23 @@ class StripeGateway implements PaymentGateway
         } catch (ApiErrorException) {
             // Ya cobrado, ya anulado o no existe: no hay nada que hacer.
         }
+    }
+
+    public function refund(string $providerReference, int $amountCents, string $idempotencyKey): RefundResult
+    {
+        try {
+            $refund = $this->client()->refunds->create(
+                ['payment_intent' => $providerReference, 'amount' => $amountCents],
+                ['idempotency_key' => $idempotencyKey],
+            );
+        } catch (ApiErrorException $e) {
+            return new RefundResult(false, null, 'Stripe no ha hecho la devolución: '.$e->getMessage());
+        }
+
+        // «pending» es normal en algunos métodos: Stripe la completa sola.
+        return in_array($refund->status, ['succeeded', 'pending'], true)
+            ? new RefundResult(true, $refund->id)
+            : new RefundResult(false, $refund->id, 'Stripe ha rechazado la devolución ('.$refund->status.').');
     }
 
     private function translate(string $eventId, PaymentIntent $intent): GatewayEvent
