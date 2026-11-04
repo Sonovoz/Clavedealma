@@ -5,12 +5,15 @@ use App\Filament\Resources\BaseGarments\Pages\CreateBaseGarment;
 use App\Filament\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Products\Pages\ListProducts;
 use App\Filament\Resources\Products\ProductResource;
+use App\Filament\Resources\Stores\Pages\ListStores;
+use App\Filament\Resources\Stores\StoreResource;
 use App\Filament\Support\ActiveStore;
 use App\Modules\Catalog\Infrastructure\Models\BaseGarment;
 use App\Modules\Catalog\Infrastructure\Models\Product;
 use App\Modules\Identity\Contracts\Role;
 use App\Modules\Identity\Infrastructure\Models\User;
 use App\Modules\Stores\Infrastructure\Models\Store;
+use App\Storefront\Urls;
 use Filament\Facades\Filament;
 use Livewire\Livewire;
 
@@ -67,4 +70,23 @@ it('cada página del catálogo dice en grande en qué tienda se trabaja', functi
         $this->get($url)->assertOk()->assertSeeInOrder(['Tienda:', 'B tienda', 'Todo lo que veas, crees o cambies aquí es de esta tienda']);
     }
     $this->get(ProductResource::getUrl('edit', ['record' => $this->pb]))->assertSee('Todo lo que veas, crees o cambies aquí es de esta tienda');
+});
+
+it('desde el panel se abre la tienda activa y cada artículo en la tienda', function () {
+    ActiveStore::set($this->b->id);
+    $home = Urls::home($this->b);
+
+    Livewire::test(StoreSwitcher::class)->assertSee('Ver tienda')->assertSee($home);
+    $this->get('/admin/productos')->assertOk()->assertSee($home);
+    $this->get(ProductResource::getUrl('edit', ['record' => $this->pb]))
+        ->assertSee('Ver en la tienda')->assertSee(Urls::product($this->b, $this->pb->slug));
+});
+
+it('el superadministrador abre cada tienda desde su listado y su ficha', function () {
+    $this->actingAs(User::factory()->withRole(Role::Superadmin)->create());
+
+    Livewire::test(ListStores::class)
+        ->assertTableActionHasUrl('viewStore', Urls::home($this->a), record: $this->a);
+    $this->get(StoreResource::getUrl('edit', ['record' => $this->a]))
+        ->assertOk()->assertSee('Ver tienda')->assertSee(Urls::home($this->a));
 });

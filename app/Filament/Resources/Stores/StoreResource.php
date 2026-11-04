@@ -168,7 +168,14 @@ class StoreResource extends Resource
                 SelectFilter::make('status')->label('Estado')->options(Fields::options(StoreStatus::class)),
                 TrashedFilter::make(),
             ])
-            ->recordActions([EditAction::make()])
+            ->recordActions([
+                Action::make('viewStore')
+                    ->label('Ver tienda')
+                    ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
+                    ->color('gray')
+                    ->url(fn (Store $record): string => Urls::home($record), shouldOpenInNewTab: true),
+                EditAction::make(),
+            ])
             ->defaultSort('name');
     }
 
