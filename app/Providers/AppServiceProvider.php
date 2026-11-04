@@ -13,6 +13,9 @@ use App\Modules\Catalog\Infrastructure\Models\ProductVariant;
 use App\Modules\Identity\Infrastructure\Models\User;
 use App\Modules\Inventory\Infrastructure\Models\StockLevel;
 use App\Modules\Inventory\Infrastructure\Models\StockMovement;
+use App\Modules\Invoicing\Infrastructure\Models\Invoice;
+use App\Modules\Invoicing\Infrastructure\Models\InvoiceIssuer;
+use App\Modules\Invoicing\Infrastructure\Models\InvoiceLine;
 use App\Modules\Orders\Infrastructure\Models\Order;
 use App\Modules\Orders\Infrastructure\Models\OrderEvent;
 use App\Modules\Orders\Infrastructure\Models\OrderLine;
@@ -64,7 +67,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Artistas, tiendas, usuarios, envíos, pedidos y pagos: solo superadministradores
         // (el gestor de catálogo no ve datos de clientes ni de cobros).
-        foreach ([Artist::class, Store::class, User::class, Carrier::class, ZoneRate::class, RateBand::class, Backup::class, Order::class, OrderLine::class, OrderEvent::class, Payment::class, Refund::class, ReturnRequest::class, ReturnLine::class] as $model) {
+        foreach ([Artist::class, Store::class, User::class, Carrier::class, ZoneRate::class, RateBand::class, Backup::class, Order::class, OrderLine::class, OrderEvent::class, Payment::class, Refund::class, ReturnRequest::class, ReturnLine::class, Invoice::class, InvoiceLine::class, InvoiceIssuer::class] as $model) {
             Gate::policy($model, SuperadminOnlyPolicy::class);
         }
 

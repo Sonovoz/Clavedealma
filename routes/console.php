@@ -22,3 +22,6 @@ if (Settings::ready()) {
 
 // Pedidos sin pagar: se cancelan pasado el tiempo de espera (clavedealma.shop.pending_minutes).
 Schedule::command('pedidos:cancelar-caducados')->everyFifteenMinutes()->withoutOverlapping();
+
+// Veri*Factu: reenvía a la AEAT los registros pendientes (no hace nada si el envío no está configurado).
+Schedule::command('verifactu:enviar')->hourly()->withoutOverlapping();

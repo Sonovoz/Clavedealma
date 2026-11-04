@@ -4,6 +4,7 @@ use App\Modules\Cart\CartServiceProvider;
 use App\Modules\Catalog\CatalogServiceProvider;
 use App\Modules\Identity\IdentityServiceProvider;
 use App\Modules\Inventory\InventoryServiceProvider;
+use App\Modules\Invoicing\InvoicingServiceProvider;
 use App\Modules\Orders\OrdersServiceProvider;
 use App\Modules\Payments\PaymentsServiceProvider;
 use App\Modules\Returns\ReturnsServiceProvider;
@@ -23,5 +24,6 @@ return [
     OrdersServiceProvider::class,
     PaymentsServiceProvider::class,
     ReturnsServiceProvider::class,
+    InvoicingServiceProvider::class,
     AdminPanelProvider::class,
 ];

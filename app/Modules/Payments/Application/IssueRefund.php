@@ -2,6 +2,7 @@
 
 namespace App\Modules\Payments\Application;
 
+use App\Modules\Payments\Contracts\Events\RefundIssued;
 use App\Modules\Payments\Contracts\PaymentGateway;
 use App\Modules\Payments\Contracts\PaymentStatus;
 use App\Modules\Payments\Contracts\RefundResult;
@@ -46,7 +47,7 @@ class IssueRefund implements Refunds
             $failed = (int) Refund::query()->where('idempotency_key', $idempotencyKey)->value('attempts');
             $result = $this->gateway->refund($payment->provider_reference, $amountCents, $failed === 0 ? $idempotencyKey : $idempotencyKey.':'.$failed);
 
-            Refund::query()->updateOrCreate(['idempotency_key' => $idempotencyKey], [
+            $refund = Refund::query()->updateOrCreate(['idempotency_key' => $idempotencyKey], [
                 'attempts' => $result->succeeded ? $failed : $failed + 1,
                 'payment_id' => $payment->id,
                 'order_id' => $orderId,
@@ -57,8 +58,18 @@ class IssueRefund implements Refunds
                 'failure_message' => $result->message === null ? null : mb_substr($result->message, 0, 500),
             ]);
 
+            if ($result->succeeded) {
+                RefundIssued::dispatch($refund->id, $orderId, $amountCents, mb_substr($reason, 0, 255));
+            }
+
             return $result;
         });
+    }
+
+    public function succeeded(): array
+    {
+        return Refund::query()->where('status', Refund::SUCCEEDED)->orderBy('id')->get()
+            ->map(fn (Refund $r): array => ['id' => $r->id, 'order_id' => $r->order_id, 'amount_cents' => $r->amount_cents, 'reason' => $r->reason])->values()->all();
     }
 
     public function refundedCents(int $orderId): int

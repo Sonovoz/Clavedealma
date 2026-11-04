@@ -26,6 +26,10 @@ final readonly class OrderSummary
         public ?DateTimeImmutable $deliveredAt,
         public bool $isTest,
         public array $lines,
+        public ?DateTimeImmutable $paidAt = null,
+        /** IVA del envío (el general). */
+        public int $shippingVatBps = 2100,
+        public string $currency = 'EUR',
     ) {}
 
     public function line(int $id): ?OrderLineSummary

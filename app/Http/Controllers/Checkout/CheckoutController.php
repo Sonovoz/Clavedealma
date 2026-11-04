@@ -6,6 +6,7 @@ use App\Http\Requests\CheckoutRequest;
 use App\Modules\Cart\Application\CartStore;
 use App\Modules\Cart\Application\PriceCart;
 use App\Modules\Cart\Contracts\PricedCart;
+use App\Modules\Invoicing\Infrastructure\Models\Invoice;
 use App\Modules\Orders\Application\PlaceOrder;
 use App\Modules\Orders\Contracts\OrderLookup;
 use App\Modules\Orders\Contracts\OrderStatus;
@@ -20,6 +21,8 @@ use App\Modules\Returns\Application\ReturnOptions;
 use App\Modules\Returns\Infrastructure\Models\ReturnRequest;
 use App\Modules\Shipping\Contracts\ShippingQuote;
 use App\Modules\Shipping\Contracts\ShippingQuoter;
+use App\Platform\Documents\Download;
+use App\Platform\Documents\InvoiceDocument;
 use App\Storefront\Checkout\CartPresenter;
 use App\Storefront\Checkout\Countries;
 use App\Storefront\Seo\SeoBuilder;
@@ -32,6 +35,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Tramitar el pedido: datos y envío → pago → confirmación. Todo importe se calcula
@@ -167,9 +171,20 @@ class CheckoutController
             'seo' => $this->seo->checkout('Pedido '.$order->reference),
             'canReturn' => $summary !== null && $options->open($summary),
             'returnDeadline' => $summary === null ? null : $options->deadline($summary)?->format('d/m/Y'),
+            'invoices' => Invoice::query()->where('order_id', $order->id)->orderBy('id')->get()
+                ->map(fn (Invoice $i): array => ['code' => $i->code, 'label' => $i->type->label(), 'total' => Money::fromCents($i->total_cents)->format(), 'url' => route('checkout.invoice', [$order->token, $i->code])])->all(),
             'returns' => ReturnRequest::query()->where('order_id', $order->id)->latest('id')->get()
                 ->map(fn (ReturnRequest $r): array => ['reference' => $r->reference, 'status' => $r->status->customerLabel(), 'amount' => Money::fromCents($r->refund_cents)->format()])->all(),
         ]);
+    }
+
+    /** Factura en PDF, desde el enlace privado del pedido. */
+    public function invoice(string $token, string $code): StreamedResponse
+    {
+        $order = $this->order($token);
+        $invoice = Invoice::query()->where('order_id', $order->id)->where('code', $code)->firstOrFail();
+
+        return Download::pdf('pdf.invoice', InvoiceDocument::data($invoice), 'factura-'.$invoice->code.'.pdf');
     }
 
     private function priced(Request $request): PricedCart
