@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property int $id
  * @property string $path
+ * @property ?string $color
  */
 class ProductImage extends Model
 {

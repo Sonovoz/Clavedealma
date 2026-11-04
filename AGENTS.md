@@ -13,6 +13,7 @@ Documento de bases y arquitectura completa: ver `docs/README.md`.
 - La interfaz (`app/Http`, `app/Filament`, `resources/views`) es la capa externa: no contiene reglas de negocio.
 - Servicios externos (Stripe, correo, transporte, Veri*Factu) siempre detrás de un contrato propio con driver.
 - **Dinero en céntimos enteros** (`int`, `App\Support\Money`) y porcentajes en puntos básicos (`2500` = 25 %), nunca `float` (ADR 0005).
+- Los artículos reales entran por el protocolo de `docs/protocolo` (hoja + fotos de nombre fijo), nunca a mano en el código ni en seeders con datos inventados.
 - Pedidos, apuntes contables, movimientos de stock y facturas son inmutables: se corrigen con un registro nuevo.
 - El mismo código corre en Hostinger (drivers `database`) y en Docker/OVH (Redis, Meilisearch, S3). No uses nada que solo exista en un entorno sin su alternativa.
 
@@ -24,6 +25,7 @@ cp .env.example .env && php artisan key:generate
 php artisan migrate --seed        # crea roles y el superadmin de SUPERADMIN_*
 php artisan db:seed --class=DemoSeeder   # datos ficticios para ver el panel
 php artisan db:seed --class=FarruquitoSeeder   # primera tienda de prueba (precios de ejemplo)
+php artisan catalogo:importar hoja.xlsx --fotos=fotos.zip [--aplicar]   # alta de artículos (docs/protocolo)
 composer test                     # pruebas (Pest)
 composer lint                     # Pint + Larastan
 bash scripts/build-zip.sh         # ZIP para Hostinger

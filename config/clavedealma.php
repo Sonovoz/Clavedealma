@@ -17,4 +17,10 @@ return [
         'password' => env('SUPERADMIN_PASSWORD'),
     ],
 
+    /*
+    | Tamaño máximo del ZIP de fotos en "Importar artículos" (MB). PHP también
+    | debe permitirlo: upload_max_filesize y post_max_size (en Hostinger, hPanel → PHP).
+    */
+    'import_max_zip_kb' => (int) env('IMPORT_MAX_ZIP_MB', 200) * 1024,
+
 ];
