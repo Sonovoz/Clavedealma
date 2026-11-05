@@ -28,6 +28,7 @@ Clave de Alma (vendedor único)
 │   │   └── Fabricación (sin datos del cliente) .................................. superadmin + fabricante
 │   ├── Productos ..... Todos los productos · Categorías · Prendas base (tienda activa)  superadmin + gestor
 │   ├── Análisis ...... Informes ...................................................... superadmin
+│   ├── Marketing ..... Cupones ....................................................... superadmin
 │   ├── Tiendas ....... Artistas · Tiendas · Ventas por artista · Avisos de artistas  superadmin
 │   ├── Mis ventas · Avisos (escritorio del artista, sin datos de clientes) ........ artista
 │   ├── Ajustes ....... Datos de facturación · Zonas de envío · Transportistas · Textos legales
@@ -40,6 +41,7 @@ Clave de Alma (vendedor único)
 │   ├── Inventory .... inventario por producto ─────────── StockAvailability · StockShortage
 │   ├── Shipping ..... zonas, baremo, transportistas ───── ShippingQuoter · CarrierDirectory
 │   ├── Cart ......... cesta calculada en el servidor ──── PricedCart
+│   ├── Promotions ... cupones y reparto del descuento ─── Coupons · CouponResult
 │   ├── Orders ....... pedido inmutable y sus pasos ────── OrderLookup · OrderPaid · OrderShipped · PaidOrderCancelled
 │   ├── Payments ..... cobros, avisos y devoluciones ───── PaymentGateway · Refunds · PaymentSucceeded · RefundIssued
 │   ├── Returns ...... devoluciones de piezas ──────────── ReturnReceived

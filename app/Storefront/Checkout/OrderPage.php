@@ -38,7 +38,9 @@ final class OrderPage
                 'total' => $m($l->total_cents),
                 'image' => $l->image_path === null ? null : Storage::disk('public')->url($l->image_path),
             ])->all(),
-            'subtotal' => $m($order->subtotal_cents),
+            // Subtotal antes del cupón, como en WooCommerce; el descuento va en su fila (ADR 0024).
+            'subtotal' => $m($order->subtotal_cents + $order->discount_cents),
+            'discount' => $order->discount_cents > 0 ? '−'.$m($order->discount_cents) : null,
             'shippingPrice' => $order->shipping_free ? 'Gratis' : $m($order->shipping_cents),
             'total' => $m($order->total_cents),
             'vat' => $m($order->vat_cents),

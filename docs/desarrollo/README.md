@@ -71,6 +71,7 @@ Fuera de los módulos está la **capa exterior**, que pinta y conecta pero no de
 | **Identity** | Usuarios y roles: superadmin, gestor de catálogo, fabricante, artista y cliente | `User`, `Role`; `Gate::before` da todo al superadmin | `Role` |
 | **Stores** | Artistas y tiendas: diseño, comisión y estado | `Store`, `Artist`, `Subdomain` (clave de la dirección y palabras reservadas) | `StoreDirectory` → `StoreInfo`, `StoreStatus` |
 | **Catalog** | Prendas base, productos, variantes, fotos, colecciones e historial de precios | `PublicationCheck`, `GenerateVariants`, `ReferencePrice` (rebaja legal a 30 días), `SizeScale` | `VariantLookup` → `SellableVariant`, evento `VariantCreated` |
+| **Promotions** | Cupones como WooCommerce: reglas, reparto del descuento por línea y usos | `CouponPolicy`, `DiscountAllocator`, `RecordRedemption`, `ReleaseRedemption` | `Coupons::evaluate`, `CouponResult`, `CouponLine` |
 | **Inventory** | Inventario por producto (estado, cantidad opcional) y movimientos inmutables | `StockPolicy`, `ConfigureStock`, `AdjustStock`, `RecordSale`, `RestockCancelledSale`, `RestockReturn` | `StockAvailability::productLimits`, `StockStatus`, evento `StockShortage` |
 | **Shipping** | Transportistas, destinos y baremo por peso | `ZoneResolver` (país + CP → zona), `WeightScale`, `QuoteShipping` | `ShippingQuoter`, `CarrierDirectory`, `ShippingZone` |
 | **Cart** | Cesta única en la sesión (variante → unidades) | `CartStore`, `PriceCart` (recalcula precio, stock y tienda) | `PricedCart`, `PricedLine` |
@@ -204,7 +205,6 @@ Para añadir un proveedor se escribe otro driver del mismo contrato y se registr
 
 ## 14. Lo siguiente
 
-- **WooCommerce 4, cupones**: *Marketing → Cupones* y el campo de cupón en el carrito, con el IVA y la factura bien calculados.
 - **Panel como WooCommerce, 2.ª parte**: la ficha del pedido («Notas del pedido», «Acciones del pedido») y el listado y la ficha de productos.
 - **Fase 6b, liquidaciones a artistas**: autofactura mensual con retención, enlazada desde «Mis ventas» (que ya existe, ADR 0023).
 - **Driver `aeat` de Veri*Factu**, en cuanto esté el certificado.

@@ -141,10 +141,16 @@ class OrderResource extends Resource
                     TextEntry::make('product_name')->helperText(fn (OrderLine $record): string => trim($record->sku.' · '.$record->label(), ' ·')),
                     TextEntry::make('store_name'),
                     TextEntry::make('quantity')->alignEnd(),
-                    TextEntry::make('total_cents')->formatStateUsing($money)->alignEnd(),
+                    TextEntry::make('total_cents')->formatStateUsing($money)->alignEnd()
+                        ->helperText(fn (OrderLine $record): ?string => $record->discount_cents > 0 ? 'Cupón −'.$money($record->discount_cents) : null),
                 ]),
-                Grid::make(4)->schema([
-                    TextEntry::make('subtotal_cents')->label('Subtotal')->formatStateUsing($money),
+                Grid::make(5)->schema([
+                    TextEntry::make('subtotal_cents')->label('Subtotal')->formatStateUsing(fn (int $state, Order $record): string => $money($state + $record->discount_cents)),
+                    // Cupón (ADR 0024): ya está repartido en las líneas; aquí, el código y el total.
+                    TextEntry::make('discount_cents')->label('Cupón')
+                        ->formatStateUsing(fn (int $state, Order $record): string => $record->coupon_code.' −'.$money($state))
+                        ->placeholder('—')->color('success')
+                        ->visible(fn (Order $record): bool => $record->coupon_code !== null),
                     TextEntry::make('shipping_cents')->label('Envío')->formatStateUsing(fn (int $state, Order $record): string => $record->shipping_free ? 'Gratis' : $money($state)),
                     TextEntry::make('vat_cents')->label('IVA incluido')->formatStateUsing($money),
                     TextEntry::make('total_cents')->label('Total')->formatStateUsing($money)->weight('bold'),

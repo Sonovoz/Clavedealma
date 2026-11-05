@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Checkout;
 
 use App\Modules\Cart\Application\CartStore;
 use App\Modules\Cart\Application\PriceCart;
+use App\Storefront\Checkout\CartDiscount;
 use App\Storefront\Checkout\CartPresenter;
 use App\Storefront\Checkout\Countries;
 use App\Storefront\Seo\SeoBuilder;
@@ -19,16 +20,24 @@ use Illuminate\Http\Request;
  */
 class CartController
 {
-    public function __construct(private readonly CartStore $cart, private readonly PriceCart $price) {}
+    public function __construct(private readonly CartStore $cart, private readonly PriceCart $price, private readonly CartDiscount $discount) {}
 
     public function show(Request $request, SeoBuilder $seo): View
     {
         $priced = ($this->price)($this->cart->lines(), StoreAccess::isStaff($request->user()));
+        // Como WooCommerce: si el cupón ha dejado de valer, se quita y se dice por qué.
+        $coupon = $this->discount->current($priced);
+        if ($coupon !== null && ! $coupon->ok()) {
+            $request->session()->now('cart.error', $coupon->error);
+        }
+        $row = CartDiscount::row($coupon);
 
         return view('checkout.cart', [
             'seo' => $seo->checkout('Carrito'),
             'lines' => CartPresenter::lines($priced),
             'subtotal' => Money::fromCents($priced->subtotalCents())->format(),
+            'coupon' => $row,
+            'totalWithoutShipping' => Money::fromCents($priced->subtotalCents() - ($row['cents'] ?? 0))->format(),
             'count' => $priced->count(),
             'canCheckout' => ! $priced->isEmpty() && ! $priced->hasProblems(),
             'hasProblems' => $priced->hasProblems(),
@@ -92,5 +101,27 @@ class CartController
         }
 
         return to_route('cart.show')->with('cart.updated', 'Carrito actualizado.');
+    }
+
+    /** «Aplicar cupón» (carrito y «Finalizar compra»), como en WooCommerce. */
+    public function applyCoupon(Request $request): RedirectResponse
+    {
+        $code = (string) $request->validate(['coupon_code' => ['required', 'string', 'max:40']], ['coupon_code.required' => 'Escribe un código de cupón.'])['coupon_code'];
+        $priced = ($this->price)($this->cart->lines(), StoreAccess::isStaff($request->user()));
+        $result = $this->discount->apply($code, $priced);
+
+        if (! $result->ok()) {
+            return back()->with('cart.error', $result->error);
+        }
+        $this->cart->setCoupon($result->code);
+
+        return back()->with('cart.updated', 'El código de cupón se ha aplicado correctamente.');
+    }
+
+    public function removeCoupon(): RedirectResponse
+    {
+        $this->cart->setCoupon(null);
+
+        return back()->with('cart.updated', 'Se ha quitado el cupón.');
     }
 }

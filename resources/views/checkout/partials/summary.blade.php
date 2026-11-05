@@ -12,6 +12,9 @@
     </ul>
     <dl class="co-totals">
         <div><dt>Subtotal</dt><dd>{{ $subtotal }}</dd></div>
+        @if ($discount ?? null)
+            <div class="co-totals__coupon"><dt>Cupón: {{ $order->coupon_code }}</dt><dd>{{ $discount }}</dd></div>
+        @endif
         <div><dt>Envío · {{ $order->shipping_zone->label() }}</dt><dd>{{ $shippingPrice }}</dd></div>
         <div class="co-totals__total"><dt>Total</dt><dd>{{ $total }}</dd></div>
     </dl>

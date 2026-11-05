@@ -6,6 +6,7 @@ use App\Modules\Invoicing\Contracts\InvoiceType;
 use App\Modules\Invoicing\Domain\VatSplit;
 use App\Modules\Invoicing\Infrastructure\Models\Invoice;
 use App\Modules\Orders\Contracts\OrderLookup;
+use App\Support\Money;
 
 /**
  * Facturas de un pedido: la simplificada al cobrarlo y una rectificativa por cada
@@ -29,7 +30,9 @@ class IssueInvoices
         $lines = [];
         foreach ($order->lines as $line) {
             $lines[] = [
-                'description' => $line->productName.($line->option !== '' ? ' · '.$line->option : '').' · '.$line->sku.' ('.$line->storeName.')',
+                'description' => $line->productName.($line->option !== '' ? ' · '.$line->option : '').' · '.$line->sku.' ('.$line->storeName.')'
+                    // Cupón (ADR 0024): el total de la línea ya va descontado; se dice cuánto.
+                    .($line->discountCents > 0 ? ' · descuento cupón '.$order->couponCode.' −'.Money::fromCents($line->discountCents)->format() : ''),
                 'quantity' => $line->quantity,
                 'unit_price_cents' => $line->unitPriceCents,
                 'vat_rate_bps' => $line->vatRateBps,

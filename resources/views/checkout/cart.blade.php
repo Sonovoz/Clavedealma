@@ -58,15 +58,29 @@
                     </tbody>
                 </table>
                 <div class="co-cart__actions">
-                    <a class="co-link" href="{{ url()->previous() !== url()->current() ? url()->previous() : route('market') }}">← Seguir comprando</a>
+                    {{-- «Código de cupón» + «Aplicar cupón», como en WooCommerce (formulario propio, ADR 0024). --}}
+                    <div class="co-coupon">
+                        <label class="co-sr" for="coupon_code">Código de cupón</label>
+                        <input class="co-coupon__input" form="co-coupon" id="coupon_code" name="coupon_code" type="text" placeholder="Código de cupón" autocomplete="off" maxlength="40">
+                        <button class="co-btn co-btn--ghost" form="co-coupon" type="submit">Aplicar cupón</button>
+                    </div>
                     <button class="co-btn co-btn--ghost" type="submit" name="update" value="1" data-update-cart>Actualizar carrito</button>
                 </div>
+                <a class="co-link" href="{{ url()->previous() !== url()->current() ? url()->previous() : route('market') }}">← Seguir comprando</a>
             </form>
+            <form class="co-hidden-form" id="co-coupon" method="post" action="{{ route('cart.coupon') }}">@csrf</form>
+            <form class="co-hidden-form" id="co-coupon-remove" method="post" action="{{ route('cart.coupon.remove') }}">@csrf</form>
 
             <aside class="co-card co-summary" aria-label="Totales del carrito" data-cart-totals data-quote-url="{{ route('checkout.quote') }}">
                 <h2 class="co-h2">Totales del carrito</h2>
                 <dl class="co-totals">
                     <div><dt>Subtotal</dt><dd>{{ $subtotal }}</dd></div>
+                    @if ($coupon)
+                        <div class="co-totals__coupon">
+                            <dt>Cupón: {{ $coupon['code'] }} <small>{{ $coupon['label'] }}</small></dt>
+                            <dd>{{ $coupon['amount'] }} <button class="co-link" form="co-coupon-remove" type="submit">[Quitar]</button></dd>
+                        </div>
+                    @endif
                     <div>
                         <dt>Envío</dt>
                         <dd data-shipping-result>Se calcula con tu dirección</dd>
@@ -91,7 +105,7 @@
                     </div>
                 </details>
                 <dl class="co-totals">
-                    <div class="co-totals__total"><dt>Total</dt><dd data-total-result data-subtotal="{{ $subtotal }}">{{ $subtotal }}</dd></div>
+                    <div class="co-totals__total"><dt>Total</dt><dd data-total-result data-subtotal="{{ $totalWithoutShipping }}">{{ $totalWithoutShipping }}</dd></div>
                 </dl>
                 <p class="co-fine">IVA incluido. Cada pieza se fabrica para ti bajo pedido.</p>
                 @if ($hasProblems)

@@ -8,8 +8,11 @@ Hemos recibido el pago de tu pedido **{{ $order->reference }}**. Empezamos a pre
 | Artículo | Ud. | Importe |
 | :-- | :-: | --: |
 @foreach ($order->lines as $line)
-| {{ $line->product_name }}{{ $line->label() ? ' · '.$line->label() : '' }}<br><small>{{ $line->store_name }}</small> | {{ $line->quantity }} | {{ $m($line->total_cents) }} |
+| {{ $line->product_name }}{{ $line->label() ? ' · '.$line->label() : '' }}<br><small>{{ $line->store_name }}</small> | {{ $line->quantity }} | {{ $m($line->total_cents + $line->discount_cents) }} |
 @endforeach
+@if ($order->discount_cents > 0)
+| Cupón {{ $order->coupon_code }} | | −{{ $m($order->discount_cents) }} |
+@endif
 | Envío ({{ $order->shipping_zone->label() }}) | | {{ $order->shipping_free ? 'Gratis' : $m($order->shipping_cents) }} |
 | **Total** | | **{{ $m($order->total_cents) }}** |
 </x-mail::table>

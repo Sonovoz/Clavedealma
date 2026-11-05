@@ -14,7 +14,7 @@ it('ordena el menú del panel como WooCommerce', function () {
     $this->actingAs($admin)->get('/admin')->assertOk()
         ->assertSeeInOrder(['Escritorio', 'Comercio', 'Pedidos', 'Clientes', 'Fabricación', 'Devoluciones', 'Facturas',
             'Productos', 'Todos los productos', 'Categorías', 'Prendas base',
-            'Análisis', 'Informes', 'Tiendas', 'Artistas',
+            'Análisis', 'Informes', 'Marketing', 'Cupones', 'Tiendas', 'Artistas',
             'Ajustes', 'Datos de facturación', 'Zonas de envío', 'Transportistas', 'Textos legales',
             'Herramientas', 'Usuarios', 'Copias de seguridad', 'Registro de seguridad', 'Estado del sistema', 'Desarrollo'])
         ->assertSee('Estado de la tienda')

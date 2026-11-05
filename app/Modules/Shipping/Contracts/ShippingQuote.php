@@ -16,6 +16,12 @@ final readonly class ShippingQuote
         public string $carrier,
     ) {}
 
+    /** El mismo envío, gratis (cupón con envío gratuito, ADR 0024). */
+    public function withFreeShipping(): self
+    {
+        return new self($this->zone, 0, true, $this->minDays, $this->maxDays, $this->carrier);
+    }
+
     public function deliveryLabel(): string
     {
         return $this->minDays === $this->maxDays

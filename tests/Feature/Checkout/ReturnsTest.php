@@ -68,6 +68,9 @@ it('reglas: plazo de 14 días e importe con el envío solo si vuelve todo', func
     $lines = [['id' => 1, 'quantity' => 2, 'unit_price_cents' => 3000]];
     expect(ReturnPolicy::refundCents($lines, [], [1 => 1], 500))->toBe(3000)
         ->and(ReturnPolicy::refundCents($lines, [1 => 1], [1 => 1], 500))->toBe(3500)
+        // Con cupón: se devuelve lo pagado (99 € por 2 piezas), sin perder céntimos entre devoluciones.
+        ->and(ReturnPolicy::refundCents([['id' => 1, 'quantity' => 2, 'unit_price_cents' => 5000, 'total_cents' => 9901]], [], [1 => 1], 0))->toBe(4950)
+        ->and(ReturnPolicy::refundCents([['id' => 1, 'quantity' => 2, 'unit_price_cents' => 5000, 'total_cents' => 9901]], [1 => 1], [1 => 1], 0))->toBe(4951)
         ->and(ReturnPolicy::returnable([['id' => 1, 'quantity' => 2, 'personalized' => false], ['id' => 2, 'quantity' => 1, 'personalized' => true]], [1 => 1]))->toBe([1 => 1, 2 => 0]);
 });
 

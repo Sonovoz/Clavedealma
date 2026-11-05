@@ -25,6 +25,7 @@ use App\Modules\Shipping\Contracts\ShippingQuote;
 use App\Modules\Shipping\Contracts\ShippingQuoter;
 use App\Platform\Documents\Download;
 use App\Platform\Documents\InvoiceDocument;
+use App\Storefront\Checkout\CartDiscount;
 use App\Storefront\Checkout\CartPresenter;
 use App\Storefront\Checkout\Countries;
 use App\Storefront\Checkout\OrderPage;
@@ -53,6 +54,7 @@ class CheckoutController
         private readonly PriceCart $price,
         private readonly ShippingQuoter $shipping,
         private readonly SeoBuilder $seo,
+        private readonly CartDiscount $discount,
     ) {}
 
     public function show(Request $request): View|RedirectResponse
@@ -64,14 +66,21 @@ class CheckoutController
 
         $gateway = app(PaymentGateway::class);
         $user = $request->user();
+        $coupon = $this->discount->current($priced);
+        if ($coupon !== null && ! $coupon->ok()) {
+            $request->session()->now('payment.error', $coupon->error);
+        }
+        $row = CartDiscount::row($coupon);
 
         return view('checkout.details', [
+            'coupon' => $row,
+            'totalWithoutShipping' => Money::fromCents($priced->subtotalCents() - ($row['cents'] ?? 0))->format(),
             'prefill' => $user instanceof User ? $this->prefill($user) : [],
             'customer' => $user instanceof User ? $user : null,
             'seo' => $this->seo->checkout('Finalizar compra'),
             'lines' => CartPresenter::lines($priced),
             'subtotal' => Money::fromCents($priced->subtotalCents())->format(),
-            'subtotalCents' => $priced->subtotalCents(),
+            'subtotalCents' => max(50, $priced->subtotalCents() - ($row['cents'] ?? 0)),
             'countries' => Countries::ALL,
             'gateway' => $gateway->name(),
             'publicKey' => $gateway->publicKey(),
@@ -83,14 +92,17 @@ class CheckoutController
     {
         $priced = $this->priced($request);
         [$quote, $error] = $this->quoteFor($priced, (string) $request->query('country', 'ES'), (string) $request->query('postal_code', ''));
+        $coupon = $this->discount->current($priced);
+        $off = $coupon !== null && $coupon->ok() ? $coupon->discountCents() : 0;
+        $quote = $quote === null ? null : CartDiscount::shipping($quote, $coupon);
 
         return response()->json($quote === null
             ? ['ok' => false, 'message' => $error]
             : [
                 'ok' => true,
                 'shipping' => $quote->free ? 'Gratis' : Money::fromCents($quote->priceCents)->format(),
-                'total' => Money::fromCents($priced->subtotalCents() + $quote->priceCents)->format(),
-                'total_cents' => $priced->subtotalCents() + $quote->priceCents,
+                'total' => Money::fromCents($priced->subtotalCents() - $off + $quote->priceCents)->format(),
+                'total_cents' => $priced->subtotalCents() - $off + $quote->priceCents,
                 'delivery' => $quote->deliveryLabel(),
                 'zone' => $quote->zone->label(),
             ]);
@@ -130,10 +142,19 @@ class CheckoutController
         }
         $details = $request->details($user instanceof User ? $user->id : null);
 
+        // Cupón (ADR 0024): se vuelve a comprobar con el email (límite por cliente).
+        $coupon = $this->discount->current($priced, $details->email);
+        if ($coupon !== null && ! $coupon->ok()) {
+            return $request->expectsJson()
+                ? response()->json(['message' => $coupon->error, 'redirect' => route('checkout.show')], 409)
+                : to_route('checkout.show')->withInput()->with('payment.error', $coupon->error);
+        }
+        $quote = CartDiscount::shipping($quote, $coupon);
+
         // Como WooCommerce: si el cliente vuelve a pulsar «Realizar el pedido» con el mismo
         // carrito y los mismos datos, se reutiliza el pedido que espera el pago. Si ha cambiado
         // algo, el anterior se anula (y su cobro) para que no queden dos pedidos pagables.
-        $fingerprint = $this->fingerprint($priced, $details, $quote);
+        $fingerprint = $this->fingerprint($priced, $details, $quote, $coupon?->code, $coupon->discounts ?? []);
         $pending = (array) $request->session()->get('checkout.pending', []);
         $order = null;
         $previous = isset($pending['token']) ? Order::query()->with('lines')->where('token', $pending['token'])->first() : null;
@@ -158,7 +179,7 @@ class CheckoutController
         if ($order === null) {
             try {
                 // Se recarga para tener los valores por defecto de la base de datos (moneda…).
-                $order = $this->order($place($priced, $details, $quote, $this->isTest($request, $priced))->token);
+                $order = $this->order($place($priced, $details, $quote, $this->isTest($request, $priced), CartDiscount::forOrder($coupon))->token);
             } catch (InvalidArgumentException $e) {
                 return $this->leave($request, route('cart.show'), $e->getMessage());
             }
@@ -312,11 +333,14 @@ class CheckoutController
     }
 
     /** Huella del carrito, los datos y el envío: si no cambia, se reutiliza el pedido pendiente. */
-    private function fingerprint(PricedCart $cart, CheckoutDetails $details, ShippingQuote $quote): string
+    /**
+     * @param  array<int, int>  $discounts
+     */
+    private function fingerprint(PricedCart $cart, CheckoutDetails $details, ShippingQuote $quote, ?string $coupon = null, array $discounts = []): string
     {
         $lines = array_map(fn ($l): array => [$l->variant->variantId, $l->quantity, $l->totalCents()], $cart->buyableLines());
 
-        return hash('sha256', (string) json_encode([$lines, (array) $details, $quote->priceCents, $quote->zone->value]));
+        return hash('sha256', (string) json_encode([$lines, (array) $details, $quote->priceCents, $quote->zone->value, $coupon, $discounts]));
     }
 
     private function priced(Request $request): PricedCart

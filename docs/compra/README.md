@@ -29,6 +29,21 @@ El recorrido copia el de WooCommerce, para que resulte familiar: los mismos paso
 
 Ninguna página de compra se indexa (`noindex` y `robots.txt`).
 
+## Cupones
+
+Como en WooCommerce (ADR 0024). Se crean en *Marketing → Cupones*:
+- **General**: porcentaje o importe fijo, envío gratis, fechas.
+- **Restricción de uso**: gasto mínimo, tienda, excluir rebajas.
+- **Límites de uso**: total y por cliente.
+
+En la tienda:
+- **Carrito**: «Código de cupón» + **Aplicar cupón**, y la fila «Cupón: CÓDIGO −X € [Quitar]» en «Totales del carrito».
+- **Finalizar compra**: «¿Tienes un cupón? Haz clic aquí para introducir tu código».
+
+Cómo se calcula:
+- El descuento se reparte entre las líneas del pedido. El IVA, la factura, la comisión del artista y las devoluciones salen de lo que de verdad se cobra.
+- Los usos cuentan cuando se paga y se liberan si el pedido se cancela.
+
 ## Mi cuenta (opcional)
 
 Como en WooCommerce, se puede comprar como invitado o con cuenta (ADR 0021).
