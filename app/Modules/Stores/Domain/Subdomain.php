@@ -23,7 +23,7 @@ final readonly class Subdomain
         'logout', 'register', 'password', 'webhook', 'webhooks', 'stripe', 'health',
         // Páginas del market (presentes y futuras)
         'tienda', 'tiendas', 'artistas', 'artista', 'coleccion', 'colecciones', 'producto',
-        'productos', 'buscar', 'busqueda', 'carrito', 'cesta', 'checkout', 'pago', 'pagos',
+        'productos', 'buscar', 'busqueda', 'carrito', 'cesta', 'checkout', 'finalizar-compra', 'pago', 'pagos',
         'pedido', 'pedidos', 'cuenta', 'mi-cuenta', 'ayuda', 'soporte', 'contacto', 'blog',
         'noticias', 'club', 'comunidad', 'novedades', 'rebajas', 'ofertas', 'regalos',
         'envios', 'devoluciones', 'legal', 'aviso-legal', 'privacidad', 'cookies',

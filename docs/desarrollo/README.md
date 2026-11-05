@@ -83,8 +83,12 @@ Fuera de los módulos está la **capa exterior**, que pinta y conecta pero no de
 
 ### Compra y pago
 1. **Ficha de producto**: «Añadir» llama a `POST /carrito`. `PriceCart` comprueba que la pieza está a la venta, que hay stock y que la tienda está visible. `CartStore` guarda solo variante y unidades.
-2. **`/pedido`**: el cliente escribe su dirección. `ShippingQuoter` calcula la zona y el precio por peso. `PlaceOrder` crea el pedido **pendiente de pago**, con una copia de cada línea (precio, IVA, comisión y peso).
-3. **`/pedido/<token>/pagar`**: `StartPayment` crea el cobro con una clave de idempotencia por pedido e importe. Stripe Payment Element recoge la tarjeta en el navegador.
+2. **`/finalizar-compra`** (una sola página, como WooCommerce): el cliente escribe su dirección y `ShippingQuoter` calcula la zona y el precio por peso. Al pulsar «Realizar el pedido» pasa esto:
+   - `PlaceOrder` crea el pedido **pendiente de pago**, con una copia de cada línea (precio, IVA, comisión y peso).
+   - `StartPayment` crea el cobro con una clave de idempotencia por pedido e importe.
+   - El Payment Element de Stripe, ya montado en la página («deferred intent»), lo confirma sin salir de ella.
+   - Si el cliente repite con los mismos datos, se reutiliza el pedido. Si los cambia, `CancelPendingOrder` anula el anterior y su cobro.
+3. **`/pedido/<token>/pagar`** («Pagar el pedido»): la misma confirmación para un pedido ya creado. Se usa sin JavaScript o al volver de un pago fallido.
 4. **Stripe confirma** por el webhook firmado o por la consulta al volver. `HandleGatewayEvent` registra el aviso una sola vez y lanza `PaymentSucceeded`.
 5. Con ese evento, **Orders** marca el pedido pagado (`MarkOrderPaid`) y lanza `OrderPaid`. Lo escuchan:
    - **Inventory**, que descuenta el stock (`RecordSale`) o avisa de un faltante;

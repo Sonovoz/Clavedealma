@@ -1,6 +1,6 @@
 /*
- * Compra: cambios de unidades en la cesta, precio del envío según la dirección y
- * formulario de pago de Stripe (Payment Element). Ningún importe se calcula aquí.
+ * Compra: carrito, «Finalizar compra» (envío según la dirección y pago de Stripe en la misma
+ * página) y «Pagar el pedido». Ningún importe se calcula aquí: todos vienen del servidor.
  */
 const $ = (s, c = document) => c.querySelector(s);
 
@@ -38,13 +38,16 @@ document.querySelectorAll('[data-cart-qty]').forEach(input => input.addEventList
   if (button) button.classList.add('is-dirty');
 }));
 
-// Datos y envío: pide el precio del envío al servidor cuando cambian país o código postal.
+// «Finalizar compra»: precio del envío según la dirección y, con Stripe, el pago en la misma
+// página (como WooCommerce). Sin JavaScript, o si Stripe no carga, el formulario se envía
+// normal y el pedido pasa a «Pagar el pedido».
 const form = $('[data-checkout]');
 if (form) {
-  const shipping = $('[data-quote-shipping]');
-  const total = $('[data-quote-total]');
-  const zone = $('[data-quote-zone]');
-  const delivery = $('[data-quote-delivery]');
+  const shipping = $('[data-quote-shipping]', form);
+  const total = $('[data-quote-total]', form);
+  const zone = $('[data-quote-zone]', form);
+  const delivery = $('[data-quote-delivery]', form);
+  let elements = null;
   let timer;
   const update = async () => {
     const country = form.country.value;
@@ -59,6 +62,8 @@ if (form) {
         total.textContent = data.total;
         zone.textContent = `· ${data.zone}`;
         delivery.textContent = `IVA incluido. ${data.delivery}, después de fabricar tu pedido.`;
+        // El importe que enseñan Apple Pay o Google Pay; el que se cobra lo fija el servidor.
+        elements?.update({ amount: data.total_cents });
       } else {
         shipping.textContent = data.message;
         zone.textContent = '';
@@ -67,9 +72,75 @@ if (form) {
   };
   form.querySelectorAll('[data-quote-input]').forEach(el => el.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(update, 350); }));
   update();
+
+  const button = $('[data-place-order]', form);
+  const payError = $('#co-pay-error');
+  const alertBox = $('[data-form-alert]', form);
+  const label = button?.textContent;
+  const busy = on => { if (button) { button.disabled = on; button.textContent = on ? 'Procesando…' : label; } };
+  const fail = message => { payError.textContent = message; payError.hidden = false; busy(false); };
+
+  // Errores de los campos, como los pinta el servidor.
+  const showErrors = errors => {
+    form.querySelectorAll('[data-js-error]').forEach(el => el.remove());
+    form.querySelectorAll('[aria-invalid="true"]').forEach(el => el.removeAttribute('aria-invalid'));
+    let first = null;
+    Object.entries(errors || {}).forEach(([name, messages]) => {
+      const input = form.querySelector(`[name="${name}"]`);
+      if (!input) return;
+      input.setAttribute('aria-invalid', 'true');
+      const span = Object.assign(document.createElement('span'), { className: 'co-error', textContent: messages[0] });
+      span.dataset.jsError = '';
+      (input.closest('.co-field') || input.closest('.co-check') || input.parentElement).after(span);
+      first ??= input;
+    });
+    if (alertBox) alertBox.hidden = !first;
+    first?.focus({ preventScroll: true });
+    first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  const key = form.dataset.stripeKey;
+  const mount = $('[data-payment-element]', form);
+  const startStripe = () => {
+    if (!window.Stripe) { setTimeout(startStripe, 100); return; }
+    const stripe = window.Stripe(key);
+    elements = stripe.elements({
+      mode: 'payment',
+      amount: Number(form.dataset.subtotalCents),
+      currency: 'eur',
+      locale: 'es',
+      appearance: { theme: 'night', variables: { colorPrimary: '#d4141c', colorBackground: '#070707', borderRadius: '0px', fontFamily: 'Archivo, Arial, sans-serif' } },
+    });
+    mount.replaceChildren();
+    elements.create('payment').mount(mount);
+    update();
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      payError.hidden = true;
+      busy(true);
+      // 1. Stripe comprueba los datos de pago (antes de cualquier espera, lo pide Apple Pay).
+      const { error: submitError } = await elements.submit();
+      if (submitError) { fail(submitError.message); return; }
+      // 2. El servidor valida los datos, calcula el total y crea el pedido y su cobro.
+      let res; let data = {};
+      try {
+        res = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+        data = await res.json();
+      } catch { fail('No se ha podido conectar. Revisa tu conexión e inténtalo de nuevo.'); return; }
+      if (res.status === 422) { showErrors(data.errors); busy(false); return; }
+      if (data.redirect) { window.location.assign(data.redirect); return; }
+      if (!res.ok || !data.client_secret) { fail(data.message || 'No se ha podido realizar el pedido.'); return; }
+      showErrors({});
+      // 3. Stripe cobra; si va bien, lleva a «Pedido recibido».
+      const { error } = await stripe.confirmPayment({ elements, clientSecret: data.client_secret, confirmParams: { return_url: data.return_url } });
+      fail(error?.message ?? 'No se ha podido completar el pago.');
+    });
+  };
+  if (key && mount) startStripe();
 }
 
-// Pago con Stripe: los datos de la tarjeta van directamente a Stripe.
+// «Pagar el pedido» (pedido ya creado, como en WooCommerce): los datos van directamente a Stripe.
 const pay = $('#co-pay');
 if (pay) {
   const start = () => {

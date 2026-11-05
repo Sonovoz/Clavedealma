@@ -15,21 +15,22 @@ Clave de Alma (vendedor único)
 │   ├── Tiendas · clavedealma.es/<artista> ................. StorefrontController
 │   │   ├── Diseño propio ................................. storefront/designs/<clave>
 │   │   └── Pasarela común ................................ StoreCatalog · storefront/partials
-│   ├── Compra (una cesta, un pago) ........................ checkout/* · CartController · CheckoutController
-│   │   ├── Cesta ............................................. Cart (CartStore, PriceCart)
-│   │   ├── Datos y envío ..................................... Shipping (ShippingQuoter)
-│   │   ├── Pago .............................................. Payments (Stripe / simulado)
-│   │   └── Mi pedido · seguimiento · devolución · facturas ... Orders · Returns · Invoicing
+│   ├── Compra como WooCommerce (un carrito, un pago) ...... checkout/* · CartController · CheckoutController
+│   │   ├── Carrito ........................................... Cart (CartStore, PriceCart)
+│   │   ├── Finalizar compra: datos, envío y pago ............. Shipping (ShippingQuoter) · Payments (Stripe / simulado)
+│   │   └── Pedido recibido · seguimiento · devolución · facturas  Orders · Returns · Invoicing
 │   └── SEO: metaetiquetas, JSON-LD, sitemap.xml, robots.txt  SeoBuilder · SitemapController
 │
 ├── Panel /admin (Filament, por roles)
-│   ├── Ventas ........ Pedidos · Devoluciones · Facturas · Informes ............ superadmin
+│   ├── Escritorio .... Estado de la tienda (ventas del mes, procesando…) ......... superadmin
+│   ├── Comercio ...... Pedidos · Devoluciones · Facturas ........................... superadmin
+│   │   └── Fabricación (sin datos del cliente) .................................. superadmin + fabricante
+│   ├── Productos ..... Todos los productos · Categorías · Prendas base (tienda activa)  superadmin + gestor
+│   │   └── Inventario ............................................................ superadmin + fabricante
+│   ├── Análisis ...... Informes ...................................................... superadmin
 │   ├── Tiendas ....... Artistas · Tiendas ........................................ superadmin
-│   ├── Catálogo ...... Productos · Colecciones · Prendas base (tienda activa) ..... superadmin + gestor
-│   ├── Operación ..... Fabricación (sin datos del cliente) · Stock ............... superadmin + fabricante
-│   ├── Envíos ........ Tarifas por destino · Transportistas ........................ superadmin
-│   ├── Administración  Usuarios · Sistema · Copias · Datos de facturación · Registro de seguridad
-│   └── Desarrollo .... esta guía, el árbol y las decisiones ....................... superadmin
+│   ├── Ajustes ....... Datos de facturación · Zonas de envío · Transportistas · Textos legales
+│   └── Herramientas .. Usuarios · Copias · Registro de seguridad · Estado del sistema · Desarrollo
 │
 ├── Negocio (app/Modules, solo se hablan por Contracts y eventos)
 │   ├── Identity ..... usuarios y roles

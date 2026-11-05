@@ -7,7 +7,9 @@ use App\Modules\Cart\Application\CartStore;
 use App\Modules\Cart\Application\PriceCart;
 use App\Modules\Cart\Contracts\PricedCart;
 use App\Modules\Invoicing\Infrastructure\Models\Invoice;
+use App\Modules\Orders\Application\CancelPendingOrder;
 use App\Modules\Orders\Application\PlaceOrder;
+use App\Modules\Orders\Contracts\CheckoutDetails;
 use App\Modules\Orders\Contracts\OrderLookup;
 use App\Modules\Orders\Contracts\OrderStatus;
 use App\Modules\Orders\Infrastructure\Models\Order;
@@ -16,7 +18,9 @@ use App\Modules\Payments\Application\StartPayment;
 use App\Modules\Payments\Application\SyncOrderPayments;
 use App\Modules\Payments\Contracts\GatewayEvent;
 use App\Modules\Payments\Contracts\PaymentGateway;
+use App\Modules\Payments\Contracts\PaymentStatus;
 use App\Modules\Payments\Contracts\PaymentUnavailable;
+use App\Modules\Payments\Infrastructure\Models\Payment;
 use App\Modules\Returns\Application\ReturnOptions;
 use App\Modules\Returns\Infrastructure\Models\ReturnRequest;
 use App\Modules\Shipping\Contracts\ShippingQuote;
@@ -38,8 +42,10 @@ use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Tramitar el pedido: datos y envío → pago → confirmación. Todo importe se calcula
- * en el servidor; el navegador solo elige variantes y escribe la dirección.
+ * «Finalizar compra» como WooCommerce: datos, «Tu pedido» y pago en una sola página,
+ * y después «Pedido recibido». Todo importe se calcula en el servidor; el navegador solo
+ * elige variantes y escribe la dirección. Con Stripe, la página crea el pedido y confirma
+ * el pago sin salir de ella; sin JavaScript, el pedido pasa a «Pagar el pedido».
  */
 class CheckoutController
 {
@@ -57,12 +63,16 @@ class CheckoutController
             return to_route('cart.show');
         }
 
+        $gateway = app(PaymentGateway::class);
+
         return view('checkout.details', [
-            'seo' => $this->seo->checkout('Datos de envío'),
+            'seo' => $this->seo->checkout('Finalizar compra'),
             'lines' => CartPresenter::lines($priced),
             'subtotal' => Money::fromCents($priced->subtotalCents())->format(),
+            'subtotalCents' => $priced->subtotalCents(),
             'countries' => Countries::ALL,
-            'gateway' => app(PaymentGateway::class)->name(),
+            'gateway' => $gateway->name(),
+            'publicKey' => $gateway->publicKey(),
         ]);
     }
 
@@ -78,33 +88,94 @@ class CheckoutController
                 'ok' => true,
                 'shipping' => $quote->free ? 'Gratis' : Money::fromCents($quote->priceCents)->format(),
                 'total' => Money::fromCents($priced->subtotalCents() + $quote->priceCents)->format(),
+                'total_cents' => $priced->subtotalCents() + $quote->priceCents,
                 'delivery' => $quote->deliveryLabel(),
                 'zone' => $quote->zone->label(),
             ]);
     }
 
-    public function place(CheckoutRequest $request, PlaceOrder $place): RedirectResponse
+    /**
+     * «Realizar el pedido». Con Stripe (petición JSON) devuelve el cobro para confirmarlo en
+     * la misma página; con el pago simulado lo resuelve aquí; sin JavaScript, lleva a pagar.
+     */
+    public function place(CheckoutRequest $request, PlaceOrder $place, StartPayment $start, SyncOrderPayments $sync, CancelPendingOrder $cancel): JsonResponse|RedirectResponse
     {
         $priced = $this->priced($request);
         if ($priced->isEmpty() || $priced->hasProblems()) {
-            return to_route('cart.show')->with('cart.error', 'El carrito ha cambiado: revísalo antes de pagar.');
+            return $this->leave($request, route('cart.show'), 'El carrito ha cambiado: revísalo antes de pagar.');
         }
 
         $details = $request->details();
         [$quote, $error] = $this->quoteFor($priced, $details->country, $details->postalCode);
         if ($quote === null) {
-            return back()->withInput()->withErrors(['postal_code' => $error]);
+            return $request->expectsJson()
+                ? response()->json(['message' => $error, 'errors' => ['postal_code' => [$error]]], 422)
+                : back()->withInput()->withErrors(['postal_code' => $error]);
+        }
+
+        // Como WooCommerce: si el cliente vuelve a pulsar «Realizar el pedido» con el mismo
+        // carrito y los mismos datos, se reutiliza el pedido que espera el pago. Si ha cambiado
+        // algo, el anterior se anula (y su cobro) para que no queden dos pedidos pagables.
+        $fingerprint = $this->fingerprint($priced, $details, $quote);
+        $pending = (array) $request->session()->get('checkout.pending', []);
+        $order = null;
+        $previous = isset($pending['token']) ? Order::query()->with('lines')->where('token', $pending['token'])->first() : null;
+        if ($previous !== null && $previous->status === OrderStatus::PendingPayment) {
+            // Por si el pago se completó y aún no ha llegado el aviso de la pasarela.
+            $sync($previous->id);
+            $previous->refresh();
+            if ($previous->status->isPaid()) {
+                $request->session()->forget('checkout.pending');
+
+                return $this->leave($request, route('checkout.thanks', $previous->token));
+            }
+            if ($previous->status === OrderStatus::PendingPayment) {
+                if (($pending['fingerprint'] ?? null) === $fingerprint) {
+                    $order = $previous;
+                } else {
+                    $cancel($previous->id, 'Sustituido por un pedido nuevo: el cliente cambió los datos o el carrito antes de pagar.');
+                }
+            }
+        }
+
+        if ($order === null) {
+            try {
+                // Se recarga para tener los valores por defecto de la base de datos (moneda…).
+                $order = $this->order($place($priced, $details, $quote, $this->isTest($request, $priced))->token);
+            } catch (InvalidArgumentException $e) {
+                return $this->leave($request, route('cart.show'), $e->getMessage());
+            }
+            $request->session()->push('checkout.orders', $order->token);
+            $request->session()->put('checkout.pending', ['token' => $order->token, 'fingerprint' => $fingerprint]);
+        }
+
+        $gateway = app(PaymentGateway::class);
+        if ($gateway->name() === 'fake' && $request->filled('simulate')) {
+            return $this->settleFake($order, $request->input('simulate') === 'ok', $start)
+                ? to_route('checkout.thanks', $order->token)
+                : to_route('checkout.show')->withInput()->with('payment.error', 'El pago se ha rechazado. Puedes intentarlo de nuevo.');
+        }
+
+        if (! $request->expectsJson()) {
+            return to_route('checkout.pay', $order->token);
         }
 
         try {
-            $order = $place($priced, $details, $quote, $this->isTest($request, $priced));
-        } catch (InvalidArgumentException $e) {
-            return to_route('cart.show')->with('cart.error', $e->getMessage());
+            $payment = $start($order->id, (string) $order->reference, $order->total_cents, $order->currency, $order->email);
+        } catch (PaymentUnavailable $e) {
+            report($e);
+
+            return response()->json(['message' => 'Ahora mismo no podemos conectar con el sistema de pago. Tu pedido está guardado: vuelve a intentarlo en unos minutos.', 'pay_url' => route('checkout.pay', $order->token)], 503);
         }
 
-        $request->session()->push('checkout.orders', $order->token);
-
-        return to_route('checkout.pay', $order->token);
+        return response()->json([
+            'ok' => true,
+            'reference' => $order->reference,
+            'amount_cents' => $order->total_cents,
+            'client_secret' => $payment->clientSecret,
+            'return_url' => route('checkout.thanks', $order->token),
+            'pay_url' => route('checkout.pay', $order->token),
+        ]);
     }
 
     public function pay(string $token, StartPayment $start, PaymentGateway $gateway): View|RedirectResponse
@@ -122,7 +193,7 @@ class CheckoutController
         }
 
         return view('checkout.pay', $this->summary($order) + [
-            'seo' => $this->seo->checkout('Pago'),
+            'seo' => $this->seo->checkout('Pagar el pedido'),
             'gateway' => $gateway->name(),
             'publicKey' => $gateway->publicKey(),
             'clientSecret' => $payment?->clientSecret,
@@ -132,22 +203,13 @@ class CheckoutController
     }
 
     /** Pago simulado (PAYMENT_DRIVER=fake, nunca en producción): el mismo camino que un webhook. */
-    public function simulate(Request $request, string $token, StartPayment $start, PaymentGateway $gateway, HandleGatewayEvent $handle): RedirectResponse
+    public function simulate(Request $request, string $token, StartPayment $start, PaymentGateway $gateway): RedirectResponse
     {
         abort_unless($gateway->name() === 'fake' && ! app()->isProduction(), 404);
         $order = $this->order($token);
         abort_unless($order->status === OrderStatus::PendingPayment, 409);
 
-        $payment = $start($order->id, (string) $order->reference, $order->total_cents, $order->currency, $order->email);
-        $ok = $request->input('outcome') === 'ok';
-        $handle('fake', new GatewayEvent(
-            eventId: 'fake:'.Str::uuid()->toString(),
-            type: $ok ? GatewayEvent::SUCCEEDED : GatewayEvent::FAILED,
-            providerReference: $payment->providerReference,
-            amountCents: $order->total_cents,
-            currency: $order->currency,
-            failureMessage: $ok ? null : 'Pago simulado rechazado.',
-        ));
+        $ok = $this->settleFake($order, $request->input('outcome') === 'ok', $start);
 
         return $ok ? to_route('checkout.thanks', $order->token) : to_route('checkout.pay', $order->token)->with('payment.error', 'El pago se ha rechazado. Puedes intentarlo de nuevo.');
     }
@@ -162,13 +224,23 @@ class CheckoutController
 
         if ($order->status->isPaid() && in_array($order->token, (array) $request->session()->get('checkout.orders', []), true)) {
             $this->cart->clear();
+            if (($request->session()->get('checkout.pending')['token'] ?? null) === $order->token) {
+                $request->session()->forget('checkout.pending');
+            }
         }
 
         $summary = app(OrderLookup::class)->find($order->id);
         $options = app(ReturnOptions::class);
 
+        $provider = Payment::query()->where('order_id', $order->id)->where('status', PaymentStatus::Succeeded)->value('provider');
+
         return view('checkout.thanks', $this->summary($order) + [
-            'seo' => $this->seo->checkout('Pedido '.$order->reference),
+            'seo' => $this->seo->checkout($order->status === OrderStatus::Paid ? 'Pedido recibido' : 'Pedido '.$order->reference),
+            'paymentMethod' => match ($provider) {
+                'fake' => 'Pago simulado (prueba)',
+                null => '—',
+                default => 'Tarjeta u otro método (Stripe)',
+            },
             'canReturn' => $summary !== null && $options->open($summary),
             'returnDeadline' => $summary === null ? null : $options->deadline($summary)?->format('d/m/Y'),
             'invoices' => Invoice::query()->where('order_id', $order->id)->orderBy('id')->get()
@@ -185,6 +257,42 @@ class CheckoutController
         $invoice = Invoice::query()->where('order_id', $order->id)->where('code', $code)->firstOrFail();
 
         return Download::pdf('pdf.invoice', InvoiceDocument::data($invoice), 'factura-'.$invoice->code.'.pdf');
+    }
+
+    /** Pago simulado: el mismo camino que un webhook de la pasarela. */
+    private function settleFake(Order $order, bool $ok, StartPayment $start): bool
+    {
+        abort_unless(app(PaymentGateway::class)->name() === 'fake' && ! app()->isProduction(), 404);
+
+        $payment = $start($order->id, (string) $order->reference, $order->total_cents, $order->currency, $order->email);
+        app(HandleGatewayEvent::class)('fake', new GatewayEvent(
+            eventId: 'fake:'.Str::uuid()->toString(),
+            type: $ok ? GatewayEvent::SUCCEEDED : GatewayEvent::FAILED,
+            providerReference: $payment->providerReference,
+            amountCents: $order->total_cents,
+            currency: $order->currency,
+            failureMessage: $ok ? null : 'Pago simulado rechazado.',
+        ));
+
+        return $ok;
+    }
+
+    /** Salir de «Finalizar compra» (al carrito o a un pedido ya pagado), también desde JSON. */
+    private function leave(Request $request, string $url, ?string $error = null): JsonResponse|RedirectResponse
+    {
+        if ($error !== null) {
+            $request->session()->flash('cart.error', $error);
+        }
+
+        return $request->expectsJson() ? response()->json(['redirect' => $url, 'message' => $error], 409) : redirect($url);
+    }
+
+    /** Huella del carrito, los datos y el envío: si no cambia, se reutiliza el pedido pendiente. */
+    private function fingerprint(PricedCart $cart, CheckoutDetails $details, ShippingQuote $quote): string
+    {
+        $lines = array_map(fn ($l): array => [$l->variant->variantId, $l->quantity, $l->totalCents()], $cart->buyableLines());
+
+        return hash('sha256', (string) json_encode([$lines, (array) $details, $quote->priceCents, $quote->zone->value]));
     }
 
     private function priced(Request $request): PricedCart
