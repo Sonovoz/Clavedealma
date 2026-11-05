@@ -82,6 +82,16 @@ class UserResource extends Resource
         ]);
     }
 
+    /**
+     * Usuarios = el equipo del panel. Los clientes están en Comercio → Clientes.
+     *
+     * @return Builder<User>
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return User::query()->withoutRole(Role::Customer->value);
+    }
+
     public static function table(Table $table): Table
     {
         return $table

@@ -19,5 +19,7 @@ final readonly class CheckoutDetails
         public string $country,
         public ?string $note,
         public string $termsVersion,
+        /** Cliente con cuenta que hace el pedido; null = invitado (ADR 0021). */
+        public ?int $customerId = null,
     ) {}
 }

@@ -29,6 +29,26 @@ El recorrido copia el de WooCommerce, para que resulte familiar: los mismos paso
 
 Ninguna página de compra se indexa (`noindex` y `robots.txt`).
 
+## Mi cuenta (opcional)
+
+Como en WooCommerce, se puede comprar como invitado o con cuenta (ADR 0021).
+
+| Página | Dirección | Qué hay |
+| --- | --- | --- |
+| Acceder / Registrarse | `/mi-cuenta` | Email y contraseña, «Recuérdame» y «¿Has olvidado tu contraseña?» (`/mi-cuenta/recuperar-contrasena`). |
+| Escritorio | `/mi-cuenta` | «Hola Ana (¿no eres Ana? Cerrar sesión)» y los pedidos recientes. |
+| Pedidos | `/mi-cuenta/pedidos` | Pedido · Fecha · Estado (Procesando, Completado…) · Total («39,95 € para 1 artículo») · Ver / Pagar. |
+| Ver pedido | `/mi-cuenta/ver-pedido/<pedido>` | «El pedido … se realizó el … y está actualmente …», seguimiento, facturas, devoluciones y detalles. |
+| Facturas | `/mi-cuenta/facturas` | Todas sus facturas en PDF. |
+| Devoluciones | `/mi-cuenta/devoluciones` | Sus devoluciones y su estado. |
+| Direcciones | `/mi-cuenta/direcciones` | La dirección de facturación y envío que rellena «Finalizar compra». |
+| Detalles de la cuenta | `/mi-cuenta/editar-cuenta` | Nombre, email y cambio de contraseña. |
+
+- En «Finalizar compra», el invitado ve **«¿Ya eres cliente? Haz clic aquí para acceder»** (vuelve a la compra al acceder) y **«¿Crear una cuenta?»**, con la contraseña.
+- Con sesión, los datos salen rellenos y la dirección del pedido se guarda en la cuenta.
+- Los pedidos hechos como invitado con el mismo email aparecen al **confirmar el email**.
+- En el panel: *Comercio → Clientes* (pedidos, total gastado y último pedido de cada uno). Cada pedido indica «Cuenta: Ana Pérez» o «Invitado».
+
 ## Reglas
 
 - **Precios, envío e IVA se calculan siempre en el servidor.** La cesta solo guarda «variante y unidades» y se recalcula al abrirla, al pagar y al crear el pedido.

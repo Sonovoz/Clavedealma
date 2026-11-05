@@ -33,6 +33,18 @@ enum OrderStatus: string implements HasLabel
         };
     }
 
+    /** El nombre corto de WooCommerce, el que ve el cliente en «Mi cuenta → Pedidos». */
+    public function wooLabel(): string
+    {
+        return match ($this) {
+            self::PendingPayment => 'Pendiente de pago',
+            self::Paid, self::InProduction, self::ReadyToShip => 'Procesando',
+            self::Shipped => 'Enviado',
+            self::Delivered => 'Completado',
+            self::Cancelled => 'Cancelado',
+        };
+    }
+
     /** Pagado y todavía sin enviar: lo que WooCommerce llama «Procesando». */
     public function isProcessing(): bool
     {

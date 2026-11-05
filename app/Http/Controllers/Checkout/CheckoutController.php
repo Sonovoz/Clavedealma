@@ -6,11 +6,13 @@ use App\Http\Requests\CheckoutRequest;
 use App\Modules\Cart\Application\CartStore;
 use App\Modules\Cart\Application\PriceCart;
 use App\Modules\Cart\Contracts\PricedCart;
+use App\Modules\Identity\Application\RegisterCustomer;
+use App\Modules\Identity\Infrastructure\Models\CustomerAddress;
+use App\Modules\Identity\Infrastructure\Models\User;
 use App\Modules\Invoicing\Infrastructure\Models\Invoice;
 use App\Modules\Orders\Application\CancelPendingOrder;
 use App\Modules\Orders\Application\PlaceOrder;
 use App\Modules\Orders\Contracts\CheckoutDetails;
-use App\Modules\Orders\Contracts\OrderLookup;
 use App\Modules\Orders\Contracts\OrderStatus;
 use App\Modules\Orders\Infrastructure\Models\Order;
 use App\Modules\Payments\Application\HandleGatewayEvent;
@@ -18,17 +20,14 @@ use App\Modules\Payments\Application\StartPayment;
 use App\Modules\Payments\Application\SyncOrderPayments;
 use App\Modules\Payments\Contracts\GatewayEvent;
 use App\Modules\Payments\Contracts\PaymentGateway;
-use App\Modules\Payments\Contracts\PaymentStatus;
 use App\Modules\Payments\Contracts\PaymentUnavailable;
-use App\Modules\Payments\Infrastructure\Models\Payment;
-use App\Modules\Returns\Application\ReturnOptions;
-use App\Modules\Returns\Infrastructure\Models\ReturnRequest;
 use App\Modules\Shipping\Contracts\ShippingQuote;
 use App\Modules\Shipping\Contracts\ShippingQuoter;
 use App\Platform\Documents\Download;
 use App\Platform\Documents\InvoiceDocument;
 use App\Storefront\Checkout\CartPresenter;
 use App\Storefront\Checkout\Countries;
+use App\Storefront\Checkout\OrderPage;
 use App\Storefront\Seo\SeoBuilder;
 use App\Storefront\StoreAccess;
 use App\Support\Money;
@@ -36,7 +35,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -64,8 +63,11 @@ class CheckoutController
         }
 
         $gateway = app(PaymentGateway::class);
+        $user = $request->user();
 
         return view('checkout.details', [
+            'prefill' => $user instanceof User ? $this->prefill($user) : [],
+            'customer' => $user instanceof User ? $user : null,
             'seo' => $this->seo->checkout('Finalizar compra'),
             'lines' => CartPresenter::lines($priced),
             'subtotal' => Money::fromCents($priced->subtotalCents())->format(),
@@ -98,7 +100,7 @@ class CheckoutController
      * «Realizar el pedido». Con Stripe (petición JSON) devuelve el cobro para confirmarlo en
      * la misma página; con el pago simulado lo resuelve aquí; sin JavaScript, lleva a pagar.
      */
-    public function place(CheckoutRequest $request, PlaceOrder $place, StartPayment $start, SyncOrderPayments $sync, CancelPendingOrder $cancel): JsonResponse|RedirectResponse
+    public function place(CheckoutRequest $request, PlaceOrder $place, StartPayment $start, SyncOrderPayments $sync, CancelPendingOrder $cancel, RegisterCustomer $register): JsonResponse|RedirectResponse
     {
         $priced = $this->priced($request);
         if ($priced->isEmpty() || $priced->hasProblems()) {
@@ -112,6 +114,21 @@ class CheckoutController
                 ? response()->json(['message' => $error, 'errors' => ['postal_code' => [$error]]], 422)
                 : back()->withInput()->withErrors(['postal_code' => $error]);
         }
+
+        // «¿Crear una cuenta?» (como WooCommerce): se crea, se inicia la sesión y el pedido queda en ella.
+        $user = $request->user();
+        if (! $user instanceof User && $request->boolean('create_account')) {
+            try {
+                $user = $register($details->email, (string) $request->input('account_password'), $details->name);
+            } catch (InvalidArgumentException $e) {
+                return $request->expectsJson()
+                    ? response()->json(['message' => $e->getMessage(), 'errors' => ['email' => [$e->getMessage()]]], 422)
+                    : back()->withInput($request->except('account_password'))->withErrors(['email' => $e->getMessage()]);
+            }
+            Auth::login($user);
+            $request->session()->regenerate();
+        }
+        $details = $request->details($user instanceof User ? $user->id : null);
 
         // Como WooCommerce: si el cliente vuelve a pulsar «Realizar el pedido» con el mismo
         // carrito y los mismos datos, se reutiliza el pedido que espera el pago. Si ha cambiado
@@ -147,6 +164,14 @@ class CheckoutController
             }
             $request->session()->push('checkout.orders', $order->token);
             $request->session()->put('checkout.pending', ['token' => $order->token, 'fingerprint' => $fingerprint]);
+            // Como WooCommerce: la dirección del pedido pasa a ser la guardada en «Mi cuenta».
+            if ($user instanceof User) {
+                CustomerAddress::query()->updateOrCreate(['user_id' => $user->id], [
+                    'name' => $details->name, 'phone' => $details->phone, 'address_line1' => $details->addressLine1,
+                    'address_line2' => $details->addressLine2, 'postal_code' => $details->postalCode, 'city' => $details->city,
+                    'province' => $details->province, 'country' => $details->country,
+                ]);
+            }
         }
 
         $gateway = app(PaymentGateway::class);
@@ -192,7 +217,7 @@ class CheckoutController
             $payment = null;
         }
 
-        return view('checkout.pay', $this->summary($order) + [
+        return view('checkout.pay', OrderPage::summary($order) + [
             'seo' => $this->seo->checkout('Pagar el pedido'),
             'gateway' => $gateway->name(),
             'publicKey' => $gateway->publicKey(),
@@ -229,24 +254,8 @@ class CheckoutController
             }
         }
 
-        $summary = app(OrderLookup::class)->find($order->id);
-        $options = app(ReturnOptions::class);
-
-        $provider = Payment::query()->where('order_id', $order->id)->where('status', PaymentStatus::Succeeded)->value('provider');
-
-        return view('checkout.thanks', $this->summary($order) + [
+        return view('checkout.thanks', OrderPage::data($order) + [
             'seo' => $this->seo->checkout($order->status === OrderStatus::Paid ? 'Pedido recibido' : 'Pedido '.$order->reference),
-            'paymentMethod' => match ($provider) {
-                'fake' => 'Pago simulado (prueba)',
-                null => '—',
-                default => 'Tarjeta u otro método (Stripe)',
-            },
-            'canReturn' => $summary !== null && $options->open($summary),
-            'returnDeadline' => $summary === null ? null : $options->deadline($summary)?->format('d/m/Y'),
-            'invoices' => Invoice::query()->where('order_id', $order->id)->orderBy('id')->get()
-                ->map(fn (Invoice $i): array => ['code' => $i->code, 'label' => $i->type->label(), 'total' => Money::fromCents($i->total_cents)->format(), 'url' => route('checkout.invoice', [$order->token, $i->code])])->all(),
-            'returns' => ReturnRequest::query()->where('order_id', $order->id)->latest('id')->get()
-                ->map(fn (ReturnRequest $r): array => ['reference' => $r->reference, 'status' => $r->status->customerLabel(), 'amount' => Money::fromCents($r->refund_cents)->format()])->all(),
         ]);
     }
 
@@ -257,6 +266,21 @@ class CheckoutController
         $invoice = Invoice::query()->where('order_id', $order->id)->where('code', $code)->firstOrFail();
 
         return Download::pdf('pdf.invoice', InvoiceDocument::data($invoice), 'factura-'.$invoice->code.'.pdf');
+    }
+
+    /**
+     * Datos para rellenar «Finalizar compra» a un cliente con sesión.
+     *
+     * @return array<string, ?string>
+     */
+    private function prefill(User $user): array
+    {
+        $a = $user->address()->first();
+
+        return ['email' => $user->email, 'name' => $a->name ?? $user->name] + ($a === null ? [] : [
+            'phone' => $a->phone, 'address_line1' => $a->address_line1, 'address_line2' => $a->address_line2,
+            'postal_code' => $a->postal_code, 'city' => $a->city, 'province' => $a->province, 'country' => $a->country,
+        ]);
     }
 
     /** Pago simulado: el mismo camino que un webhook de la pasarela. */
@@ -333,29 +357,5 @@ class CheckoutController
     private function order(string $token): Order
     {
         return Order::query()->with('lines')->where('token', $token)->firstOrFail();
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function summary(Order $order): array
-    {
-        $m = fn (int $c): string => Money::fromCents($c)->format();
-
-        return [
-            'order' => $order,
-            'items' => $order->lines->map(fn ($l): array => [
-                'name' => $l->product_name,
-                'option' => $l->label(),
-                'store' => $l->store_name,
-                'quantity' => $l->quantity,
-                'total' => $m($l->total_cents),
-                'image' => $l->image_path === null ? null : Storage::disk('public')->url($l->image_path),
-            ])->all(),
-            'subtotal' => $m($order->subtotal_cents),
-            'shippingPrice' => $order->shipping_free ? 'Gratis' : $m($order->shipping_cents),
-            'total' => $m($order->total_cents),
-            'vat' => $m($order->vat_cents),
-        ];
     }
 }

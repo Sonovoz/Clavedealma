@@ -20,6 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         // Los avisos de la pasarela llegan firmados por ella, no con el token del formulario.
         $middleware->validateCsrfTokens(except: ['webhooks/*']);
+        // Sin sesión, «Mi cuenta» pide acceder (el panel tiene su propio acceso).
+        $middleware->redirectGuestsTo(fn (): string => route('account.show'));
+        $middleware->redirectUsersTo(fn (): string => route('account.show'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

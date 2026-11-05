@@ -13,7 +13,7 @@ it('ordena el menú del panel como WooCommerce', function () {
     $admin = User::factory()->withRole(Role::Superadmin)->create();
 
     $this->actingAs($admin)->get('/admin')->assertOk()
-        ->assertSeeInOrder(['Escritorio', 'Comercio', 'Pedidos', 'Fabricación', 'Devoluciones', 'Facturas',
+        ->assertSeeInOrder(['Escritorio', 'Comercio', 'Pedidos', 'Clientes', 'Fabricación', 'Devoluciones', 'Facturas',
             'Productos', 'Todos los productos', 'Categorías', 'Prendas base', 'Inventario',
             'Análisis', 'Informes', 'Tiendas', 'Artistas',
             'Ajustes', 'Datos de facturación', 'Zonas de envío', 'Transportistas', 'Textos legales',

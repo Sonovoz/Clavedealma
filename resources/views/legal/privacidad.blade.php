@@ -17,6 +17,7 @@
 | --- | --- | --- |
 | Nombre, email, teléfono y dirección de entrega | Gestionar tu pedido: fabricarlo, enviarlo, avisarte de cada paso y atender devoluciones | Ejecución del contrato de compraventa (art. 6.1.b RGPD) |
 | Datos del pedido y de la factura | Facturar y cumplir las obligaciones fiscales y contables | Obligación legal (art. 6.1.c RGPD) |
+| Si creas una cuenta en «Mi cuenta» (es opcional): email, nombre, contraseña (guardada cifrada, nadie puede leerla) y la dirección que guardes | Darte acceso a tus pedidos, facturas y devoluciones y rellenar tus datos al comprar | Ejecución del contrato que aceptas al registrarte (art. 6.1.b RGPD) |
 | Mensajes que nos envíes | Responderte | Ejecución del contrato o tu consentimiento |
 | Datos de acceso al panel de gestión (solo personal autorizado): usuario, IP y fecha | Seguridad del sistema | Interés legítimo (art. 6.1.f RGPD) |
 
@@ -34,6 +35,7 @@
 ## 4. Cuánto tiempo los guardamos
 
 - **Pedidos y facturas**: los plazos que marca la ley mercantil y fiscal.
+- **Cuenta de cliente**: mientras la mantengas. Si nos pides borrarla, borramos la cuenta y la dirección guardada; los pedidos y las facturas se conservan lo que exige la ley.
 - **Registro de seguridad del panel**: {{ $securityDays }} días.
 - **Mensajes**: lo necesario para atenderte.
 

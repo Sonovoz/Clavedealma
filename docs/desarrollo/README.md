@@ -88,6 +88,7 @@ Fuera de los módulos está la **capa exterior**, que pinta y conecta pero no de
    - `StartPayment` crea el cobro con una clave de idempotencia por pedido e importe.
    - El Payment Element de Stripe, ya montado en la página («deferred intent»), lo confirma sin salir de ella.
    - Si el cliente repite con los mismos datos, se reutiliza el pedido. Si los cambia, `CancelPendingOrder` anula el anterior y su cobro.
+   - Con sesión (o con «¿Crear una cuenta?», que llama a `Identity\Application\RegisterCustomer`), el pedido guarda `user_id` y la dirección pasa a la cuenta (`CustomerAddress`).
 3. **`/pedido/<token>/pagar`** («Pagar el pedido»): la misma confirmación para un pedido ya creado. Se usa sin JavaScript o al volver de un pago fallido.
 4. **Stripe confirma** por el webhook firmado o por la consulta al volver. `HandleGatewayEvent` registra el aviso una sola vez y lanza `PaymentSucceeded`.
 5. Con ese evento, **Orders** marca el pedido pagado (`MarkOrderPaid`) y lanza `OrderPaid`. Lo escuchan:
@@ -146,6 +147,7 @@ Fuera de los módulos está la **capa exterior**, que pinta y conecta pero no de
   - el artista solo podrá consultar (fase 6b).
 - Las **acciones con reglas** (enviar, cancelar, devolver) llaman a los casos de uso del módulo (`OrderActions`, `ProcessReturn`). El panel nunca escribe en las tablas por su cuenta.
 - **Menú como WooCommerce**: los grupos se declaran en `AdminPanelProvider` (Comercio, Productos, Análisis, Marketing, Tiendas, Ajustes, Herramientas), y cada recurso o página fija su `$navigationGroup` y su `$navigationSort`. Una pantalla nueva va al grupo donde estaría en WooCommerce. Los nombres son también los de WooCommerce: *Todos los productos*, *Categorías* (son las colecciones), *Inventario*, *Zonas de envío*, *Estado del sistema*. El recuadro «Estado de la tienda» del Escritorio es `App\Filament\Widgets\StoreStatusWidget`.
+- **«Mi cuenta»** (ADR 0021) vive en `app/Http/Controllers/Account` y `resources/views/account`. Para saber qué pedidos son de un cliente se usa siempre `App\Storefront\Account\CustomerOrders`: los suyos y, con el email confirmado, los de invitado con ese email. En el panel, `CustomerResource` (*Comercio → Clientes*).
 - **Estados del pedido**: en el panel se leen como en WooCommerce (`OrderStatus::label()`). *Procesando* agrupa los pagados sin enviar (`OrderStatus::processing()`), y *Completado* es el entregado. El valor guardado no cambia.
 - **Los PDF** se generan en `App\Platform\Documents\*`, con las plantillas en `resources/views/pdf/*`.
 

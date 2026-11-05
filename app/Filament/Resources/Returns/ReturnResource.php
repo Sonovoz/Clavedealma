@@ -38,7 +38,7 @@ class ReturnResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Comercio';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     protected static ?string $modelLabel = 'devolución';
 
