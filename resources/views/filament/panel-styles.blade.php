@@ -42,4 +42,10 @@
     .cda-table td:first-child::first-letter { text-transform: uppercase; }
     .cda-table tfoot th { color: inherit; font-size: .9rem; text-transform: none; letter-spacing: 0; border-bottom: 0; border-top: 1px solid rgba(127, 127, 127, .3); }
     .cda-table th:not(:first-child), .cda-table td:not(:first-child) { text-align: right; }
+    /* «Notas del pedido» como WooCommerce (ADR 0025) */
+    .cda-note { position: relative; padding: .6rem .75rem; border-radius: .4rem; margin-bottom: .9rem; font-size: .85rem; background: rgba(127, 127, 127, .1); }
+    .cda-note p { margin: 0; white-space: pre-line; }
+    .cda-note small { display: block; margin-top: .35rem; font-size: .72rem; color: rgb(120 113 108); }
+    .cda-note--private { background: rgba(245, 158, 11, .14); }
+    .cda-note--customer { background: rgba(59, 130, 246, .14); }
 </style>

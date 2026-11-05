@@ -53,6 +53,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -89,13 +90,13 @@ class ProductResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Tabs::make('Ficha')
+            Tabs::make('Datos del producto')
                 ->columnSpanFull()
                 ->persistTabInQueryString()
                 ->tabs([
                     Tab::make('General')->icon(Heroicon::OutlinedDocumentText)->columns(2)->schema(self::generalTab()),
-                    Tab::make('Tallas y colores')->icon(Heroicon::OutlinedSwatch)->schema(self::variantsTab()),
-                    Tab::make('Fotos')->icon(Heroicon::OutlinedPhoto)->schema(self::photosTab()),
+                    Tab::make('Variaciones (tallas y colores)')->icon(Heroicon::OutlinedSwatch)->schema(self::variantsTab()),
+                    Tab::make('Imagen y galería')->icon(Heroicon::OutlinedPhoto)->schema(self::photosTab()),
                     Tab::make('Precio y fabricación')->icon(Heroicon::OutlinedCurrencyEuro)->columns(2)->schema(self::priceTab()),
                     Tab::make('Inventario')->icon(Heroicon::OutlinedArchiveBox)->schema(self::inventoryTab()),
                     Tab::make('SEO')->icon(Heroicon::OutlinedMagnifyingGlass)->schema(self::seoTab()),
@@ -491,12 +492,18 @@ class ProductResource extends Resource
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query
-                ->withCount('variants'))
+                ->withCount('variants')->with(['images', 'collections', 'baseGarment']))
+            // Columnas del listado de productos de WooCommerce (ADR 0025): imagen, nombre, SKU,
+            // inventario, precio, categorías, estado y fecha.
             ->columns([
-                TextColumn::make('reference')->label('Modelo')->searchable()->sortable()->placeholder('—'),
-                TextColumn::make('name')->label('Producto')->searchable()->sortable(),
+                ImageColumn::make('thumbnail')->label('')->disk('public')->square()->size(44)
+                    ->state(fn (Product $record): ?string => $record->images->first(fn ($i): bool => ! $i->is_swatch)?->path),
+                TextColumn::make('name')->label('Nombre')->searchable()->sortable()->weight('bold')
+                    ->description(fn (Product $record): ?string => $record->baseGarment?->name),
+                TextColumn::make('reference')->label('SKU')->searchable()->sortable()->placeholder('—'),
                 Fields::moneyColumn('price_cents')->label('Precio'),
-                TextColumn::make('variants_count')->label('Variantes')->alignEnd(),
+                TextColumn::make('variants_count')->label('Variaciones')->alignEnd()->toggleable(),
+                TextColumn::make('collections.name')->label('Categorías')->badge()->color('gray')->placeholder('—'),
                 TextColumn::make('inventory')
                     ->label('Inventario')
                     ->state(fn (Product $record): string => self::inventoryLabel(ProductStock::query()->where('product_id', $record->id)->first()))
@@ -522,6 +529,16 @@ class ProductResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('status')->label('Estado')->options(Fields::options(ProductStatus::class)),
+                // «Filtrar por categoría» y «Filtrar por estado de inventario», como en WooCommerce.
+                SelectFilter::make('collections')->label('Categoría')->relationship('collections', 'name')->preload(),
+                SelectFilter::make('stock')->label('Estado del inventario')
+                    ->options(['in' => 'Hay existencias', 'out' => 'Agotado', 'low' => 'Pocas existencias'])
+                    ->query(fn (Builder $query, array $data) => match ($data['value'] ?? null) {
+                        'out' => $query->whereIn('id', ProductStock::query()->where(fn ($q) => $q->where('status', StockStatus::OutOfStock)->orWhere(fn ($m) => $m->where('managed', true)->where('quantity', '<=', 0)))->select('product_id')),
+                        'in' => $query->whereNotIn('id', ProductStock::query()->where(fn ($q) => $q->where('status', StockStatus::OutOfStock)->orWhere(fn ($m) => $m->where('managed', true)->where('quantity', '<=', 0)))->select('product_id')),
+                        'low' => $query->whereIn('id', ProductStock::query()->where('managed', true)->whereNotNull('low_stock_threshold')->whereColumn('quantity', '<=', 'low_stock_threshold')->select('product_id')),
+                        default => $query,
+                    }),
                 TrashedFilter::make(),
             ])
             ->recordActions([EditAction::make()])

@@ -60,6 +60,9 @@ final class OrderPage
 
         return self::summary($order) + [
             'paymentMethod' => self::paymentMethod($provider),
+            // «Actualizaciones del pedido» de WooCommerce: las notas para el cliente (ADR 0025).
+            'customerNotes' => $order->events()->where('type', 'customer_note')->latest('id')->get(['note', 'created_at'])
+                ->map(fn ($e): array => ['text' => (string) $e->note, 'date' => $e->created_at->timezone('Europe/Madrid')->format('d/m/Y H:i')])->all(),
             'canReturn' => $summary !== null && $options->open($summary),
             'returnDeadline' => $summary === null ? null : $options->deadline($summary)?->format('d/m/Y'),
             'invoices' => Invoice::query()->where('order_id', $order->id)->orderBy('id')->get()

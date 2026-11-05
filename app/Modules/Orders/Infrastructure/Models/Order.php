@@ -116,9 +116,9 @@ class Order extends Model
         return $this->hasMany(OrderEvent::class)->orderBy('id');
     }
 
-    public function log(string $type, ?string $note = null): void
+    public function log(string $type, ?string $note = null, ?string $author = null): void
     {
-        $this->events()->create(['type' => $type, 'note' => $note === null ? null : mb_substr($note, 0, 500)]);
+        $this->events()->create(['type' => $type, 'note' => $note === null ? null : mb_substr($note, 0, 500), 'author' => $author]);
     }
 
     public function itemCount(): int

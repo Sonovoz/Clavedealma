@@ -175,7 +175,16 @@ RETURNS_ADDRESS="Clave de Alma · Devoluciones, Calle …, CP Ciudad"
 Solo lo ve el superadministrador. El gestor de catálogo no ve datos de clientes ni de cobros.
 
 - **Listado**: referencia (`CDA-26-000123`), cliente, destino, total y estado. Tiene filtros por estado, «a revisar» y «compras de prueba». El contador rojo del menú indica los pedidos a revisar.
-- **Detalle**: piezas, importes con IVA, cobro, plazo, dirección e historial.
+- **Detalle**: piezas, importes con IVA, cobro, plazo y dirección.
+- **Notas del pedido** (ADR 0025), como en WooCommerce:
+  - «Añadir nota» deja una **nota privada** (solo el equipo) o una **nota para el cliente**.
+  - La nota para el cliente le llega por email y la ve en su pedido, en «Actualizaciones del pedido».
+  - Debajo sale todo lo que apunta el sistema, con quién lo hizo.
+- **Acciones del pedido**:
+  - Enviar los detalles del pedido al cliente.
+  - Reenviar la notificación de nuevo pedido.
+  - Ver el pedido como el cliente.
+  - Orden de fabricación y albarán en PDF.
 - El pedido no tiene botón de editar ni de borrar.
 - Tiene pestañas: Por fabricar, En fabricación, Para enviar, Enviados y A revisar.
 - La ficha enseña las devoluciones del pedido, con enlace a cada una.

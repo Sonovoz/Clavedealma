@@ -44,6 +44,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0022](adr/0022-inventario-por-producto.md) | Inventario por producto, como WooCommerce |
 | [0023](adr/0023-portal-de-artistas.md) | Portal de artistas: «Mis ventas» y «Avisos» |
 | [0024](adr/0024-cupones.md) | Cupones, como WooCommerce |
+| [0025](adr/0025-panel-woo-pedido-y-productos.md) | Panel como WooCommerce: pedido y productos |
 
 ## Orden de construcción
 

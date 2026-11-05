@@ -217,12 +217,19 @@ class OrderResource extends Resource
                         ->implode('<br>')),
                 ]),
 
-            Section::make('Historial')->columnSpan(1)->schema([
-                RepeatableEntry::make('events')->hiddenLabel()->schema([
-                    TextEntry::make('type')->hiddenLabel()
-                        ->formatStateUsing(fn (string $state, OrderEvent $record): string => $record->created_at->format('d/m H:i').' · '.$record->label())
-                        ->helperText(fn (OrderEvent $record): ?string => $record->note),
-                ]),
+            // «Notas del pedido» como WooCommerce (ADR 0025): lo más reciente arriba; las privadas
+            // en ámbar, las enviadas al cliente en azul y las del sistema en gris.
+            Section::make('Notas del pedido')->columnSpan(1)->schema([
+                TextEntry::make('notes')->hiddenLabel()->html()
+                    ->state(fn (Order $record): string => $record->events->sortByDesc('id')->map(fn (OrderEvent $e): string => sprintf(
+                        '<div class="cda-note cda-note--%s"><p>%s</p><small>%s%s</small></div>',
+                        match ($e->type) {
+                            'note' => 'private', 'customer_note' => 'customer', default => 'system'
+                        },
+                        e(in_array($e->type, ['note', 'customer_note'], true) ? (string) $e->note : $e->label().($e->note ? ': '.$e->note : '')),
+                        e($e->created_at->timezone('Europe/Madrid')->format('d/m/Y H:i')),
+                        e(($e->type === 'customer_note' ? ' · para el cliente' : '').($e->author ? ' · por '.$e->author : '')),
+                    ))->implode('')),
             ]),
         ]);
     }
