@@ -28,7 +28,8 @@ class PriceCart
     {
         $ids = array_keys($lines);
         $variants = $this->variants->find($ids);
-        $available = $this->stock->maxSellable(array_keys($variants));
+        // Inventario por producto (ADR 0022): el límite se reparte entre sus tallas y colores.
+        $remaining = $this->stock->productLimits(array_values(array_unique(array_map(fn ($v): int => $v->productId, $variants))));
         $stores = $this->stores->find(array_values(array_unique(array_map(fn ($v): int => $v->storeId, $variants))));
 
         $priced = [];
@@ -39,7 +40,7 @@ class PriceCart
                 continue; // ya no existe: se cae de la cesta sin más
             }
 
-            $max = $available[$id] ?? null;
+            $max = $remaining[$variant->productId] ?? null;
             $problem = null;
             $quantity = $requested;
 
@@ -49,6 +50,10 @@ class PriceCart
                 [$quantity, $problem] = [0, 'Agotado.'];
             } elseif ($max !== null && $requested > $max) {
                 [$quantity, $problem] = [$max, $max === 1 ? 'Solo queda 1 unidad.' : "Solo quedan {$max} unidades."];
+            }
+
+            if ($max !== null) {
+                $remaining[$variant->productId] = max(0, $max - $quantity);
             }
 
             $priced[] = new PricedLine($variant, $store, $quantity, $requested, $max, $problem);

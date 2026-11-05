@@ -3,6 +3,8 @@
 use App\Modules\Catalog\Contracts\ProductStatus;
 use App\Modules\Catalog\Infrastructure\Models\Collection;
 use App\Modules\Catalog\Infrastructure\Models\Product;
+use App\Modules\Inventory\Application\ConfigureStock;
+use App\Modules\Inventory\Contracts\StockStatus;
 use App\Modules\Stores\Contracts\StoreStatus;
 use App\Modules\Stores\Infrastructure\Models\Store;
 use App\Storefront\Urls;
@@ -59,4 +61,22 @@ it('el carrito es una tabla con «Actualizar carrito», quitar (×), calcular en
     $this->post(route('cart.update'), ['quantities' => [$this->va->id => 3, $this->vb->id => 1], 'remove' => $this->vb->id])
         ->assertSessionHas('cart.updated', 'Producto eliminado del carrito.');
     $this->get(route('cart.show'))->assertDontSee('Otra pieza');
+});
+
+it('«Agotado» se ve en la tarjeta y en la ficha, y no deja añadir al carrito', function () {
+    app(ConfigureStock::class)($this->a->id, StockStatus::OutOfStock, false);
+
+    $this->get(Urls::home($this->store))->assertOk()->assertSee('class="sf-soldout"', false);
+    $this->get(Urls::product($this->store, $this->a->slug))->assertOk()->assertSee('Agotado.');
+    $this->postJson(route('cart.add'), ['variant_id' => $this->va->id, 'quantity' => 1])->assertJson(['ok' => false]);
+});
+
+it('la cantidad del inventario se reparte entre las tallas del carrito', function () {
+    $vl = $this->a->variants()->create(['sku' => 'LB-01-L', 'size' => 'L']);
+    app(ConfigureStock::class)($this->a->id, StockStatus::InStock, true, 3, loadedQuantity: 0);
+
+    $this->postJson(route('cart.add'), ['variant_id' => $this->va->id, 'quantity' => 2])->assertJson(['ok' => true]);
+    $this->postJson(route('cart.add'), ['variant_id' => $vl->id, 'quantity' => 2]);
+
+    $this->get(route('cart.show'))->assertOk()->assertSee('Solo queda 1 unidad.');
 });

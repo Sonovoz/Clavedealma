@@ -9,8 +9,7 @@ use App\Modules\Catalog\Infrastructure\Models\Collection;
 use App\Modules\Catalog\Infrastructure\Models\Product;
 use App\Modules\Catalog\Infrastructure\Models\ProductImage;
 use App\Modules\Catalog\Infrastructure\Models\ProductVariant;
-use App\Modules\Inventory\Contracts\StockMode;
-use App\Modules\Inventory\Infrastructure\Models\StockLevel;
+use App\Modules\Inventory\Contracts\StockAvailability;
 use App\Modules\Orders\Contracts\OrderStatus;
 use App\Modules\Orders\Infrastructure\Models\OrderLine;
 use App\Modules\Stores\Infrastructure\Models\Store;
@@ -24,7 +23,7 @@ use Illuminate\Support\Str;
  * (el equipo puede previsualizar la ficha de un borrador). Devuelve datos listos
  * para pintar; ninguna plantilla calcula precios ni rebajas por su cuenta.
  *
- * @phpstan-type Card array{name: string, reference: ?string, url: string, image: ?string, hover: ?string, price: string, price_cents: int, published: int, sold: int, discount: ?array{before: string, percent: int}, colors: list<array{name: string, hex: ?string, swatch: ?string}>, collections: list<string>, garment: ?string, type: string}
+ * @phpstan-type Card array{name: string, reference: ?string, url: string, image: ?string, hover: ?string, price: string, price_cents: int, published: int, sold: int, sold_out: bool, discount: ?array{before: string, percent: int}, colors: list<array{name: string, hex: ?string, swatch: ?string}>, collections: list<string>, garment: ?string, type: string}
  */
 class StoreCatalog
 {
@@ -66,11 +65,12 @@ class StoreCatalog
         ];
 
         $sold = $this->unitsSold($products->modelKeys());
+        $limits = app(StockAvailability::class)->productLimits($products->modelKeys());
 
         return $products
             ->sortBy(fn (Product $p): array => $order($p))
             ->values()
-            ->map(fn (Product $p): array => $this->card($store, $p, $sold[$p->id] ?? 0))
+            ->map(fn (Product $p): array => $this->card($store, $p, $sold[$p->id] ?? 0, ($limits[$p->id] ?? null) === 0))
             ->all();
     }
 
@@ -117,7 +117,7 @@ class StoreCatalog
     /**
      * @return Card
      */
-    private function card(Store $store, Product $product, int $sold = 0): array
+    private function card(Store $store, Product $product, int $sold = 0, bool $soldOut = false): array
     {
         $photos = $product->images->where('is_swatch', false)->values();
         $first = $product->variants->first(fn (ProductVariant $v): bool => $v->price_cents === null) ?? $product->variants->first();
@@ -133,6 +133,7 @@ class StoreCatalog
             'price_cents' => $product->price_cents,
             'published' => (int) ($product->published_at?->getTimestamp() ?? $product->created_at?->getTimestamp() ?? 0),
             'sold' => $sold,
+            'sold_out' => $soldOut,
             'discount' => $discount === null ? null : ['before' => Money::fromCents($discount['cents'])->format(), 'percent' => $discount['percent']],
             'colors' => $this->colors($product),
             'collections' => $product->collections->pluck('slug')->all(),
@@ -160,13 +161,13 @@ class StoreCatalog
         }
 
         $garment = $product->base_garment_id === null ? null : BaseGarment::query()->with('sizes')->find($product->base_garment_id);
-        $stock = StockLevel::query()->whereIn('product_variant_id', $product->variants->pluck('id'))->get()->keyBy('product_variant_id');
+        // Inventario por producto (ADR 0022): null = sin límite (bajo pedido); 0 = agotado.
+        $limit = app(StockAvailability::class)->productLimits([$product->id])[$product->id] ?? null;
+        $soldOut = $limit !== null && $limit < 1;
 
-        $variants = $product->variants->map(function (ProductVariant $v) use ($product, $stock): array {
+        $variants = $product->variants->map(function (ProductVariant $v) use ($product, $limit, $soldOut): array {
             $cents = $v->price_cents ?? $product->price_cents;
             $discount = $v->discount();
-            $level = $stock->get($v->id);
-            $soldOut = $level !== null && $level->mode === StockMode::LimitedThenSoldOut && $level->quantity <= 0;
 
             return [
                 'id' => $v->id,
@@ -178,10 +179,9 @@ class StoreCatalog
                 'before' => $discount === null ? null : Money::fromCents($discount['cents'])->format(),
                 'percent' => $discount['percent'] ?? null,
                 'available' => ! $soldOut,
-                'limited' => $level !== null && $level->mode !== StockMode::OnDemand && ! $soldOut ? $level->quantity : null,
-                // Se fabrica al pedirla (sin stock propio o con stock agotado que pasa a bajo pedido).
-                'made_to_order' => $level === null || $level->mode === StockMode::OnDemand
-                    || ($level->mode === StockMode::LimitedThenOnDemand && $level->quantity <= 0),
+                'limited' => $soldOut ? null : $limit,
+                // Se fabrica al pedirla: todo lo que no tiene cantidad limitada.
+                'made_to_order' => $limit === null,
             ];
         })->values()->all();
 
@@ -193,6 +193,7 @@ class StoreCatalog
             'name' => $product->name,
             'reference' => $product->reference,
             'status' => $product->status,
+            'sold_out' => $soldOut,
             'description' => $product->description === null ? null : Str::sanitizeHtml($product->description),
             'model_info' => $product->model_info,
             'lead_time' => $product->leadTime()->label(),

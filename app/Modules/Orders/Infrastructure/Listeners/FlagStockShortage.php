@@ -13,7 +13,8 @@ class FlagStockShortage
         if ($order === null) {
             return;
         }
-        $reason = "Faltan {$event->missing} ud. de la variante #{$event->variantId}: se agotó mientras se pagaba. Fabrica la pieza o devuelve el importe.";
+        $name = $order->lines()->where('product_id', $event->productId)->value('product_name') ?? "producto #{$event->productId}";
+        $reason = "Faltan {$event->missing} ud. de «{$name}»: se agotó mientras se pagaba. Fabrica la pieza o devuelve el importe.";
         $order->update(['review_reason' => $reason]);
         $order->log('review', $reason);
     }

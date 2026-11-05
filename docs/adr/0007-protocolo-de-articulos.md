@@ -26,7 +26,7 @@ El importador está en `app/Platform/CatalogImport`, en la capa externa, porque 
   - Las variantes que faltan se desactivan, no se borran, porque pueden tener pedidos (los pedidos son inmutables).
 - **Las fotos se guardan con una huella del contenido en la ruta.** Una foto nueva cambia de dirección, así que ninguna caché sirve la vieja. Reimportar la misma foto no duplica ficheros. El importador solo borra las fotos que él mismo creó.
 - **El stock vivo manda.** Las unidades de la hoja solo se aplican cuando la ficha no tiene más movimientos que altas iniciales, o cuando cambia el modo de venta.
-  - Se aplican después de confirmar la transacción, porque la ficha de stock nace con el evento `VariantCreated` (ADR 0006).
+  - Se aplican después de confirmar la transacción, porque la ficha de stock nace con el evento `VariantCreated` (ADR 0006). *Desde el ADR 0022, `venta` y `unidades` son del producto.*
 - **Dinero sin `float`.** Una celda numérica de Excel se convierte a texto con dos decimales y se interpreta con `Money::parse` (ADR 0005).
 - **ZIP seguro.**
   - Solo se usa el nombre de cada fichero, nunca su ruta, así que no puede escribir fuera de la carpeta temporal.

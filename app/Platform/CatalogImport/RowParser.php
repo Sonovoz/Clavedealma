@@ -5,7 +5,6 @@ namespace App\Platform\CatalogImport;
 use App\Modules\Catalog\Contracts\ProductStatus;
 use App\Modules\Catalog\Domain\LeadTime;
 use App\Modules\Catalog\Domain\SizeScale;
-use App\Modules\Inventory\Contracts\StockMode;
 use App\Support\Money;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -14,7 +13,7 @@ use InvalidArgumentException;
  * Convierte las filas de la hoja en artículos (un artículo = tienda + modelo) con sus variantes,
  * validando cada valor. No toca la base de datos.
  *
- * @phpstan-type VariantDraft array{fila: int, talla: ?string, color: ?string, color_hex: ?string, precio: int, sku: ?string, venta: StockMode, unidades: ?int, aviso: ?int}
+ * @phpstan-type VariantDraft array{fila: int, talla: ?string, color: ?string, color_hex: ?string, precio: int, sku: ?string, venta: string, unidades: ?int, aviso: ?int}
  * @phpstan-type ProductDraft array{fila: int, tienda: string, modelo: string, nombre: string, colecciones: ?list<string>, prenda: ?string, iva: int, comision: ?int, descripcion: ?string, info_modelo: ?string, plazo: array{0: int, 1: int}, personalizado: bool, estado: ?ProductStatus, variantes: list<VariantDraft>}
  */
 class RowParser
@@ -163,15 +162,18 @@ class RowParser
 
         $venta = $this->mode($d['venta'] ?? '');
         if ($venta === null) {
-            $report->error($fila, 'venta', 'Venta no válida: "'.($d['venta'] ?? '').'". Usa "bajo pedido", "limitada" o "stock y bajo pedido".');
+            $report->error($fila, 'venta', 'Venta no válida: "'.($d['venta'] ?? '').'". Usa "bajo pedido", "agotado" o "limitada".');
+        }
+        if (in_array(Str::slug($d['venta'] ?? ''), ['stock-y-bajo-pedido', 'stock-bajo-pedido', 'limited-on-demand'], true)) {
+            $report->warning($fila, 'venta', '«stock y bajo pedido» ya no existe: se fabrica todo bajo pedido (ADR 0022).');
         }
 
         $unidades = $this->integer($fila, 'unidades', $d['unidades'] ?? '', $report);
-        if ($venta !== null && $venta->tracksQuantity() && $unidades === null) {
-            $report->error($fila, 'unidades', 'Indica las unidades disponibles para la venta "'.($d['venta'] ?? '').'".');
+        if ($venta === 'limitada' && $unidades === null) {
+            $report->error($fila, 'unidades', 'Indica las unidades del producto (entre todas las tallas) para la venta "limitada".');
         }
-        if ($venta === StockMode::OnDemand && $unidades !== null) {
-            $report->warning($fila, 'unidades', 'Se ignoran las unidades: la venta es bajo pedido.');
+        if ($venta !== 'limitada' && $unidades !== null) {
+            $report->warning($fila, 'unidades', 'Se ignoran las unidades: solo cuentan con la venta "limitada".');
             $unidades = null;
         }
         $aviso = $this->integer($fila, 'aviso_stock', $d['aviso_stock'] ?? '', $report);
@@ -263,12 +265,13 @@ class RowParser
         ];
     }
 
-    private function mode(string $valor): ?StockMode
+    /** Venta del producto (ADR 0022): «bajo pedido», «agotado» o «limitada». */
+    private function mode(string $valor): ?string
     {
         return match (Str::slug($valor)) {
-            '', 'bajo-pedido', 'on-demand' => StockMode::OnDemand,
-            'limitada', 'limitado', 'edicion-limitada', 'limited-sold-out' => StockMode::LimitedThenSoldOut,
-            'stock-y-bajo-pedido', 'stock-bajo-pedido', 'limited-on-demand' => StockMode::LimitedThenOnDemand,
+            '', 'bajo-pedido', 'on-demand', 'stock-y-bajo-pedido', 'stock-bajo-pedido', 'limited-on-demand' => 'bajo-pedido',
+            'agotado', 'agotada', 'no-se-vende', 'out-of-stock' => 'agotado',
+            'limitada', 'limitado', 'edicion-limitada', 'limited-sold-out' => 'limitada',
             default => null,
         };
     }

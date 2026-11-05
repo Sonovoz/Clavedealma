@@ -57,10 +57,10 @@ Como en WooCommerce, se puede comprar como invitado o con cuenta (ADR 0021).
   - Si el destino no tiene tarifa activa, el cliente lee «Todavía no enviamos a…».
 - **Canarias, Ceuta y Melilla están cerradas** aunque tengan tarifa, porque llevan otros impuestos (IGIC, IPSI) y aduana. Se abrirán cuando la asesoría fiscal lo resuelva (`clavedealma.shop.blocked_zones`).
 - **Portugal y el resto de la UE** se venden con IVA español mientras las ventas a distancia en la UE no pasen de 10.000 € al año. A partir de ahí hay que darse de alta en la ventanilla única (OSS). **Lo confirma la asesoría fiscal.**
-- **El stock se descuenta al confirmarse el pago**, no al añadir a la cesta:
-  - *Bajo pedido*: no hay límite.
-  - *Stock y después bajo pedido*: sale lo que haya y el resto se fabrica.
-  - *Unidades limitadas*: si dos clientes pagan la última unidad a la vez, el segundo pedido queda **«a revisar»**. Hay que fabricar la pieza o devolver el importe.
+- **Inventario por producto** (pestaña «Inventario» de la ficha, ADR 0022):
+  - *Hay existencias* (lo normal): se fabrica bajo pedido, sin límite.
+  - *Agotado*: no se vende por ahora. La ficha se ve con el aviso y no se puede añadir al carrito.
+  - *¿Gestionar inventario?* con una cantidad: se vende hasta esa cantidad entre todas las tallas y colores. Se descuenta **al confirmarse el pago**, no al añadir al carrito. Si dos clientes pagan las últimas unidades a la vez, el segundo pedido queda **«a revisar»**: hay que fabricar la pieza o devolver el importe.
 - **El pedido es inmutable**: los datos, las líneas y los importes no cambian nunca. Cada línea guarda lo vendido: nombre, talla, color, precio, IVA, comisión del artista (la del artículo o, si no tiene, la de la tienda) y peso. Solo avanza el estado, y cada cambio queda en el historial.
 - **Pedidos sin pagar**: se cancelan solos a las 2 horas (`pedidos:cancelar-caducados`, cada 15 minutos) y se anula su cobro pendiente.
 - **Compras de prueba**: las hechas con el pago simulado, o por el equipo en una tienda sin publicar, se marcan «Prueba».

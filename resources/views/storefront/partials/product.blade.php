@@ -73,6 +73,9 @@
                     </div>
                 @endif
 
+                @if ($item['sold_out'] ?? false)
+                    <p class="sf-soldout-note" role="status"><strong>Agotado.</strong> Ahora mismo no se puede comprar; vuelve pronto.</p>
+                @endif
                 <p class="sf-stock" data-stock aria-live="polite"></p>
                 {{-- Como WooCommerce: cantidad + «Añadir al carrito». --}}
                 <form class="sf-add-form" method="post" action="{{ route('cart.add') }}" data-add-form>

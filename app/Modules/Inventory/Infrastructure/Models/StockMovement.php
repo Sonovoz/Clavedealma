@@ -7,8 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use LogicException;
 
 /**
- * Movimiento de stock. Inmutable: no se edita ni se borra.
+ * Movimiento del inventario de un producto. Inmutable: no se edita ni se borra.
  *
+ * @property int $id
+ * @property int $product_id
  * @property int $delta
  * @property int $quantity_after
  * @property StockMovementReason $reason
@@ -16,6 +18,8 @@ use LogicException;
 class StockMovement extends Model
 {
     public const UPDATED_AT = null;
+
+    protected $table = 'product_stock_movements';
 
     protected $guarded = ['id'];
 

@@ -22,7 +22,7 @@ Además, el equipo interno necesita dar de alta artículos desde el panel sin pr
    - En *Tallas y colores* hay un generador que crea todas las combinaciones (`Catalog\Application\GenerateVariants`). Al editar, solo añade las que faltan.
 2. **Una sola fuente de reglas para la ficha y para la hoja:**
    - `Catalog\Application\PublicationCheck`: lo mínimo para publicar.
-   - `Inventory\Application\SetStockMode`: modo de venta y unidades, sin pisar el stock vivo.
+   - `Inventory\Application\SetStockMode`: modo de venta y unidades, sin pisar el stock vivo. *Sustituido por la pestaña «Inventario» y `ConfigureStock` (ADR 0022).*
    - `Catalog\Domain\SizeScale`: escala XS…3XL, alias y orden.
    - La coordinación entre módulos para la ficha está en `App\Platform\Catalog\ArticleEditor`, en la capa externa.
 3. **La ficha textil vive en la prenda base.** Incluye composición, corte, cuidados, país de fabricación y guía de tallas (`garment_sizes`, en cm). Los artículos la heredan.

@@ -8,9 +8,9 @@ use App\Modules\Catalog\Infrastructure\Models\ProductVariant;
 use App\Modules\Identity\Contracts\Role;
 use App\Modules\Identity\Infrastructure\Models\User;
 use App\Modules\Inventory\Application\AdjustStock;
-use App\Modules\Inventory\Contracts\StockMode;
 use App\Modules\Inventory\Contracts\StockMovementReason;
-use App\Modules\Inventory\Infrastructure\Models\StockLevel;
+use App\Modules\Inventory\Contracts\StockStatus;
+use App\Modules\Inventory\Infrastructure\Models\ProductStock;
 use App\Modules\Stores\Infrastructure\Models\Store;
 use App\Platform\CatalogImport\CatalogImporter;
 use App\Platform\CatalogImport\PhotoSet;
@@ -81,7 +81,8 @@ it('comprueba sin guardar nada y luego importa', function () {
         ->and($product->collections->pluck('name')->all())->toBe(['Gira'])
         ->and($product->variants->pluck('sku')->all())->toBe(['PRUEBA-PR-01-S-NEGRO', 'PRUEBA-PR-01-M-NEGRO', 'PRUEBA-PR-01-XXL-BLANCO'])
         ->and($product->variants->pluck('price_cents')->all())->toBe([null, null, 3290])
-        ->and(StockLevel::count())->toBe(3);
+        ->and(ProductStock::sole()->managed)->toBeFalse()
+        ->and(ProductStock::sole()->status)->toBe(StockStatus::InStock);
 });
 
 it('se puede repetir sin duplicar y desactiva las variantes que salen de la hoja', function () {
@@ -159,22 +160,28 @@ it('lee las fotos de un ZIP sin rutas peligrosas', function () {
     expect(is_dir($this->dir.'/tmp'))->toBeFalse();
 });
 
-it('respeta el stock vivo: las unidades de la hoja no pisan movimientos', function () {
+it('la venta «limitada» fija las unidades del producto y no pisa lo vendido', function () {
     $rows = array_map(fn ($r) => $r + ['venta' => 'limitada', 'unidades' => '10', 'aviso_stock' => '2'], camiseta());
     importar(hoja($this->dir, $rows));
 
-    $level = StockLevel::firstOrFail();
-    expect($level->mode)->toBe(StockMode::LimitedThenSoldOut)
-        ->and($level->quantity)->toBe(10)
-        ->and($level->low_stock_threshold)->toBe(2);
+    $stock = ProductStock::sole();
+    expect($stock->managed)->toBeTrue()
+        ->and($stock->quantity)->toBe(10)
+        ->and($stock->low_stock_threshold)->toBe(2);
 
-    app(AdjustStock::class)($level->product_variant_id, -3, StockMovementReason::Sale);
+    app(AdjustStock::class)($stock->product_id, -3, StockMovementReason::Sale, 'Pedido X');
 
     $report = importar(hoja($this->dir, array_map(fn ($r) => array_merge($r, ['unidades' => '50']), $rows)));
 
-    expect($level->fresh()->quantity)->toBe(7)
-        ->and(collect($report->warnings)->pluck('campo'))->toContain('unidades')
-        ->and(StockLevel::where('id', '!=', $level->id)->pluck('quantity')->unique()->all())->toBe([50]);
+    expect($stock->fresh()->quantity)->toBe(7)
+        ->and(collect($report->warnings)->pluck('campo'))->toContain('unidades');
+});
+
+it('la venta «agotado» deja el producto sin vender por ahora', function () {
+    importar(hoja($this->dir, array_map(fn ($r) => $r + ['venta' => 'agotado'], camiseta())));
+
+    expect(ProductStock::sole()->status)->toBe(StockStatus::OutOfStock)
+        ->and(ProductStock::sole()->limit())->toBe(0);
 });
 
 it('lee la plantilla xlsx que genera el propio sistema', function () {

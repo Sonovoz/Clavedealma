@@ -7,7 +7,7 @@
 
 Cuando un módulo necesita reaccionar a algo que ocurre en otro, el módulo de origen publica un **evento** en su carpeta `Contracts/Events` y el otro lo escucha desde su `ServiceProvider`. Ningún módulo llama a las clases internas de otro.
 
-Primer caso: `Catalog\Contracts\Events\VariantCreated` → `Inventory` crea la ficha de stock de la variante (`CreateStockLevelForVariant`).
+Primer caso: `Catalog\Contracts\Events\VariantCreated` → `Inventory` crea la ficha de stock de la variante (`CreateStockLevelForVariant`). *Desde el ADR 0022 el inventario es por producto y ese evento ya no lo escucha Inventory.*
 
 ## Reglas
 

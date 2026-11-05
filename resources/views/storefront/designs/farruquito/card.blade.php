@@ -9,6 +9,7 @@
         @if ($col)<span class="prod__col prod__col--{{ $col[0] }}">{{ $col[1] }}</span>@endif
         @if ($card['image'])<img class="art" src="{{ $card['image'] }}" alt="{{ $card['name'] }}" loading="lazy">@endif
         @if ($card['hover'])<img class="look" src="{{ $card['hover'] }}" alt="" aria-hidden="true" loading="lazy">@endif
+        @if ($card['sold_out'] ?? false)<span class="sf-soldout">Agotado</span>@endif
         <span class="prod__ver"><span class="btn">Ver la pieza</span></span>
     </a>
     <div class="prod__fila">

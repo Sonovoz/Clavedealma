@@ -3,14 +3,14 @@
 namespace App\Modules\Inventory\Application;
 
 use App\Modules\Inventory\Contracts\StockMovementReason;
-use App\Modules\Inventory\Infrastructure\Models\StockLevel;
+use App\Modules\Inventory\Infrastructure\Models\ProductStock;
 use App\Modules\Inventory\Infrastructure\Models\StockMovement;
 use App\Modules\Orders\Contracts\Events\PaidOrderCancelled;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Pedido pagado cancelado → vuelven al stock exactamente las unidades que salieron de él
- * al pagarlo (las que se iban a fabricar bajo pedido no existen). Solo una vez.
+ * Pedido pagado cancelado → vuelven al inventario exactamente las unidades que se
+ * descontaron al pagarlo. Solo una vez.
  */
 class RestockCancelledSale
 {
@@ -19,30 +19,32 @@ class RestockCancelledSale
         $sold = StockMovement::query()
             ->where('reason', StockMovementReason::Sale)
             ->where('note', 'Pedido '.$event->reference)
-            ->selectRaw('product_variant_id, SUM(delta) as total')
-            ->groupBy('product_variant_id')
-            ->pluck('total', 'product_variant_id');
+            ->selectRaw('product_id, SUM(delta) as total')
+            ->groupBy('product_id')
+            ->pluck('total', 'product_id');
 
-        foreach ($sold as $variantId => $total) {
+        foreach ($sold as $productId => $total) {
             $units = -(int) $total;
             if ($units < 1) {
                 continue;
             }
-            DB::transaction(function () use ($event, $variantId, $units): void {
+
+            DB::transaction(function () use ($event, $productId, $units): void {
                 $note = 'Cancelación pedido '.$event->reference;
-                if (StockMovement::query()->where('product_variant_id', $variantId)->where('note', $note)->exists()) {
+                if (StockMovement::query()->where('product_id', $productId)->where('note', $note)->exists()) {
                     return;
                 }
-                $level = StockLevel::query()->where('product_variant_id', $variantId)->lockForUpdate()->first();
-                if ($level === null) {
+                $stock = ProductStock::query()->where('product_id', $productId)->lockForUpdate()->first();
+                if ($stock === null) {
                     return;
                 }
-                $level->quantity += $units;
-                $level->save();
-                StockMovement::create([
-                    'product_variant_id' => $variantId,
+
+                $stock->quantity += $units;
+                $stock->save();
+                StockMovement::query()->create([
+                    'product_id' => $productId,
                     'delta' => $units,
-                    'quantity_after' => $level->quantity,
+                    'quantity_after' => $stock->quantity,
                     'reason' => StockMovementReason::Return,
                     'note' => $note,
                 ]);

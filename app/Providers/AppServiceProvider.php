@@ -11,8 +11,6 @@ use App\Modules\Catalog\Infrastructure\Models\Product;
 use App\Modules\Catalog\Infrastructure\Models\ProductImage;
 use App\Modules\Catalog\Infrastructure\Models\ProductVariant;
 use App\Modules\Identity\Infrastructure\Models\User;
-use App\Modules\Inventory\Infrastructure\Models\StockLevel;
-use App\Modules\Inventory\Infrastructure\Models\StockMovement;
 use App\Modules\Invoicing\Infrastructure\Models\Invoice;
 use App\Modules\Invoicing\Infrastructure\Models\InvoiceIssuer;
 use App\Modules\Invoicing\Infrastructure\Models\InvoiceLine;
@@ -39,8 +37,6 @@ use App\Platform\Pdf\PdfRenderer;
 use App\Platform\Security\SecurityEvent;
 use App\Platform\Security\SecurityListeners;
 use App\Policies\CatalogPolicy;
-use App\Policies\StockLevelPolicy;
-use App\Policies\StockMovementPolicy;
 use App\Policies\SuperadminOnlyPolicy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
@@ -79,9 +75,6 @@ class AppServiceProvider extends ServiceProvider
         foreach ([BaseGarment::class, GarmentSize::class, Product::class, ProductVariant::class, ProductImage::class, Collection::class] as $model) {
             Gate::policy($model, CatalogPolicy::class);
         }
-
-        Gate::policy(StockLevel::class, StockLevelPolicy::class);
-        Gate::policy(StockMovement::class, StockMovementPolicy::class);
 
         // Registro de seguridad: accesos y cambios en las cuentas (las acciones del panel se anotan en cada acción).
         SecurityListeners::register();

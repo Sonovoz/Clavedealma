@@ -7,10 +7,9 @@ use App\Modules\Catalog\Domain\Sku;
 use App\Modules\Catalog\Infrastructure\Models\BaseGarment;
 use App\Modules\Catalog\Infrastructure\Models\Collection;
 use App\Modules\Catalog\Infrastructure\Models\Product;
-use App\Modules\Inventory\Application\AdjustStock;
-use App\Modules\Inventory\Contracts\StockMode;
-use App\Modules\Inventory\Contracts\StockMovementReason;
-use App\Modules\Inventory\Infrastructure\Models\StockLevel;
+use App\Modules\Inventory\Application\ConfigureStock;
+use App\Modules\Inventory\Contracts\StockStatus;
+use App\Modules\Inventory\Infrastructure\Models\ProductStock;
 use App\Modules\Stores\Contracts\StoreStatus;
 use App\Modules\Stores\Contracts\TaxRegime;
 use App\Modules\Stores\Infrastructure\Models\Artist;
@@ -24,7 +23,7 @@ use Illuminate\Database\Seeder;
  */
 class DemoSeeder extends Seeder
 {
-    public function run(AdjustStock $adjustStock): void
+    public function run(ConfigureStock $configureStock): void
     {
         if (app()->isProduction()) {
             $this->command?->error('DemoSeeder no se ejecuta en producción.');
@@ -92,11 +91,10 @@ class DemoSeeder extends Seeder
             }
         }
 
-        // Una variante con stock limitado para ver el modo en acción.
-        $level = StockLevel::query()->where('product_variant_id', Product::query()->where('slug', 'sudadera-logo')->firstOrFail()->variants()->firstOrFail()->id)->firstOrFail();
-        if ($level->mode === StockMode::OnDemand) {
-            $level->update(['mode' => StockMode::LimitedThenOnDemand, 'low_stock_threshold' => 2]);
-            $adjustStock($level->product_variant_id, 5, StockMovementReason::Initial, 'Datos de demostración');
+        // Un producto con cantidad limitada para ver el inventario en acción (ADR 0022).
+        $sudadera = Product::query()->where('slug', 'sudadera-logo')->firstOrFail();
+        if (! ProductStock::query()->where('product_id', $sudadera->id)->exists()) {
+            $configureStock($sudadera->id, StockStatus::InStock, true, 5, 2);
         }
     }
 }

@@ -14,7 +14,9 @@ use App\Modules\Catalog\Contracts\ProductStatus;
 use App\Modules\Catalog\Domain\SizeScale;
 use App\Modules\Catalog\Infrastructure\Models\BaseGarment;
 use App\Modules\Catalog\Infrastructure\Models\Product;
-use App\Modules\Inventory\Contracts\StockMode;
+use App\Modules\Inventory\Application\ConfigureStock;
+use App\Modules\Inventory\Contracts\StockStatus;
+use App\Modules\Inventory\Infrastructure\Models\ProductStock;
 use App\Modules\Stores\Infrastructure\Models\Store;
 use App\Platform\Ai\AiException;
 use App\Storefront\Seo\SeoAssistant;
@@ -25,6 +27,7 @@ use App\Storefront\Urls;
 use App\Support\Money;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\ColorPicker;
@@ -55,6 +58,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
 use Livewire\Component;
@@ -93,6 +97,7 @@ class ProductResource extends Resource
                     Tab::make('Tallas y colores')->icon(Heroicon::OutlinedSwatch)->schema(self::variantsTab()),
                     Tab::make('Fotos')->icon(Heroicon::OutlinedPhoto)->schema(self::photosTab()),
                     Tab::make('Precio y fabricación')->icon(Heroicon::OutlinedCurrencyEuro)->columns(2)->schema(self::priceTab()),
+                    Tab::make('Inventario')->icon(Heroicon::OutlinedArchiveBox)->schema(self::inventoryTab()),
                     Tab::make('SEO')->icon(Heroicon::OutlinedMagnifyingGlass)->schema(self::seoTab()),
                     Tab::make('Publicación')->icon(Heroicon::OutlinedGlobeAlt)->schema(self::publicationTab()),
                 ]),
@@ -180,26 +185,70 @@ class ProductResource extends Resource
                         ->disabled(fn (Get $get): bool => (bool) $get('one_size'))
                         ->columnSpanFull(),
                     Toggle::make('one_size')->label('Talla única (gorras, bolsas…)')->live()->columnSpanFull(),
-                    Select::make('stock_mode')
-                        ->label('Venta de las variantes nuevas')
-                        ->options(Fields::options(StockMode::class))
-                        ->default(StockMode::OnDemand->value)
-                        ->selectablePlaceholder(false)
-                        ->live(),
-                    TextInput::make('units')
-                        ->label('Unidades de cada variante')
-                        ->numeric()
-                        ->minValue(0)
-                        ->visible(fn (Get $get): bool => ($get('stock_mode') ?? StockMode::OnDemand->value) !== StockMode::OnDemand->value)
-                        ->required(fn (Get $get): bool => ($get('stock_mode') ?? StockMode::OnDemand->value) !== StockMode::OnDemand->value),
-                    TextInput::make('threshold')
-                        ->label('Avisar al fabricante al quedar')
-                        ->numeric()
-                        ->minValue(0)
-                        ->suffix('unidades')
-                        ->visible(fn (Get $get): bool => ($get('stock_mode') ?? StockMode::OnDemand->value) !== StockMode::OnDemand->value),
                 ]),
         ];
+    }
+
+    /**
+     * «Inventario» como en WooCommerce (ADR 0022): se fabrica bajo pedido, así que lo
+     * normal es «Hay existencias» sin límite. Se puede marcar «Agotado» (no se vende por
+     * ahora) o limitar la cantidad entre todas las tallas y colores.
+     *
+     * @return array<\Filament\Schemas\Components\Component|Field>
+     */
+    private static function inventoryTab(): array
+    {
+        $managed = fn (Get $get): bool => (bool) $get('managed');
+
+        return [
+            Section::make('Inventario')
+                ->statePath('inventory')
+                ->columns(2)
+                ->schema([
+                    Select::make('status')
+                        ->label('Estado del inventario')
+                        ->options(Fields::options(StockStatus::class))
+                        ->default(StockStatus::InStock->value)
+                        ->selectablePlaceholder(false)
+                        ->helperText(fn (Get $get): string => (StockStatus::tryFrom((string) $get('status')) ?? StockStatus::InStock)->description())
+                        ->live(),
+                    Toggle::make('managed')
+                        ->label('¿Gestionar inventario?')
+                        ->helperText('Limita las unidades que se pueden vender entre todas las tallas y colores. Al llegar a 0 sale «Agotado» solo.')
+                        ->live()
+                        ->inline(false),
+                    TextInput::make('quantity')
+                        ->label('Cantidad en inventario')
+                        ->numeric()
+                        ->integer()
+                        ->minValue(0)
+                        ->suffix('unidades')
+                        ->visible($managed)
+                        ->required($managed),
+                    TextInput::make('threshold')
+                        ->label('Umbral de pocas existencias')
+                        ->numeric()
+                        ->integer()
+                        ->minValue(0)
+                        ->suffix('unidades')
+                        ->helperText('Se marca en el listado de productos cuando queden estas unidades o menos.')
+                        ->visible($managed),
+                    TextInput::make('loaded')->hidden()->dehydrated(),
+                ]),
+        ];
+    }
+
+    /** Texto de la columna «Inventario», como en WooCommerce: «Hay existencias (12)», «Agotado». */
+    public static function inventoryLabel(?ProductStock $stock): string
+    {
+        if ($stock === null || $stock->status === StockStatus::InStock && ! $stock->managed) {
+            return StockStatus::InStock->label();
+        }
+        if ($stock->limit() === 0) {
+            return StockStatus::OutOfStock->label();
+        }
+
+        return StockStatus::InStock->label()." ({$stock->quantity})".($stock->isLow() ? ' · pocas' : '');
     }
 
     /**
@@ -448,6 +497,15 @@ class ProductResource extends Resource
                 TextColumn::make('name')->label('Producto')->searchable()->sortable(),
                 Fields::moneyColumn('price_cents')->label('Precio'),
                 TextColumn::make('variants_count')->label('Variantes')->alignEnd(),
+                TextColumn::make('inventory')
+                    ->label('Inventario')
+                    ->state(fn (Product $record): string => self::inventoryLabel(ProductStock::query()->where('product_id', $record->id)->first()))
+                    ->color(fn (string $state): string => match (true) {
+                        $state === StockStatus::OutOfStock->label() => 'danger',
+                        str_ends_with($state, '· pocas') => 'warning',
+                        default => 'success',
+                    })
+                    ->weight('medium'),
                 TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
@@ -467,7 +525,36 @@ class ProductResource extends Resource
                 TrashedFilter::make(),
             ])
             ->recordActions([EditAction::make()])
+            ->toolbarActions([
+                // Edición masiva, como en WooCommerce: cambiar el estado del inventario de varios a la vez.
+                BulkAction::make('outOfStock')
+                    ->label('Marcar como agotado')
+                    ->icon(Heroicon::OutlinedNoSymbol)
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalDescription('Dejarán de venderse hasta que los marques con existencias. Las fichas se siguen viendo.')
+                    ->action(fn (EloquentCollection $records) => self::setStatus($records, StockStatus::OutOfStock))
+                    ->deselectRecordsAfterCompletion(),
+                BulkAction::make('inStock')
+                    ->label('Marcar con existencias')
+                    ->icon(Heroicon::OutlinedCheckCircle)
+                    ->color('success')
+                    ->action(fn (EloquentCollection $records) => self::setStatus($records, StockStatus::InStock))
+                    ->deselectRecordsAfterCompletion(),
+            ])
             ->defaultSort('updated_at', 'desc');
+    }
+
+    /**
+     * @param  EloquentCollection<int, Product>  $records
+     */
+    private static function setStatus(EloquentCollection $records, StockStatus $status): void
+    {
+        foreach ($records as $product) {
+            $stock = ProductStock::query()->where('product_id', $product->id)->first();
+            app(ConfigureStock::class)($product->id, $status, (bool) $stock?->managed, null, $stock?->low_stock_threshold, userId: auth()->id());
+        }
+        Notification::make()->title($records->count().' productos: '.$status->label())->success()->send();
     }
 
     public static function getRelations(): array
