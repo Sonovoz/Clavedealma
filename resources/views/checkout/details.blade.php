@@ -17,6 +17,9 @@
     @if (session('payment.error'))
         <p class="co-alert" role="alert">{{ session('payment.error') }}</p>
     @endif
+    @if ($customer === null)
+        <p class="co-notice co-returning">¿Ya eres cliente? <a href="{{ route('account.show', ['volver' => 'finalizar-compra']) }}">Haz clic aquí para acceder</a></p>
+    @endif
 
     <form class="co-grid" method="post" action="{{ route('checkout.place') }}" novalidate
         data-checkout data-quote-url="{{ route('checkout.quote') }}" data-gateway="{{ $gateway }}"
@@ -32,7 +35,7 @@
                     <label for="country">País / Región</label>
                     <select id="country" name="country" autocomplete="country" data-quote-input>
                         @foreach ($countries as $code => $label)
-                            <option value="{{ $code }}" @selected(old('country', 'ES') === $code)>{{ $label }}</option>
+                            <option value="{{ $code }}" @selected(old('country', $prefill['country'] ?? 'ES') === $code)>{{ $label }}</option>
                         @endforeach
                     </select>
                     @error('country')<span class="co-error" id="country-error">{{ $message }}</span>@enderror
@@ -46,6 +49,19 @@
                 @include('checkout.partials.field', ['name' => 'province', 'label' => 'Región / Provincia (opcional)', 'autocomplete' => 'address-level1', 'required' => false])
                 @include('checkout.partials.field', ['name' => 'phone', 'label' => 'Teléfono', 'type' => 'tel', 'autocomplete' => 'tel', 'hint' => 'Solo para la empresa de transporte.'])
                 @include('checkout.partials.field', ['name' => 'email', 'label' => 'Dirección de correo electrónico', 'type' => 'email', 'autocomplete' => 'email', 'hint' => 'Aquí te enviamos la confirmación, la factura y el seguimiento.'])
+                @if ($customer === null)
+                    <div class="co-create">
+                        <label class="co-check"><input type="checkbox" name="create_account" value="1" @checked(old('create_account'))><span>¿Crear una cuenta?</span></label>
+                        <div class="co-create__fields">
+                            <div class="co-field">
+                                <label for="account_password">Crear la contraseña de la cuenta</label>
+                                <input id="account_password" name="account_password" type="password" autocomplete="new-password" minlength="8" @error('account_password') aria-invalid="true" @enderror>
+                                <span class="co-hint">Mínimo 8 caracteres. Verás tus pedidos, facturas y devoluciones en «Mi cuenta».</span>
+                                @error('account_password')<span class="co-error">{{ $message }}</span>@enderror
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </fieldset>
 
             <fieldset>

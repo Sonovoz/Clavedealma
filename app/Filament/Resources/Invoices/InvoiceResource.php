@@ -46,7 +46,7 @@ class InvoiceResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'code';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 5;
 
     public static function canCreate(): bool
     {

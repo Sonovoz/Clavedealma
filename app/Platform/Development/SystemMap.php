@@ -18,12 +18,13 @@ Clave de Alma (vendedor único)
 │   ├── Compra como WooCommerce (un carrito, un pago) ...... checkout/* · CartController · CheckoutController
 │   │   ├── Carrito ........................................... Cart (CartStore, PriceCart)
 │   │   ├── Finalizar compra: datos, envío y pago ............. Shipping (ShippingQuoter) · Payments (Stripe / simulado)
-│   │   └── Pedido recibido · seguimiento · devolución · facturas  Orders · Returns · Invoicing
+│   │   ├── Pedido recibido · seguimiento · devolución · facturas  Orders · Returns · Invoicing
+│   │   └── Mi cuenta (opcional): pedidos, facturas, direcciones . Identity (RegisterCustomer) · CustomerOrders
 │   └── SEO: metaetiquetas, JSON-LD, sitemap.xml, robots.txt  SeoBuilder · SitemapController
 │
 ├── Panel /admin (Filament, por roles)
 │   ├── Escritorio .... Estado de la tienda (ventas del mes, procesando…) ......... superadmin
-│   ├── Comercio ...... Pedidos · Devoluciones · Facturas ........................... superadmin
+│   ├── Comercio ...... Pedidos · Clientes · Devoluciones · Facturas ................ superadmin
 │   │   └── Fabricación (sin datos del cliente) .................................. superadmin + fabricante
 │   ├── Productos ..... Todos los productos · Categorías · Prendas base (tienda activa)  superadmin + gestor
 │   │   └── Inventario ............................................................ superadmin + fabricante
@@ -33,7 +34,7 @@ Clave de Alma (vendedor único)
 │   └── Herramientas .. Usuarios · Copias · Registro de seguridad · Estado del sistema · Desarrollo
 │
 ├── Negocio (app/Modules, solo se hablan por Contracts y eventos)
-│   ├── Identity ..... usuarios y roles
+│   ├── Identity ..... usuarios, roles y cuentas de cliente
 │   ├── Stores ....... artistas y tiendas ─────────────── StoreDirectory
 │   ├── Catalog ...... prendas, productos, variantes, precios ─ VariantLookup · VariantCreated
 │   ├── Inventory .... stock y movimientos ─────────────── StockAvailability · StockShortage

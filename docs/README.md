@@ -40,6 +40,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0018](adr/0018-facturacion-y-verifactu.md) | Facturación (simplificadas y rectificativas) y Veri*Factu |
 | [0019](adr/0019-registro-de-seguridad.md) | Registro de seguridad |
 | [0020](adr/0020-textos-legales.md) | Textos legales generados con los datos del sistema |
+| [0021](adr/0021-mi-cuenta.md) | «Mi cuenta»: cuenta opcional del cliente, como WooCommerce |
 
 ## Orden de construcción
 
@@ -63,7 +64,7 @@ IA: el asistente SEO del panel ya está (ADR 0012, `docs/seo`). Más adelante, s
 
 | Sección | Superadmin | Gestor de catálogo | Fabricante | Artista |
 | --- | --- | --- | --- | --- |
-| Comercio: pedidos, devoluciones y facturas (datos de clientes y cobros) | ✓ | — | — | — |
+| Comercio: pedidos, clientes, devoluciones y facturas (datos de clientes y cobros) | ✓ | — | — | — |
 | Comercio → Fabricación y su PDF (sin datos del cliente) | ✓ | — | ✓ | — |
 | Productos de la tienda elegida («Tienda: …»): todos los productos, categorías (colecciones), prendas base | ✓ | ✓ | — | — |
 | Productos → Inventario (stock) | ✓ | — | ✓ | — |

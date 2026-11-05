@@ -22,6 +22,8 @@
                 @endforeach
             </ol>
             <span class="co-secure">Pago seguro</span>
+            @else
+            <a class="co-secure" href="{{ route('cart.show') }}">Carrito</a>
             @endif
         </div>
     </header>

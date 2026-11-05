@@ -15,6 +15,7 @@ use LogicException;
  * crearlo: solo avanza el estado (y queda constancia en OrderEvent).
  *
  * @property int $id
+ * @property ?int $user_id
  * @property ?string $reference
  * @property string $token
  * @property OrderStatus $status

@@ -58,6 +58,7 @@ class PlaceOrder
                 'token' => Str::random(48),
                 'status' => OrderStatus::PendingPayment,
                 'is_test' => $test,
+                'user_id' => $details->customerId,
                 'email' => mb_strtolower(trim($details->email)),
                 'customer_name' => $details->name,
                 'phone' => $details->phone,

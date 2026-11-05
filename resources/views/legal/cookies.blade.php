@@ -6,7 +6,8 @@ Una cookie es un pequeño archivo que la web guarda en tu navegador. Esta web **
 
 | Cookie | De quién | Para qué | Duración |
 | --- | --- | --- | --- |
-| `{{ $sessionCookie }}` | Esta web | Recordar tu carrito y tu pedido mientras compras | La sesión (horas) |
+| `{{ $sessionCookie }}` | Esta web | Recordar tu carrito y tu pedido mientras compras, y mantener abierta tu sesión de «Mi cuenta» | La sesión (horas) |
+| `remember_web_…` | Esta web | Solo si marcas «Recuérdame» al acceder a «Mi cuenta»: no tener que volver a escribir la contraseña | Hasta 400 días, o hasta que salgas |
 | `XSRF-TOKEN` | Esta web | Proteger los formularios contra envíos falsificados | La sesión |
 | `__stripe_mid`, `__stripe_sid` | Stripe | Solo en las páginas de pago («Finalizar compra» y «Pagar el pedido»): prevenir el fraude en el cobro con tarjeta | Hasta 1 año / 30 minutos |
 

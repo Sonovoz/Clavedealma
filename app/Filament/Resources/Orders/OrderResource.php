@@ -2,11 +2,14 @@
 
 namespace App\Filament\Resources\Orders;
 
+use App\Filament\Resources\Customers\CustomerResource;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Resources\Orders\Pages\ListOrders;
 use App\Filament\Resources\Orders\Pages\ViewOrder;
 use App\Filament\Resources\Returns\ReturnResource;
 use App\Filament\Support\Fields;
+use App\Modules\Identity\Contracts\Role;
+use App\Modules\Identity\Infrastructure\Models\User;
 use App\Modules\Invoicing\Infrastructure\Models\Invoice;
 use App\Modules\Orders\Contracts\OrderStatus;
 use App\Modules\Orders\Infrastructure\Models\Order;
@@ -176,6 +179,12 @@ class OrderResource extends Resource
 
             Section::make('Cliente y entrega')->columnSpan(2)->columns(2)->schema([
                 TextEntry::make('customer_name')->label('Nombre'),
+                // Como WooCommerce: «Cliente» con su ficha o «Invitado».
+                TextEntry::make('user_id')->label('Cuenta')
+                    ->state(fn (Order $record): string => $record->user_id === null ? 'Invitado' : (User::query()->find($record->user_id)->name ?? 'Cuenta borrada'))
+                    ->url(fn (Order $record): ?string => $record->user_id !== null && User::query()->whereKey($record->user_id)->role(Role::Customer->value)->exists()
+                        ? CustomerResource::getUrl('view', ['record' => $record->user_id]) : null)
+                    ->color(fn (Order $record): string => $record->user_id === null ? 'gray' : 'primary'),
                 TextEntry::make('email')->label('Email')->copyable(),
                 TextEntry::make('phone')->label('Teléfono')->copyable(),
                 TextEntry::make('address')->label('Dirección')->state(fn (Order $record): string => implode(', ', array_filter([

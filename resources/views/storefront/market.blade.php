@@ -35,6 +35,7 @@
     <div class="cab__acc">
       <button class="icono" type="button" aria-label="Buscar"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button>
       <button class="icono" type="button" aria-label="Mi cuenta"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1.4-4 4.2-6 7.5-6s6.1 2 7.5 6"/></svg></button>
+      <a class="icono" href="{{ route('account.show') }}" aria-label="Mi cuenta" title="Mi cuenta"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></a>
       <a class="icono" href="{{ route('cart.show') }}" id="abrir-carrito" aria-label="Carrito ({{ $cartCount ?? 0 }})"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg><span @class(['badge', 'on' => ($cartCount ?? 0) > 0]) id="badge" data-cart-count>{{ $cartCount ?? 0 }}</span></a>
       <button class="icono menu-btn" type="button" id="menu-btn" aria-label="Abrir menú" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></svg></button>
     </div>

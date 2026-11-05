@@ -38,7 +38,7 @@ class Production extends Page implements HasTable
 
     protected static ?string $title = 'Fabricación';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $slug = 'fabricacion';
 
