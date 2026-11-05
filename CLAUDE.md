@@ -2,7 +2,7 @@
 
 Marketplace de ropa de artistas. **Clave de Alma es el vendedor único**: cada artista tiene una tienda interna en `clavedealma.es/<artista>`, pero el cliente compra, paga (Stripe: tarjeta, Bizum, Apple/Google Pay) y recibe la factura de Clave de Alma. Los artistas cobran una comisión mensual mediante autofacturación (Veri*Factu).
 
-Documento de bases y arquitectura completa: ver `docs/README.md`. Cómo está hecho cada parte (también en el panel, *Desarrollo*): `docs/desarrollo/README.md`; mantenlo al día al añadir módulos o flujos.
+Documento de bases y arquitectura completa: ver `docs/README.md`. Cómo está hecho cada parte (también en el panel, *Desarrollo*): `docs/desarrollo/README.md`; mantenlo al día al añadir módulos o flujos. **Cada entrega añade su línea en `docs/desarrollo/historial.md`** (pestaña *Historial* de Desarrollo) y, si cambia la estructura, el árbol `App\Platform\Development\SystemMap`.
 
 ## Reglas de arquitectura (obligatorias)
 

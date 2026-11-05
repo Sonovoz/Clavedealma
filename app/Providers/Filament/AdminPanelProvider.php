@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\BaseGarments\Pages\CreateBaseGarment;
 use App\Filament\Resources\BaseGarments\Pages\EditBaseGarment;
 use App\Filament\Resources\BaseGarments\Pages\ListBaseGarments;
@@ -16,7 +17,6 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -51,6 +51,9 @@ class AdminPanelProvider extends PanelProvider
             ->strictAuthorization()
             ->defaultAvatarProvider(InitialsAvatarProvider::class)
             ->brandName('Clave de Alma')
+            // La campana: avisos nuevos de los artistas para los administradores (ADR 0023).
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('60s')
             // Menú en el orden de WooCommerce (WordPress), para que resulte familiar.
             ->navigationGroups(['Comercio', 'Productos', 'Análisis', 'Marketing', 'Tiendas', 'Ajustes', 'Herramientas'])
             // Barra de desplazamiento fina y discreta en el menú lateral.

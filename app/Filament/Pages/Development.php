@@ -14,7 +14,8 @@ use UnitEnum;
 
 /**
  * «Desarrollo»: cómo está hecho el proyecto (docs/desarrollo/README.md), el árbol del
- * sistema (generado del código) y las decisiones técnicas (docs/adr). Solo superadministradores.
+ * sistema (generado del código), las decisiones técnicas (docs/adr) y el historial de entregas
+ * (docs/desarrollo/historial.md). Solo superadministradores.
  */
 class Development extends Page
 {
@@ -55,6 +56,7 @@ class Development extends Page
 
         return [
             'guide' => $md((string) File::get(base_path('docs/desarrollo/README.md'))),
+            'history' => $md((string) File::get(base_path('docs/desarrollo/historial.md'))),
             'map' => SystemMap::TREE,
             'tree' => ProjectTree::render(),
             'adrs' => $adrs,

@@ -28,6 +28,7 @@
             <button class="cda-tab" role="tab" type="button" :aria-selected="tab === 'guia'" @click="tab = 'guia'">Cómo está hecho</button>
             <button class="cda-tab" role="tab" type="button" :aria-selected="tab === 'arbol'" @click="tab = 'arbol'">Árbol del sistema</button>
             <button class="cda-tab" role="tab" type="button" :aria-selected="tab === 'decisiones'" @click="tab = 'decisiones'">Decisiones (ADR)</button>
+            <button class="cda-tab" role="tab" type="button" :aria-selected="tab === 'historial'" @click="tab = 'historial'">Historial</button>
         </div>
 
         <section x-show="tab === 'guia'" class="cda-doc" style="margin-top:1.25rem">{!! $guide !!}</section>
@@ -44,6 +45,8 @@
                 <div class="cda-tree">{{ $tree }}</div>
             </div>
         </section>
+
+        <section x-show="tab === 'historial'" x-cloak class="cda-doc" style="margin-top:1.25rem">{!! $history !!}</section>
 
         <section x-show="tab === 'decisiones'" x-cloak class="cda-doc" style="margin-top:1.25rem">
             <p style="opacity:.8">Cada decisión técnica importante, con su contexto y sus consecuencias. Están en <code>docs/adr</code>.</p>

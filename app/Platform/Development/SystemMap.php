@@ -28,13 +28,14 @@ Clave de Alma (vendedor único)
 │   │   └── Fabricación (sin datos del cliente) .................................. superadmin + fabricante
 │   ├── Productos ..... Todos los productos · Categorías · Prendas base (tienda activa)  superadmin + gestor
 │   ├── Análisis ...... Informes ...................................................... superadmin
-│   ├── Tiendas ....... Artistas · Tiendas ........................................ superadmin
+│   ├── Tiendas ....... Artistas · Tiendas · Ventas por artista · Avisos de artistas  superadmin
+│   ├── Mis ventas · Avisos (escritorio del artista, sin datos de clientes) ........ artista
 │   ├── Ajustes ....... Datos de facturación · Zonas de envío · Transportistas · Textos legales
 │   └── Herramientas .. Usuarios · Copias · Registro de seguridad · Estado del sistema · Desarrollo
 │
 ├── Negocio (app/Modules, solo se hablan por Contracts y eventos)
 │   ├── Identity ..... usuarios, roles y cuentas de cliente
-│   ├── Stores ....... artistas y tiendas ─────────────── StoreDirectory
+│   ├── Stores ....... artistas, tiendas y avisos ──────── StoreDirectory · ArtistNoticeSent
 │   ├── Catalog ...... prendas, productos, variantes, precios ─ VariantLookup · VariantCreated
 │   ├── Inventory .... inventario por producto ─────────── StockAvailability · StockShortage
 │   ├── Shipping ..... zonas, baremo, transportistas ───── ShippingQuoter · CarrierDirectory

@@ -42,6 +42,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0020](adr/0020-textos-legales.md) | Textos legales generados con los datos del sistema |
 | [0021](adr/0021-mi-cuenta.md) | «Mi cuenta»: cuenta opcional del cliente, como WooCommerce |
 | [0022](adr/0022-inventario-por-producto.md) | Inventario por producto, como WooCommerce |
+| [0023](adr/0023-portal-de-artistas.md) | Portal de artistas: «Mis ventas» y «Avisos» |
 
 ## Orden de construcción
 
@@ -70,6 +71,8 @@ IA: el asistente SEO del panel ya está (ADR 0012, `docs/seo`). Más adelante, s
 | Productos de la tienda elegida («Tienda: …»): todos los productos, categorías (colecciones), prendas base | ✓ | ✓ | — | — |
 | Análisis: informes y PDF de ventas | ✓ | — | — | — |
 | Tiendas: artistas y tiendas (datos fiscales) | ✓ | — | — | — |
+| Mis ventas (escritorio del artista): sus ventas por producto y día, sin datos de clientes | ✓ (*Tiendas → Ventas por artista*) | — | — | ✓ |
+| Avisos: el artista los envía; el equipo los atiende | ✓ (*Tiendas → Avisos de artistas*) | — | — | ✓ (los suyos) |
 | Ajustes: datos de facturación, zonas de envío, transportistas y textos legales | ✓ | — | — | — |
 | Herramientas: usuarios, copias de seguridad, registro de seguridad, estado del sistema y Desarrollo | ✓ | — | — | — |
 
@@ -78,7 +81,7 @@ El menú sigue el orden de WooCommerce en WordPress (Escritorio, WooCommerce →
 - El catálogo se trabaja siempre **dentro de una tienda**, la que se elige arriba en «Tienda: …». Cada tienda tiene sus propias prendas base.
 - **Ver tienda** abre la tienda en una pestaña nueva. Está junto al selector, en la franja «Tienda: …», y en el listado y la ficha de *Tiendas*. Cada artículo tiene **Ver en la tienda**, que funciona también con borradores y tiendas ocultas, en vista previa para el equipo.
 - El **gestor de catálogo** es equipo interno. Da de alta y edita los artículos de cualquier tienda, pero no ve datos fiscales ni bancarios, ni pedidos o pagos.
-- Los **artistas** solo consultan su información y no pueden editar nada.
+- Los **artistas** entran a **Mis ventas** (sus ventas por producto y día) y a **Avisos**, para pedir cambios o contar eventos al equipo (ADR 0023). No ven nada más ni pueden editar su tienda. Su usuario se enlaza en *Tiendas → Artistas*.
 - Las cuentas se crean en *Herramientas → Usuarios*.
 
 ## Datos de demostración

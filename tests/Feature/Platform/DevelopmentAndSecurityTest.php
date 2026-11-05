@@ -12,7 +12,7 @@ use Livewire\Livewire;
 
 beforeEach(fn () => Filament::setCurrentPanel('admin'));
 
-it('la página Desarrollo enseña la guía, el árbol generado y las decisiones', function () {
+it('la página Desarrollo enseña la guía, el árbol generado, las decisiones y el historial', function () {
     $this->actingAs(User::factory()->withRole(Role::Superadmin)->create());
 
     $this->get('/admin/desarrollo')->assertOk()
@@ -21,7 +21,9 @@ it('la página Desarrollo enseña la guía, el árbol generado y las decisiones'
         ->assertSee('Árbol del sistema')
         ->assertSee('Flujo de una venta')
         ->assertSee('ADR 0001')
-        ->assertSee('Invoicing/');
+        ->assertSee('Invoicing/')
+        ->assertSee('Historial del proyecto')
+        ->assertSee('Portal de artistas');
 
     expect(ProjectTree::render())->toContain('Modules/')->toContain('Contracts/  — lo que pueden usar los demás')->toContain('PlaceOrder');
 });

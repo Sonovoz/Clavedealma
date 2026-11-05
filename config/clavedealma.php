@@ -51,6 +51,11 @@ return [
         'address' => env('RETURNS_ADDRESS'),
     ],
 
+    'artists' => [
+        // Además de los superadministradores, quién recibe los avisos de los artistas (ADR 0023).
+        'notice_email' => env('ARTIST_NOTICES_EMAIL'),
+    ],
+
     'orders' => [
         // Quién recibe el aviso de cada pedido pagado (por defecto, el superadministrador).
         'alert_email' => env('ORDERS_ALERT_EMAIL'),
