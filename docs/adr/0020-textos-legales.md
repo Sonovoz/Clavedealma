@@ -20,8 +20,8 @@ Se generan al guardar los datos fiscales, al crear una tienda o cambiar su nombr
   - los destinos y tarifas activos, el envío gratis y los plazos;
   - los destinos cerrados;
   - las reglas de devolución (14 días y piezas personalizadas excluidas);
-  - el pago con Stripe;
-  - las cookies que de verdad usa la web: sesión, XSRF y Stripe en el pago. No hay analítica.
+  - la pasarela de pago activa (Redsys, ADR 0026; o Stripe);
+  - las cookies que de verdad usa la web: sesión y XSRF (y las de Stripe solo si es la pasarela). No hay analítica.
 - **Lo que falta** sale como «[pendiente: …]» y se lista en el panel.
 - **Versiones**: cada cambio crea una versión nueva. Las versiones no se modifican ni se borran.
 - **Lo que acepta el cliente**: cada pedido guarda la versión de las condiciones de venta que aceptó (`condiciones-de-venta vN`).

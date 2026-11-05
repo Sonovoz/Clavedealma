@@ -21,11 +21,15 @@
 | Mensajes que nos envíes | Responderte | Ejecución del contrato o tu consentimiento |
 | Datos de acceso al panel de gestión (solo personal autorizado): usuario, IP y fecha | Seguridad del sistema | Interés legítimo (art. 6.1.f RGPD) |
 
-**No pedimos ni guardamos los datos de tu tarjeta**: el pago lo hace Stripe en su propio formulario. **No enviamos comunicaciones comerciales**, no elaboramos perfiles y no usamos tus datos para tomar decisiones automatizadas.
+**No pedimos ni guardamos los datos de tu tarjeta**: {{ $gateway === 'stripe' ? 'el pago lo hace Stripe en su propio formulario.' : 'el pago lo haces en la página segura de Redsys, la plataforma de pago de los bancos.' }} **No enviamos comunicaciones comerciales**, no elaboramos perfiles y no usamos tus datos para tomar decisiones automatizadas.
 
 ## 3. Quién recibe tus datos
 
+@if ($gateway === 'stripe')
 - **Stripe** (pasarela de pago), para cobrar el pedido. Stripe puede tratar datos fuera del Espacio Económico Europeo con las garantías que exige el RGPD.
+@else
+- **Redsys y nuestro banco** (pasarela de pago), para cobrar el pedido con tarjeta o Bizum. Reciben el importe y el número del pedido; los datos de la tarjeta los escribes tú directamente en Redsys.
+@endif
 - **La empresa de transporte** de tu destino, que recibe tu nombre, tu dirección y tu teléfono para entregar el paquete.
 - **Los proveedores tecnológicos** que alojan la web y envían los emails, como encargados del tratamiento: {!! $f(null, 'proveedores de alojamiento y de correo (los indica la asesoría)') !!}.
 - **La Administración Tributaria**, cuando la ley lo exija.

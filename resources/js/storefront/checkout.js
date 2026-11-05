@@ -168,3 +168,6 @@ if (pay) {
   };
   start();
 }
+
+// «Pago seguro» (Redsys): el formulario firmado se envía solo; sin JavaScript, con el botón.
+document.querySelector('[data-autopay]')?.submit();

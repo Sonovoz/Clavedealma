@@ -25,6 +25,21 @@ class FakeGateway implements PaymentGateway
         return null;
     }
 
+    public function methods(): array
+    {
+        return [];
+    }
+
+    public function testMode(): bool
+    {
+        return true;
+    }
+
+    public function returnEvent(array $query): ?GatewayEvent
+    {
+        return null;
+    }
+
     public function start(PaymentRequest $request): StartedPayment
     {
         // Misma clave de idempotencia = mismo cobro, como en Stripe.

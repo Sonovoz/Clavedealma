@@ -17,7 +17,7 @@ Clave de Alma (vendedor único)
 │   │   └── Pasarela común ................................ StoreCatalog · storefront/partials
 │   ├── Compra como WooCommerce (un carrito, un pago) ...... checkout/* · CartController · CheckoutController
 │   │   ├── Carrito ........................................... Cart (CartStore, PriceCart)
-│   │   ├── Finalizar compra: datos, envío y pago ............. Shipping (ShippingQuoter) · Payments (Stripe / simulado)
+│   │   ├── Finalizar compra: datos, envío y pago ............. Shipping (ShippingQuoter) · Payments (Redsys / simulado)
 │   │   ├── Pedido recibido · seguimiento · devolución · facturas  Orders · Returns · Invoicing
 │   │   └── Mi cuenta (opcional): pedidos, facturas, direcciones . Identity (RegisterCustomer) · CustomerOrders
 │   └── SEO: metaetiquetas, JSON-LD, sitemap.xml, robots.txt  SeoBuilder · SitemapController
@@ -53,14 +53,14 @@ Clave de Alma (vendedor único)
 │   └── Registro de seguridad (accesos y acciones sensibles)
 │
 └── Servicios externos (siempre por contrato y driver)
-    ├── Stripe ............ PaymentGateway
+    ├── Redsys ............ PaymentGateway (tarjeta y Bizum; Stripe, apagado)
     ├── IA (OpenAI o compatible) ... TextGenerator
     ├── AEAT Veri*Factu ... VerifactuSender (pendiente del certificado)
     ├── Correo (SMTP) ..... Laravel Mail
     └── Almacenamiento .... disco local (Hostinger) o S3 (OVH)
 
 Flujo de una venta
-  Añadir → Cesta (PriceCart) → PlaceOrder (pendiente) → StartPayment → Stripe
+  Añadir → Cesta (PriceCart) → PlaceOrder (pendiente) → StartPayment → Redsys
     → HandleGatewayEvent → PaymentSucceeded → MarkOrderPaid → OrderPaid
         ├── Inventory: RecordSale (descuenta inventario / StockShortage)
         ├── Orders: emails al cliente y al equipo

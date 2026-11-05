@@ -19,6 +19,7 @@ use App\Modules\Payments\Application\HandleGatewayEvent;
 use App\Modules\Payments\Application\StartPayment;
 use App\Modules\Payments\Application\SyncOrderPayments;
 use App\Modules\Payments\Contracts\GatewayEvent;
+use App\Modules\Payments\Contracts\InvalidWebhook;
 use App\Modules\Payments\Contracts\PaymentGateway;
 use App\Modules\Payments\Contracts\PaymentUnavailable;
 use App\Modules\Shipping\Contracts\ShippingQuote;
@@ -37,6 +38,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -44,8 +46,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 /**
  * «Finalizar compra» como WooCommerce: datos, «Tu pedido» y pago en una sola página,
  * y después «Pedido recibido». Todo importe se calcula en el servidor; el navegador solo
- * elige variantes y escribe la dirección. Con Stripe, la página crea el pedido y confirma
- * el pago sin salir de ella; sin JavaScript, el pedido pasa a «Pagar el pedido».
+ * elige variantes y escribe la dirección. Con Redsys (ADR 0026) el cliente elige el método
+ * de pago (tarjeta o Bizum) y paga en la página segura de Redsys; con Stripe, la página crea
+ * el pedido y confirma el pago sin salir de ella.
  */
 class CheckoutController
 {
@@ -84,6 +87,8 @@ class CheckoutController
             'countries' => Countries::ALL,
             'gateway' => $gateway->name(),
             'publicKey' => $gateway->publicKey(),
+            'methods' => $gateway->methods(),
+            'testMode' => $gateway->testMode(),
         ]);
     }
 
@@ -112,7 +117,7 @@ class CheckoutController
      * «Realizar el pedido». Con Stripe (petición JSON) devuelve el cobro para confirmarlo en
      * la misma página; con el pago simulado lo resuelve aquí; sin JavaScript, lleva a pagar.
      */
-    public function place(CheckoutRequest $request, PlaceOrder $place, StartPayment $start, SyncOrderPayments $sync, CancelPendingOrder $cancel, RegisterCustomer $register): JsonResponse|RedirectResponse
+    public function place(CheckoutRequest $request, PlaceOrder $place, StartPayment $start, SyncOrderPayments $sync, CancelPendingOrder $cancel, RegisterCustomer $register): JsonResponse|RedirectResponse|View
     {
         $priced = $this->priced($request);
         if ($priced->isEmpty() || $priced->hasProblems()) {
@@ -202,6 +207,13 @@ class CheckoutController
                 : to_route('checkout.show')->withInput()->with('payment.error', 'El pago se ha rechazado. Puedes intentarlo de nuevo.');
         }
 
+        // Redsys: a su página de pago segura con el método elegido.
+        if ($gateway->methods() !== []) {
+            return $request->expectsJson()
+                ? response()->json(['redirect' => route('checkout.pay', $order->token)], 409)
+                : $this->toGateway($order, $start, (string) $request->input('payment_method'));
+        }
+
         if (! $request->expectsJson()) {
             return to_route('checkout.pay', $order->token);
         }
@@ -224,18 +236,26 @@ class CheckoutController
         ]);
     }
 
-    public function pay(string $token, StartPayment $start, PaymentGateway $gateway): View|RedirectResponse
+    public function pay(Request $request, string $token, StartPayment $start, PaymentGateway $gateway): View|RedirectResponse
     {
         $order = $this->order($token);
+        // Vuelta de Redsys sin pagar (cancelado o rechazado): se apunta el motivo.
+        $returned = $this->absorbReturn($request);
+        $order->refresh();
         if ($order->status !== OrderStatus::PendingPayment) {
             return to_route('checkout.thanks', $order->token);
         }
+        if ($returned?->type === GatewayEvent::FAILED) {
+            $request->session()->now('payment.error', 'No se ha completado el pago: '.rtrim((string) $returned->failureMessage, '.').'. Puedes intentarlo de nuevo.');
+        }
 
-        try {
-            $payment = $start($order->id, (string) $order->reference, $order->total_cents, $order->currency, $order->email);
-        } catch (PaymentUnavailable $e) {
-            report($e);
-            $payment = null;
+        $payment = null;
+        if ($gateway->methods() === []) {
+            try {
+                $payment = $start($order->id, (string) $order->reference, $order->total_cents, $order->currency, $order->email);
+            } catch (PaymentUnavailable $e) {
+                report($e);
+            }
         }
 
         return view('checkout.pay', OrderPage::summary($order) + [
@@ -243,9 +263,24 @@ class CheckoutController
             'gateway' => $gateway->name(),
             'publicKey' => $gateway->publicKey(),
             'clientSecret' => $payment?->clientSecret,
-            'unavailable' => $payment === null,
+            'unavailable' => $payment === null && $gateway->methods() === [],
             'returnUrl' => route('checkout.thanks', $order->token),
+            'methods' => $gateway->methods(),
+            'testMode' => $gateway->testMode(),
         ]);
+    }
+
+    /** «Pagar el pedido» con Redsys: al TPV con el método elegido. */
+    public function payStart(Request $request, string $token, StartPayment $start, PaymentGateway $gateway): View|RedirectResponse
+    {
+        $order = $this->order($token);
+        if ($order->status !== OrderStatus::PendingPayment) {
+            return to_route('checkout.thanks', $order->token);
+        }
+        abort_if($gateway->methods() === [], 404);
+        $request->validate(['payment_method' => ['required', 'in:'.implode(',', array_keys($gateway->methods()))]], ['payment_method.*' => 'Elige un método de pago.']);
+
+        return $this->toGateway($order, $start, (string) $request->input('payment_method'));
     }
 
     /** Pago simulado (PAYMENT_DRIVER=fake, nunca en producción): el mismo camino que un webhook. */
@@ -263,6 +298,9 @@ class CheckoutController
     public function thanks(Request $request, string $token, SyncOrderPayments $sync): View
     {
         $order = $this->order($token);
+        if ($order->status === OrderStatus::PendingPayment && $this->absorbReturn($request) !== null) {
+            $order->refresh();
+        }
         if ($order->status === OrderStatus::PendingPayment) {
             $sync($order->id);
             $order->refresh();
@@ -302,6 +340,50 @@ class CheckoutController
             'phone' => $a->phone, 'address_line1' => $a->address_line1, 'address_line2' => $a->address_line2,
             'postal_code' => $a->postal_code, 'city' => $a->city, 'province' => $a->province, 'country' => $a->country,
         ]);
+    }
+
+    /**
+     * Página «Te llevamos al pago seguro»: el navegador envía el cobro firmado a Redsys.
+     * Si el TPV no responde, el pedido queda guardado en «Pagar el pedido».
+     */
+    private function toGateway(Order $order, StartPayment $start, string $method): View|RedirectResponse
+    {
+        try {
+            $payment = $start($order->id, (string) $order->reference, $order->total_cents, $order->currency, $order->email, $method,
+                route('checkout.thanks', $order->token), route('checkout.pay', $order->token));
+        } catch (PaymentUnavailable $e) {
+            report($e);
+
+            return to_route('checkout.pay', $order->token)->with('payment.error', 'Ahora mismo no podemos conectar con el sistema de pago. Tu pedido está guardado: vuelve a intentarlo en unos minutos.');
+        }
+
+        return view('checkout.redirect', OrderPage::summary($order) + [
+            'seo' => $this->seo->checkout('Pago seguro'),
+            'action' => (string) $payment->redirectUrl,
+            'fields' => $payment->redirectFields,
+            'method' => app(PaymentGateway::class)->methods()[$method] ?? null,
+        ]);
+    }
+
+    /**
+     * Resultado firmado que trae el cliente al volver de Redsys: el mismo camino que el aviso
+     * de la pasarela (vale aunque el aviso no llegue, como en local). Uno falso se ignora.
+     */
+    private function absorbReturn(Request $request): ?GatewayEvent
+    {
+        $gateway = app(PaymentGateway::class);
+        try {
+            $event = $gateway->returnEvent($request->query());
+        } catch (InvalidWebhook $e) {
+            Log::warning('Vuelta del pago con firma no válida: '.$e->getMessage());
+
+            return null;
+        }
+        if ($event !== null) {
+            app(HandleGatewayEvent::class)($gateway->name(), $event);
+        }
+
+        return $event;
     }
 
     /** Pago simulado: el mismo camino que un webhook de la pasarela. */
@@ -366,7 +448,8 @@ class CheckoutController
     /** Compra de prueba: pago simulado, o el equipo comprando en una tienda sin publicar. */
     private function isTest(Request $request, PricedCart $cart): bool
     {
-        if (app(PaymentGateway::class)->name() === 'fake') {
+        // Pago simulado o entorno de pruebas de la pasarela (Redsys «test», Stripe sk_test_).
+        if (app(PaymentGateway::class)->testMode()) {
             return true;
         }
         foreach ($cart->buyableLines() as $line) {

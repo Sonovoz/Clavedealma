@@ -7,6 +7,7 @@ use App\Modules\Payments\Application\IssueRefund;
 use App\Modules\Payments\Contracts\PaymentGateway;
 use App\Modules\Payments\Contracts\Refunds;
 use App\Modules\Payments\Infrastructure\Drivers\FakeGateway;
+use App\Modules\Payments\Infrastructure\Drivers\RedsysGateway;
 use App\Modules\Payments\Infrastructure\Drivers\StripeGateway;
 use App\Modules\Payments\Infrastructure\Listeners\CancelPendingPayments;
 use Illuminate\Support\Facades\Event;
@@ -25,6 +26,20 @@ class PaymentsServiceProvider extends ServiceProvider
         $this->app->singleton(PaymentGateway::class, function ($app): PaymentGateway {
             $driver = (string) config('payments.driver', 'fake');
 
+            if ($driver === 'redsys') {
+                $redsys = (array) config('payments.redsys');
+
+                return new RedsysGateway(
+                    merchantCode: (string) ($redsys['merchant_code'] ?? ''),
+                    terminal: (string) ($redsys['terminal'] ?? '1'),
+                    secretKey: (string) ($redsys['secret_key'] ?? ''),
+                    environment: (string) ($redsys['environment'] ?? 'test'),
+                    bizum: (bool) ($redsys['bizum'] ?? false),
+                    merchantName: (string) ($redsys['merchant_name'] ?? 'Clave de Alma'),
+                    notifyUrl: route('payments.webhook.redsys'),
+                );
+            }
+
             if ($driver === 'stripe') {
                 return new StripeGateway(
                     (string) config('payments.stripe.secret'),
@@ -37,7 +52,7 @@ class PaymentsServiceProvider extends ServiceProvider
                 return new FakeGateway;
             }
 
-            throw new RuntimeException("Pasarela de pago no válida para este entorno: [{$driver}]. En producción usa PAYMENT_DRIVER=stripe.");
+            throw new RuntimeException("Pasarela de pago no válida para este entorno: [{$driver}]. En producción usa PAYMENT_DRIVER=redsys.");
         });
     }
 

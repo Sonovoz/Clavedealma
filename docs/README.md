@@ -12,7 +12,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 - [Esquema de tienda: diseño propio y pasarela común](tiendas/README.md)
 - [Copias de seguridad: qué se guarda, programación y cómo restaurar](copias-de-seguridad.md)
 - [SEO: reglas obligatorias, estrategia y asistente de IA](seo/README.md)
-- [Compra y pago: cesta, pedidos, Stripe y pago simulado](compra/README.md)
+- [Compra y pago: cesta, pedidos, Redsys (tarjeta y Bizum) y pago simulado](compra/README.md)
 - [Documentos PDF: fabricación, albaranes e informes](informes.md)
 - [Facturación y Veri*Factu](facturacion.md)
 
@@ -21,7 +21,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | N.º | Decisión |
 | --- | --- |
 | [0001](adr/0001-monolito-modular.md) | Monolito modular en Laravel |
-| [0002](adr/0002-stripe-pasarela-unica.md) | Stripe como pasarela única |
+| [0002](adr/0002-stripe-pasarela-unica.md) | Stripe como pasarela única (sustituida por la 0026) |
 | [0003](adr/0003-base-de-datos-mariadb.md) | MariaDB/MySQL en todos los entornos |
 | [0004](adr/0004-drivers-por-entorno.md) | Mismo código, drivers distintos por entorno |
 | [0005](adr/0005-dinero-y-porcentajes-enteros.md) | Dinero en céntimos y porcentajes en puntos básicos |
@@ -45,13 +45,14 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0023](adr/0023-portal-de-artistas.md) | Portal de artistas: «Mis ventas» y «Avisos» |
 | [0024](adr/0024-cupones.md) | Cupones, como WooCommerce |
 | [0025](adr/0025-panel-woo-pedido-y-productos.md) | Panel como WooCommerce: pedido y productos |
+| [0026](adr/0026-redsys.md) | Redsys como pasarela de pago (tarjeta y Bizum) |
 
 ## Orden de construcción
 
 1. ✓ Cimientos: proyecto, módulos, roles, panel, entornos, CI.
 2. ✓ Tiendas y catálogo en el panel (ficha de artículo, protocolo de importación, gestor de catálogo).
 3. ✓ Tiendas públicas: diseño propio + pasarela común (primera: Farruquito).
-4. ✓ Compra y pago con Stripe (modo test).
+4. ✓ Compra y pago (Redsys con tarjeta y Bizum; antes Stripe).
 5. ✓ Operación: producción, envíos, devoluciones.
 6. **Facturación (Veri*Factu), artistas, liquidaciones y autofacturación** ← fase actual (6a facturas; 6b liquidaciones).
 7. Centro de control para superadministradores.

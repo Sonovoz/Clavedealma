@@ -56,10 +56,10 @@ final class OrderPage
     {
         $summary = app(OrderLookup::class)->find($order->id);
         $options = app(ReturnOptions::class);
-        $provider = Payment::query()->where('order_id', $order->id)->where('status', PaymentStatus::Succeeded)->value('provider');
+        $payment = Payment::query()->where('order_id', $order->id)->where('status', PaymentStatus::Succeeded)->latest('id')->first(['provider', 'method']);
 
         return self::summary($order) + [
-            'paymentMethod' => self::paymentMethod($provider),
+            'paymentMethod' => self::paymentMethod($payment?->provider, $payment?->method),
             // «Actualizaciones del pedido» de WooCommerce: las notas para el cliente (ADR 0025).
             'customerNotes' => $order->events()->where('type', 'customer_note')->latest('id')->get(['note', 'created_at'])
                 ->map(fn ($e): array => ['text' => (string) $e->note, 'date' => $e->created_at->timezone('Europe/Madrid')->format('d/m/Y H:i')])->all(),
@@ -72,11 +72,12 @@ final class OrderPage
         ];
     }
 
-    public static function paymentMethod(?string $provider): string
+    public static function paymentMethod(?string $provider, ?string $method = null): string
     {
-        return match ($provider) {
-            'fake' => 'Pago simulado (prueba)',
-            null => '—',
+        return match (true) {
+            $provider === 'fake' => 'Pago simulado (prueba)',
+            $provider === null => '—',
+            $provider === 'redsys' => $method === 'bizum' ? 'Bizum' : 'Tarjeta de crédito o débito',
             default => 'Tarjeta u otro método (Stripe)',
         };
     }

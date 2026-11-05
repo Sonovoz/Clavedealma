@@ -20,7 +20,7 @@ Hola, Diego. Esta guía explica cómo se ha construido cada parte del proyecto, 
 | Panel de gestión (`/admin`) | **Filament 5** (Livewire) |
 | Tiendas públicas | Blade + CSS/JS propios por diseño, compilados con **Vite**. Fuentes alojadas en el servidor (`@fontsource`) |
 | Base de datos | MariaDB/MySQL en servidores; SQLite en local y en las pruebas |
-| Pagos | **Stripe** (Payment Element + webhook) y pago simulado para pruebas |
+| Pagos | **Redsys**, el TPV del banco (tarjeta y Bizum, ADR 0026); Stripe como driver apagado y pago simulado para pruebas |
 | PDF | **dompdf**, por contrato propio |
 | QR de Veri*Factu | `bacon/bacon-qr-code` (SVG) |
 | Pruebas y calidad | **Pest 4**, Pint, **Larastan nivel 6** y pruebas de arquitectura |
@@ -76,7 +76,7 @@ Fuera de los módulos está la **capa exterior**, que pinta y conecta pero no de
 | **Shipping** | Transportistas, destinos y baremo por peso | `ZoneResolver` (país + CP → zona), `WeightScale`, `QuoteShipping` | `ShippingQuoter`, `CarrierDirectory`, `ShippingZone` |
 | **Cart** | Cesta única en la sesión (variante → unidades) | `CartStore`, `PriceCart` (recalcula precio, stock y tienda) | `PricedCart`, `PricedLine` |
 | **Orders** | Pedido inmutable, sus pasos e historial | `PlaceOrder`, `MarkOrderPaid`, `AdvanceOrder`, `CancelPaidOrder`, `OrderFlow` | `OrderLookup`, `OrderStatus`, eventos `OrderPaid`, `OrderShipped`, `OrderCancelled`, `PaidOrderCancelled` |
-| **Payments** | Pasarela, cobros, avisos y devoluciones de dinero | `StartPayment`, `HandleGatewayEvent` (idempotente), `IssueRefund`; drivers `StripeGateway` y `FakeGateway` | `PaymentGateway`, `Refunds`, eventos `PaymentSucceeded`, `PaymentFailed`, `RefundIssued` |
+| **Payments** | Pasarela, cobros, avisos y devoluciones de dinero | `StartPayment`, `HandleGatewayEvent` (idempotente), `IssueRefund`; drivers `RedsysGateway` (firma en `Redsys\RedsysSignature`), `StripeGateway` y `FakeGateway` | `PaymentGateway`, `Refunds`, eventos `PaymentSucceeded`, `PaymentFailed`, `RefundIssued` |
 | **Returns** | Devoluciones de piezas (14 días) | `ReturnPolicy`, `RequestReturn`, `ProcessReturn` | evento `ReturnReceived` |
 | **Invoicing** | Facturas simplificadas y rectificativas, y Veri*Factu | `InvoiceWriter` (numeración + huella), `IssueInvoices`, `Verifactu`, `VatSplit` | `VerifactuSender`, `InvoiceType`, `AeatStatus` |
 
@@ -86,12 +86,13 @@ Fuera de los módulos está la **capa exterior**, que pinta y conecta pero no de
 1. **Ficha de producto**: «Añadir» llama a `POST /carrito`. `PriceCart` comprueba que la pieza está a la venta, que hay stock y que la tienda está visible. `CartStore` guarda solo variante y unidades.
 2. **`/finalizar-compra`** (una sola página, como WooCommerce): el cliente escribe su dirección y `ShippingQuoter` calcula la zona y el precio por peso. Al pulsar «Realizar el pedido» pasa esto:
    - `PlaceOrder` crea el pedido **pendiente de pago**, con una copia de cada línea (precio, IVA, comisión y peso).
-   - `StartPayment` crea el cobro con una clave de idempotencia por pedido e importe.
-   - El Payment Element de Stripe, ya montado en la página («deferred intent»), lo confirma sin salir de ella.
+   - El cliente ha elegido en «Métodos de pago» tarjeta o Bizum (`PaymentGateway::methods()`).
+   - `StartPayment` crea el cobro firmado y la página «Pago seguro» (`checkout/redirect`) lo envía a Redsys. Cada visita lleva un número de pedido de Redsys nuevo.
+   - Con Stripe (apagado) sería el Payment Element en la misma página, con una clave de idempotencia por pedido e importe.
    - Si el cliente repite con los mismos datos, se reutiliza el pedido. Si los cambia, `CancelPendingOrder` anula el anterior y su cobro.
    - Con sesión (o con «¿Crear una cuenta?», que llama a `Identity\Application\RegisterCustomer`), el pedido guarda `user_id` y la dirección pasa a la cuenta (`CustomerAddress`).
-3. **`/pedido/<token>/pagar`** («Pagar el pedido»): la misma confirmación para un pedido ya creado. Se usa sin JavaScript o al volver de un pago fallido.
-4. **Stripe confirma** por el webhook firmado o por la consulta al volver. `HandleGatewayEvent` registra el aviso una sola vez y lanza `PaymentSucceeded`.
+3. **`/pedido/<token>/pagar`** («Pagar el pedido»): para un pedido ya creado. Se llega al volver de Redsys sin pagar, con el motivo; desde ahí se elige método otra vez (`POST` a la misma dirección).
+4. **Redsys confirma** por el aviso firmado a `/webhooks/redsys` o por el resultado firmado que trae el cliente al volver (`returnEvent`). `HandleGatewayEvent` registra el aviso una sola vez y lanza `PaymentSucceeded`.
 5. Con ese evento, **Orders** marca el pedido pagado (`MarkOrderPaid`) y lanza `OrderPaid`. Lo escuchan:
    - **Inventory**, que descuenta el stock (`RecordSale`) o avisa de un faltante;
    - **Orders**, que envía los emails;
@@ -157,7 +158,7 @@ Fuera de los módulos está la **capa exterior**, que pinta y conecta pero no de
 
 | Servicio | Contrato | Drivers |
 | --- | --- | --- |
-| Pagos | `Payments\Contracts\PaymentGateway` | `stripe`, `fake` (nunca en producción) |
+| Pagos | `Payments\Contracts\PaymentGateway` | `redsys` (la de Clave de Alma), `stripe` (apagado), `fake` (nunca en producción) |
 | IA (SEO) | `App\Platform\Ai\TextGenerator` | `openai` (compatible), `null` |
 | PDF | `App\Platform\Pdf\PdfRenderer` | dompdf |
 | Veri*Factu | `Invoicing\Contracts\VerifactuSender` | `none` (hoy); `aeat` cuando haya certificado |
@@ -166,7 +167,7 @@ Para añadir un proveedor se escribe otro driver del mismo contrato y se registr
 
 ## 11. Seguridad
 
-- **Secretos** solo en el `.env` del servidor: claves de Stripe, IA, SMTP y certificados. **Nunca** en GitHub ni en el chat.
+- **Secretos** solo en el `.env` del servidor: datos del TPV de Redsys, IA, SMTP y certificados. **Nunca** en GitHub ni en el chat.
 - **Webhooks**: solo con firma válida, y cada aviso se aplica una vez.
 - **Pago**: la tarjeta no pasa por nuestro servidor (PCI SAQ A).
 - **Enlaces privados de cliente**: `/pedido/<token>` con 48 caracteres aleatorios.
@@ -213,6 +214,6 @@ Para añadir un proveedor se escribe otro driver del mismo contrato y se registr
   - textos legales;
   - datos fiscales;
   - tarifas reales;
-  - claves de Stripe en modo real;
+  - TPV de Redsys real (`REDSYS_ENVIRONMENT=live`) con Bizum;
   - SMTP;
   - `SEO_INDEXING` solo en producción.

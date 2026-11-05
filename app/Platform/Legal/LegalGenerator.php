@@ -92,6 +92,8 @@ final class LegalGenerator
             'blocked' => array_map(fn (string $z): string => ShippingZone::from($z)->label(), (array) config('clavedealma.shop.blocked_zones', [])),
             'returnsAddress' => $returnsAddress,
             'sessionCookie' => (string) config('session.cookie'),
+            // Pasarela de pago activa (ADR 0026): cambia quién cobra y qué cookies hay.
+            'gateway' => config('payments.driver') === 'stripe' ? 'stripe' : 'redsys',
             'securityDays' => (int) config('clavedealma.security.retention_days', 365),
             'pageTitle' => $page->label(),
         ])->render();

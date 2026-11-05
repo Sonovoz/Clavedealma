@@ -19,7 +19,7 @@ Resultado: `dist/clavedealma-<versión>-<fecha>.zip`. Incluye `vendor/` y los re
 3. Con el administrador de archivos, subir el ZIP a una carpeta **fuera** de `public_html` (por ejemplo `clavedealma/`) y descomprimirlo.
 4. Apuntar el dominio o subdominio de pruebas a `clavedealma/public`.
    - Si el plan no lo permite: descomprimir dentro de la carpeta del dominio y renombrar `.htaccess.hostinger` a `.htaccess` en la raíz del proyecto. Redirige todo a `public/` y bloquea `.env` y el código.
-5. Copiar `.env.hostinger.example` como `.env` y rellenar: `APP_KEY`, datos de la base de datos, `APP_URL`, `APP_DOMAIN`, `SUPERADMIN_*` y las claves de Stripe en modo test.
+5. Copiar `.env.hostinger.example` como `.env` y rellenar: `APP_KEY`, datos de la base de datos, `APP_URL`, `APP_DOMAIN`, `SUPERADMIN_*` y los datos del TPV de Redsys en modo de pruebas (`REDSYS_ENVIRONMENT=test`, ver `docs/compra`).
    - `APP_KEY`: generarla en el ordenador de desarrollo con `php artisan key:generate --show` y pegarla.
 6. Dar permisos de escritura a `storage/` y `bootstrap/cache/` (755 en carpetas).
 7. Crear un **cron cada minuto**:

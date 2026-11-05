@@ -1,6 +1,6 @@
 # ADR 0002 · Stripe como pasarela única
 
-- **Estado:** aceptada
+- **Estado:** sustituida por la [ADR 0026](0026-redsys.md): la pasarela es Redsys. Stripe se queda como driver apagado.
 - **Fecha:** 2026-11-03
 
 ## Decisión

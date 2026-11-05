@@ -29,6 +29,15 @@
                     <button class="co-btn co-btn--full" type="submit" id="co-pay-button">Pagar {{ $total }}</button>
                 </form>
                 <p class="co-fine">Tarjeta, Apple Pay, Google Pay y los demás métodos que ofrezca Stripe. Los datos de pago los gestiona Stripe: Clave de Alma no los ve ni los guarda.</p>
+            @elseif ($methods !== [])
+                <form method="post" action="{{ route('checkout.pay.start', $order->token) }}">
+                    @csrf
+                    <div class="co-payment">
+                        <p class="co-payment__title">Métodos de pago</p>
+                        @include('checkout.partials.methods')
+                    </div>
+                    <button class="co-btn co-btn--full" type="submit">Pagar {{ $total }}</button>
+                </form>
             @else
                 <div class="co-test-box">
                     <p><strong>Pago simulado (modo de pruebas).</strong> No se cobra nada. Sirve para probar la compra completa: pedido, stock y emails.</p>
