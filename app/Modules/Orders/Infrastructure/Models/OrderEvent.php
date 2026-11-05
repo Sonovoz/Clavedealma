@@ -13,6 +13,7 @@ use LogicException;
  * @property int $order_id
  * @property string $type
  * @property ?string $note
+ * @property ?string $author
  * @property Carbon $created_at
  */
 class OrderEvent extends Model
@@ -54,6 +55,8 @@ class OrderEvent extends Model
             'review' => 'A revisar',
             'email_sent' => 'Email enviado al cliente',
             'email_failed' => 'No se pudo enviar el email',
+            'note' => 'Nota privada',
+            'customer_note' => 'Nota para el cliente',
             default => $this->type,
         };
     }

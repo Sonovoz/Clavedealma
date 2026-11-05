@@ -273,3 +273,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .co-totals__coupon dt small, .co-review__coupon th small { display: block; color: var(--muted); font-size: 12px; }
 .co-totals__coupon dd, .co-review__coupon td { color: var(--ok); }
 .co-hidden-form { display: none; }
+
+/* «Actualizaciones del pedido» (notas para el cliente, ADR 0025) */
+.co-updates { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; width: 100%; }
+.co-updates li { border-left: 3px solid var(--ok); background: var(--bg); padding: 10px 14px; }
+.co-updates small { color: var(--muted); font: 400 11px/1 var(--f-mono); letter-spacing: .1em; }
+.co-updates p { margin: 6px 0 0; white-space: pre-line; }

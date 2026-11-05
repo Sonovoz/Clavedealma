@@ -10,6 +10,15 @@
         ['label' => 'Entregado', 'at' => $order->delivered_at],
     ];
 @endphp
+@if (($customerNotes ?? []) !== [])
+    <h2 class="co-h2">Actualizaciones del pedido</h2>
+    <ol class="co-updates">
+        @foreach ($customerNotes as $n)
+            <li><small>{{ $n['date'] }}</small><p>{{ $n['text'] }}</p></li>
+        @endforeach
+    </ol>
+@endif
+
 <ol class="co-track" aria-label="Estado del pedido">
     @foreach ($steps as $s)
         <li @class(['is-done' => $s['at'] !== null])>

@@ -150,6 +150,7 @@ Fuera de los módulos está la **capa exterior**, que pinta y conecta pero no de
 - **Menú como WooCommerce**: los grupos se declaran en `AdminPanelProvider` (Comercio, Productos, Análisis, Marketing, Tiendas, Ajustes, Herramientas), y cada recurso o página fija su `$navigationGroup` y su `$navigationSort`. Una pantalla nueva va al grupo donde estaría en WooCommerce. Los nombres son también los de WooCommerce: *Todos los productos*, *Categorías* (son las colecciones), *Inventario*, *Zonas de envío*, *Estado del sistema*. El recuadro «Estado de la tienda» del Escritorio es `App\Filament\Widgets\StoreStatusWidget`.
 - **«Mi cuenta»** (ADR 0021) vive en `app/Http/Controllers/Account` y `resources/views/account`. Para saber qué pedidos son de un cliente se usa siempre `App\Storefront\Account\CustomerOrders`: los suyos y, con el email confirmado, los de invitado con ese email. En el panel, `CustomerResource` (*Comercio → Clientes*).
 - **Estados del pedido**: en el panel se leen como en WooCommerce (`OrderStatus::label()`). *Procesando* agrupa los pagados sin enviar (`OrderStatus::processing()`), y *Completado* es el entregado. El valor guardado no cambia.
+- **Ficha del pedido** (ADR 0025): «Notas del pedido» lee `order_events`. «Añadir nota» llama a `Orders\Application\AddOrderNote`: la privada solo la ve el equipo, y la del cliente le llega por email (`OrderNoteMail`) y sale en «Actualizaciones del pedido» (`OrderPage`). «Acciones del pedido» llama a `ResendOrderEmails`. Cada apunte guarda su autor (`author`).
 - **Los PDF** se generan en `App\Platform\Documents\*`, con las plantillas en `resources/views/pdf/*`.
 
 ## 10. Servicios externos, siempre por contrato
@@ -205,7 +206,6 @@ Para añadir un proveedor se escribe otro driver del mismo contrato y se registr
 
 ## 14. Lo siguiente
 
-- **Panel como WooCommerce, 2.ª parte**: la ficha del pedido («Notas del pedido», «Acciones del pedido») y el listado y la ficha de productos.
 - **Fase 6b, liquidaciones a artistas**: autofactura mensual con retención, enlazada desde «Mis ventas» (que ya existe, ADR 0023).
 - **Driver `aeat` de Veri*Factu**, en cuanto esté el certificado.
 - **Fase 7**: centro de control para superadministradores.
