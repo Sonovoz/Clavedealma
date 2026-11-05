@@ -41,9 +41,11 @@ Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('seo.robot
 Route::get('/carrito', [CartController::class, 'show'])->name('cart.show');
 Route::post('/carrito', [CartController::class, 'add'])->middleware('throttle:60,1')->name('cart.add');
 Route::post('/carrito/actualizar', [CartController::class, 'update'])->middleware('throttle:60,1')->name('cart.update');
-Route::get('/pedido', [CheckoutController::class, 'show'])->name('checkout.show');
+// «Finalizar compra» como WooCommerce: datos, «Tu pedido» y pago en una sola página.
+Route::get('/finalizar-compra', [CheckoutController::class, 'show'])->name('checkout.show');
+Route::post('/finalizar-compra', [CheckoutController::class, 'place'])->middleware('throttle:10,1')->name('checkout.place');
+Route::redirect('/pedido', '/finalizar-compra', 301);
 Route::get('/pedido/envio', [CheckoutController::class, 'quote'])->middleware('throttle:60,1')->name('checkout.quote');
-Route::post('/pedido', [CheckoutController::class, 'place'])->middleware('throttle:10,1')->name('checkout.place');
 Route::get('/pedido/{token}/pagar', [CheckoutController::class, 'pay'])->where('token', '[A-Za-z0-9]{48}')->name('checkout.pay');
 Route::post('/pedido/{token}/simular', [CheckoutController::class, 'simulate'])->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:20,1')->name('checkout.simulate');
 Route::get('/pedido/{token}/devolucion', [ReturnController::class, 'show'])->where('token', '[A-Za-z0-9]{48}')->name('returns.create');

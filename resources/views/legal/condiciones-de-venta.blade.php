@@ -25,7 +25,7 @@ El contrato se hace en español y queda archivado: puedes consultarlo en cualqui
 
 ## 4. Pago
 
-El pago se hace de forma segura con **Stripe**, con tarjeta o con los demás métodos que se muestren en la página de pago. Los datos de la tarjeta los recoge Stripe y nunca llegan a nuestro servidor. El pedido se confirma cuando Stripe confirma el cobro.
+El pago se hace de forma segura con **Stripe**, con tarjeta o con los demás métodos que se muestren al finalizar la compra. Los datos de la tarjeta los recoge Stripe y nunca llegan a nuestro servidor. El pedido se confirma cuando Stripe confirma el cobro.
 
 ## 5. Entrega
 

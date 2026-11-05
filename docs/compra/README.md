@@ -1,16 +1,31 @@
 # Compra y pago
 
-Clave de Alma es el **único vendedor**. Por eso hay una sola cesta para todas las tiendas, un solo pago y un solo pedido, aunque lleve piezas de varios artistas.
+Clave de Alma es el **único vendedor**. Por eso hay un solo carrito para todas las tiendas, un solo pago y un solo pedido, aunque lleve piezas de varios artistas.
+
+El recorrido copia el de WooCommerce, para que resulte familiar: los mismos pasos, nombres y pantallas, con el aspecto de Clave de Alma.
 
 ## Recorrido del cliente
 
 | Paso | Dirección | Qué pasa |
 | --- | --- | --- |
-| Ficha | `clavedealma.es/<tienda>/p/<artículo>` | Elige color y talla y pulsa **Añadir a la cesta**. El botón solo se activa con una variante disponible. |
-| Cesta | `/carrito` | Cambia unidades o quita piezas. Si algo se ha agotado o ya no está a la venta, se avisa y no deja seguir. |
-| Datos y envío | `/pedido` | Contacto y dirección. El precio del envío se calcula al escribir el código postal. Hay que aceptar las condiciones. |
-| Pago | `/pedido/<código>/pagar` | Stripe (tarjeta, Apple Pay, Google Pay…) o el pago simulado en pruebas. |
-| Confirmación | `/pedido/<código>` | «Gracias» + email de confirmación. Si el pago aún no está confirmado, la página espera y se recarga sola. |
+| Ficha | `clavedealma.es/<tienda>/p/<artículo>` | Elige color, talla y cantidad y pulsa **Añadir al carrito**. El botón solo se activa con una variante disponible. |
+| Carrito | `/carrito` | Tabla con ×, precio, cantidad y subtotal, **Actualizar carrito** y «Totales del carrito» con **Calcular envío**. Si algo se ha agotado o ya no está a la venta, se avisa y no deja seguir. |
+| Finalizar compra | `/finalizar-compra` | Una sola página: *Detalles de facturación*, *Notas del pedido*, «Tu pedido», el pago y **Realizar el pedido**. El envío se calcula al escribir el código postal. Hay que aceptar las condiciones. |
+| Pagar el pedido | `/pedido/<código>/pagar` | Solo si hace falta: sin JavaScript, si Stripe no carga o desde «Volver al pago». Es la página «Pagar el pedido» de WooCommerce. |
+| Pedido recibido | `/pedido/<código>` | «Gracias. Tu pedido ha sido recibido.» con número, fecha, email, total y método de pago, más la dirección de envío. Si el pago aún no está confirmado, espera y se recarga sola. Después es la página del pedido del cliente (seguimiento, facturas y devoluciones). |
+
+`/pedido` redirige a `/finalizar-compra`.
+
+### Cómo funciona «Realizar el pedido»
+
+1. **Con Stripe**, todo ocurre en la misma página:
+   1. El Payment Element de Stripe comprueba los datos de pago (`elements.submit()`).
+   2. El navegador envía el formulario en JSON. El servidor valida los datos, calcula el total, crea el pedido y su cobro, y devuelve el `client_secret`.
+   3. Stripe confirma el pago (`confirmPayment`) y lleva a «Pedido recibido».
+
+   El importe que se cobra lo fija siempre el servidor. El que se pasa al Payment Element solo sirve para que Apple Pay o Google Pay enseñen la cifra.
+2. **Con el pago simulado**, la caja de pago tiene «Simular pago correcto» y «Simular pago rechazado». Si se rechaza, vuelve a «Finalizar compra» con el aviso.
+3. **Si el cliente pulsa otra vez** (tarjeta rechazada, error) con el mismo carrito y los mismos datos, se reutiliza el pedido que espera el pago. Si ha cambiado algo, el anterior se anula, y su cobro con él (`Orders\Application\CancelPendingOrder`), para que nunca haya dos pedidos pagables.
 
 Ninguna página de compra se indexa (`noindex` y `robots.txt`).
 
@@ -37,7 +52,7 @@ Todo va por el contrato `Payments\Contracts\PaymentGateway` (ADR 0002 y 0014). S
 
 ### Sin claves: pago simulado (`PAYMENT_DRIVER=fake`)
 
-Es el valor por defecto en local. La página de pago muestra **Simular pago correcto** y **Simular pago rechazado**. El resto funciona igual que con un pago real: pedido, stock, emails y panel.
+Es el valor por defecto en local. «Finalizar compra» (y «Pagar el pedido») muestran **Simular pago correcto** y **Simular pago rechazado**. El resto funciona igual que con un pago real: pedido, stock, emails y panel.
 
 **Nunca funciona en producción**: la aplicación se niega a arrancar el pago.
 
@@ -57,7 +72,7 @@ Es el valor por defecto en local. La página de pago muestra **Simular pago corr
 4. Ejecuta `php artisan config:clear`.
 5. Paga con las tarjetas de prueba de Stripe, por ejemplo `4242 4242 4242 4242`, con cualquier fecha futura y cualquier CVC. La tarjeta `4000 0000 0000 0002` se rechaza.
 
-En local (Herd) el webhook de Stripe no puede llegar a tu ordenador. No pasa nada: al volver de Stripe, la página de confirmación pregunta a Stripe el estado del cobro y aplica el mismo proceso. Si quieres probar también el webhook, usa la CLI de Stripe: `stripe listen --forward-to clavedealma.test/webhooks/stripe`.
+En local (Herd) el webhook de Stripe no puede llegar a tu ordenador. No pasa nada: al volver de Stripe, «Pedido recibido» pregunta a Stripe el estado del cobro y aplica el mismo proceso. Si quieres probar también el webhook, usa la CLI de Stripe: `stripe listen --forward-to clavedealma.test/webhooks/stripe`.
 
 **Métodos de pago**: el formulario de Stripe enseña los métodos activados en *Configuración → Métodos de pago* de vuestra cuenta (tarjeta, Apple Pay, Google Pay…). **Bizum no es un método nativo de Stripe**. Si es imprescindible, se añadirá otro driver (Redsys o MONEI) sin tocar la compra (ADR 0002).
 

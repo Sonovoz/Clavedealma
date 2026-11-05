@@ -9,7 +9,8 @@
         ['label' => 'Entregado', 'at' => $order->delivered_at],
     ];
 @endphp
-@extends('checkout.layout', ['step' => $paid ? 4 : 3])
+{{-- «Pedido recibido» (como WooCommerce) y, después, la página del pedido del cliente. --}}
+@extends('checkout.layout', ['step' => $paid ? 3 : 2])
 
 @if ($order->status === OrderStatus::PendingPayment)
     @push('head')
@@ -24,11 +25,19 @@
             @if ($paid)
                 <p class="co-kicker">{{ $order->status->customerLabel() }}</p>
                 @if ($order->status === OrderStatus::Paid)
-                    <h1 class="co-h1">Gracias, {{ \Illuminate\Support\Str::before($order->customer_name, ' ') }}</h1>
-                    <p>Hemos recibido el pago de tu pedido <strong>{{ $order->reference }}</strong>. Te hemos enviado la confirmación a <strong>{{ $order->email }}</strong>.</p>
+                    <h1 class="co-h1">Pedido recibido</h1>
+                    <p>Gracias, {{ \Illuminate\Support\Str::before($order->customer_name, ' ') }}. Tu pedido ha sido recibido. Te hemos enviado la confirmación a <strong>{{ $order->email }}</strong>.</p>
                 @else
                     <h1 class="co-h1">Pedido {{ $order->reference }}</h1>
                 @endif
+
+                <ul class="co-overview" aria-label="Datos del pedido">
+                    <li>Número del pedido<strong>{{ $order->reference }}</strong></li>
+                    <li>Fecha<strong>{{ $order->paid_at?->timezone('Europe/Madrid')->translatedFormat('j \d\e F \d\e Y') }}</strong></li>
+                    <li>Correo electrónico<strong>{{ $order->email }}</strong></li>
+                    <li>Total<strong>{{ $total }}</strong></li>
+                    <li>Método de pago<strong>{{ $paymentMethod }}</strong></li>
+                </ul>
 
                 <ol class="co-track" aria-label="Estado del pedido">
                     @foreach ($steps as $s)
@@ -69,6 +78,15 @@
                             <li><span><strong>{{ $r['reference'] }}</strong> · {{ $r['status'] }}</span><span>{{ $r['amount'] }}</span></li>
                         @endforeach
                     </ul>
+                @endif
+                <h2 class="co-h2">Dirección de envío</h2>
+                <address class="co-address">
+                    {{ $order->customer_name }}<br>{{ $order->address_line1 }}@if ($order->address_line2), {{ $order->address_line2 }}@endif<br>
+                    {{ $order->postal_code }} {{ $order->city }}@if ($order->province) ({{ $order->province }})@endif · {{ \App\Storefront\Checkout\Countries::ALL[$order->country] ?? $order->country }}<br>
+                    {{ $order->phone }}
+                </address>
+                @if ($order->customer_note)
+                    <p class="co-fine">Notas del pedido: {{ $order->customer_note }}</p>
                 @endif
                 @if ($canReturn)
                     <p class="co-fine">¿Algo no te convence? Puedes devolver las piezas no personalizadas hasta el {{ $returnDeadline }}.</p>

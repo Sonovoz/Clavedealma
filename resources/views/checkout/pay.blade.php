@@ -1,4 +1,7 @@
-@extends('checkout.layout', ['step' => 3])
+@extends('checkout.layout', ['step' => 2])
+
+{{-- «Pagar el pedido» (como en WooCommerce): pedido ya creado que espera el pago. Se llega sin
+     JavaScript, si el pago falló o desde el enlace «Volver al pago». --}}
 
 @if ($gateway === 'stripe' && $clientSecret)
     @push('head')
@@ -8,7 +11,7 @@
 @endif
 
 @section('content')
-    <h1 class="co-h1">Pago</h1>
+    <h1 class="co-h1">Pagar el pedido</h1>
 
     <div class="co-grid">
         <section class="co-card" aria-label="Pago">
