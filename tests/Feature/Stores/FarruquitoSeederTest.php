@@ -3,8 +3,7 @@
 use App\Modules\Catalog\Infrastructure\Models\Collection;
 use App\Modules\Catalog\Infrastructure\Models\Product;
 use App\Modules\Catalog\Infrastructure\Models\ProductVariant;
-use App\Modules\Inventory\Contracts\StockMode;
-use App\Modules\Inventory\Infrastructure\Models\StockLevel;
+use App\Modules\Inventory\Infrastructure\Models\ProductStock;
 use App\Modules\Stores\Contracts\StoreStatus;
 use App\Modules\Stores\Infrastructure\Models\Store;
 use Database\Seeders\FarruquitoSeeder;
@@ -25,21 +24,22 @@ it('crea la tienda Farruquito oculta con sus tres colecciones y 35 piezas', func
         ->and(Product::where('store_id', $store->id)->count())->toBe(35);
 });
 
-it('da a cada variante su ficha de stock y limita la edición On Stage', function () {
+it('da a cada producto su inventario y limita la edición On Stage', function () {
     $this->seed(FarruquitoSeeder::class);
 
-    expect(StockLevel::count())->toBe(ProductVariant::count());
+    expect(ProductStock::count())->toBe(Product::count());
 
     $onStage = Collection::where('slug', 'on-stage')->sole()->products()->pluck('products.id');
-    $limitadas = StockLevel::whereIn('product_variant_id', ProductVariant::whereIn('product_id', $onStage)->pluck('id'))->get();
-    expect($limitadas)->each(fn ($level) => $level->mode->toBe(StockMode::LimitedThenSoldOut)->quantity->toBe(25));
+    $limitadas = ProductStock::whereIn('product_id', $onStage)->get();
+    expect($limitadas)->not->toBeEmpty()
+        ->and($limitadas)->each(fn ($stock) => $stock->managed->toBeTrue()->quantity->toBe(25));
 });
 
 it('se puede ejecutar dos veces sin duplicar nada', function () {
     $this->seed(FarruquitoSeeder::class);
-    $antes = [Product::count(), ProductVariant::count(), StockLevel::count()];
+    $antes = [Product::count(), ProductVariant::count(), ProductStock::count()];
 
     $this->seed(FarruquitoSeeder::class);
 
-    expect([Product::count(), ProductVariant::count(), StockLevel::count()])->toBe($antes);
+    expect([Product::count(), ProductVariant::count(), ProductStock::count()])->toBe($antes);
 });

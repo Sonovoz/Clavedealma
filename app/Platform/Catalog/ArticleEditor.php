@@ -6,23 +6,23 @@ use App\Modules\Catalog\Application\GenerateVariants;
 use App\Modules\Catalog\Application\PublicationCheck;
 use App\Modules\Catalog\Contracts\ProductStatus;
 use App\Modules\Catalog\Infrastructure\Models\Product;
-use App\Modules\Inventory\Application\SetStockMode;
-use App\Modules\Inventory\Contracts\StockMode;
+use App\Modules\Inventory\Application\ConfigureStock;
+use App\Modules\Inventory\Contracts\StockStatus;
 use App\Modules\Stores\Infrastructure\Models\Store;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Lo que hace la ficha de artículo del panel al guardar, coordinando Catálogo,
- * Tiendas e Inventario: genera las variantes pedidas, fija su modo de venta y
- * comprueba que el artículo se puede publicar (si no, lo deja en borrador).
+ * Tiendas e Inventario: genera las variantes pedidas, guarda el inventario del producto
+ * (ADR 0022) y comprueba que el artículo se puede publicar (si no, lo deja en borrador).
  *
- * @phpstan-type Generator array{colors?: list<array{name?: ?string, hex?: ?string}>, sizes?: array<array-key, string>, one_size?: bool, stock_mode?: ?string, units?: int|string|null, threshold?: int|string|null}
+ * @phpstan-type Generator array{colors?: list<array{name?: ?string, hex?: ?string}>, sizes?: array<array-key, string>, one_size?: bool}
+ * @phpstan-type Inventory array{status?: ?string, managed?: bool|string|null, quantity?: int|string|null, threshold?: int|string|null, loaded?: int|string|null}
  */
 class ArticleEditor
 {
     public function __construct(
         private readonly GenerateVariants $generateVariants,
-        private readonly SetStockMode $setStockMode,
+        private readonly ConfigureStock $configureStock,
         private readonly PublicationCheck $publicationCheck,
     ) {}
 
@@ -38,27 +38,29 @@ class ArticleEditor
 
     /**
      * @param  Generator  $generator
+     * @param  Inventory  $inventory
      * @return array{created: int, problems: list<string>}
      */
-    public function afterSave(Product $product, array $generator, ?int $userId): array
+    public function afterSave(Product $product, array $generator, array $inventory, ?int $userId): array
     {
         $created = [];
         if (self::wantsVariants($generator)) {
             $subdomain = (string) Store::query()->whereKey($product->store_id)->value('subdomain');
             $sizes = ($generator['one_size'] ?? false) ? [] : array_values($generator['sizes'] ?? []);
             $created = ($this->generateVariants)($product, $subdomain, self::colors($generator), $sizes);
+        }
 
-            $mode = StockMode::tryFrom((string) ($generator['stock_mode'] ?? '')) ?? StockMode::OnDemand;
-            if ($mode !== StockMode::OnDemand && $created !== []) {
-                $units = blank($generator['units'] ?? null) ? 0 : (int) $generator['units'];
-                $threshold = blank($generator['threshold'] ?? null) ? null : (int) $generator['threshold'];
-                // La ficha de stock nace al confirmar la transacción (evento VariantCreated).
-                DB::afterCommit(function () use ($created, $mode, $units, $threshold, $userId): void {
-                    foreach ($created as $variantId) {
-                        ($this->setStockMode)($variantId, $mode, $units, $threshold, $userId);
-                    }
-                });
-            }
+        if ($inventory !== []) {
+            $managed = (bool) ($inventory['managed'] ?? false);
+            ($this->configureStock)(
+                $product->id,
+                StockStatus::tryFrom((string) ($inventory['status'] ?? '')) ?? StockStatus::InStock,
+                $managed,
+                blank($inventory['quantity'] ?? null) ? null : (int) $inventory['quantity'],
+                blank($inventory['threshold'] ?? null) ? null : (int) $inventory['threshold'],
+                loadedQuantity: (int) ($inventory['loaded'] ?? 0),
+                userId: $userId,
+            );
         }
 
         $problems = [];

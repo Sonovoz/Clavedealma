@@ -3,20 +3,18 @@
 namespace App\Modules\Inventory\Infrastructure\Lookup;
 
 use App\Modules\Inventory\Contracts\StockAvailability;
-use App\Modules\Inventory\Contracts\StockMode;
-use App\Modules\Inventory\Infrastructure\Models\StockLevel;
+use App\Modules\Inventory\Infrastructure\Models\ProductStock;
 
 class EloquentStockAvailability implements StockAvailability
 {
-    public function maxSellable(array $variantIds): array
+    public function productLimits(array $productIds): array
     {
-        $levels = StockLevel::query()->whereIn('product_variant_id', $variantIds)->get()->keyBy('product_variant_id');
+        $stocks = ProductStock::query()->whereIn('product_id', $productIds)->get()->keyBy('product_id');
 
         $result = [];
-        foreach ($variantIds as $id) {
-            $level = $levels->get($id);
-            // Sin ficha de stock = bajo pedido. Solo «se agota» pone un límite a la venta.
-            $result[$id] = $level !== null && $level->mode === StockMode::LimitedThenSoldOut ? max(0, $level->quantity) : null;
+        foreach ($productIds as $id) {
+            // Sin fila de inventario = hay existencias y se fabrica bajo pedido.
+            $result[$id] = $stocks->get($id)?->limit();
         }
 
         return $result;

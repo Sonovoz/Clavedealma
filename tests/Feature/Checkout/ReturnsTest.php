@@ -5,8 +5,7 @@ use App\Modules\Catalog\Contracts\ProductStatus;
 use App\Modules\Catalog\Infrastructure\Models\Product;
 use App\Modules\Identity\Contracts\Role;
 use App\Modules\Identity\Infrastructure\Models\User;
-use App\Modules\Inventory\Contracts\StockMode;
-use App\Modules\Inventory\Infrastructure\Models\StockLevel;
+use App\Modules\Inventory\Infrastructure\Models\ProductStock;
 use App\Modules\Orders\Application\AdvanceOrder;
 use App\Modules\Orders\Infrastructure\Models\Order;
 use App\Modules\Payments\Contracts\Refunds;
@@ -36,7 +35,7 @@ beforeEach(function () {
     $cap = Product::factory()->create(['store_id' => $store->id, 'name' => 'Gorra nombre', 'status' => ProductStatus::Published, 'price_cents' => 2500, 'personalized' => true]);
     $this->tee = $tee->variants()->create(['sku' => 'TEE-M', 'size' => 'M']);
     $this->cap = $cap->variants()->create(['sku' => 'CAP-U']);
-    StockLevel::where('product_variant_id', $this->tee->id)->update(['mode' => StockMode::LimitedThenOnDemand, 'quantity' => 5]);
+    ProductStock::query()->updateOrCreate(['product_id' => $this->tee->product_id], ['managed' => true, 'quantity' => 5]);
 
     $rate = ZoneRate::where('zone', ShippingZone::Peninsula)->sole();
     $rate->update(['carrier_id' => Carrier::value('id'), 'active' => true, 'max_days' => 3]);
@@ -109,7 +108,7 @@ it('pasado el plazo ya no se puede devolver', function () {
 it('el equipo aprueba, recibe, repone el stock y devuelve el dinero', function () {
     $this->post(route('returns.store', $this->order->token), ['quantities' => [$this->teeLine->id => 2], 'reason' => 'changed_mind']);
     $return = ReturnRequest::query()->sole();
-    $stockBefore = StockLevel::where('product_variant_id', $this->tee->id)->value('quantity');
+    $stockBefore = ProductStock::where('product_id', $this->tee->product_id)->value('quantity');
 
     $this->actingAs(User::factory()->withRole(Role::Superadmin)->create(['name' => 'Admin']));
     Livewire::test(ViewReturn::class, ['record' => $return->getRouteKey()])
@@ -129,7 +128,7 @@ it('el equipo aprueba, recibe, repone el stock y devuelve el dinero', function (
     expect($return->status)->toBe(ReturnStatus::Refunded)
         ->and($return->refund_cents)->toBe(6000)
         ->and(app(Refunds::class)->refundedCents($this->order->id))->toBe(6000)
-        ->and(StockLevel::where('product_variant_id', $this->tee->id)->value('quantity'))->toBe($stockBefore + 2)
+        ->and(ProductStock::where('product_id', $this->tee->product_id)->value('quantity'))->toBe($stockBefore + 2)
         ->and($this->order->events()->pluck('type')->all())->toContain('return_requested', 'return_approved', 'return_received', 'refunded');
     Mail::assertSent(ReturnUpdateMail::class, fn ($m) => $m->kind === ReturnUpdateMail::REFUNDED);
 });

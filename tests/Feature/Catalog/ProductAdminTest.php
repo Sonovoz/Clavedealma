@@ -2,12 +2,14 @@
 
 use App\Filament\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Products\Pages\EditProduct;
+use App\Filament\Resources\Products\Pages\ListProducts;
+use App\Filament\Support\ActiveStore;
 use App\Modules\Catalog\Contracts\ProductStatus;
 use App\Modules\Catalog\Infrastructure\Models\Product;
 use App\Modules\Identity\Contracts\Role;
 use App\Modules\Identity\Infrastructure\Models\User;
-use App\Modules\Inventory\Contracts\StockMode;
-use App\Modules\Inventory\Infrastructure\Models\StockLevel;
+use App\Modules\Inventory\Contracts\StockStatus;
+use App\Modules\Inventory\Infrastructure\Models\ProductStock;
 use App\Modules\Stores\Infrastructure\Models\Store;
 use Filament\Facades\Filament;
 use Livewire\Livewire;
@@ -56,14 +58,12 @@ it('rechaza un plazo máximo menor que el mínimo', function () {
         ->assertHasFormErrors(['lead_time_max_days']);
 });
 
-it('cada variante nueva nace con su ficha de stock bajo pedido', function () {
+it('cada variante nueva hereda el precio y no crea inventario propio (va por producto)', function () {
     $product = Product::factory()->create(['store_id' => Store::factory()->create()->id]);
 
     $variant = $product->variants()->create(['sku' => 'test-m-negro', 'size' => 'M', 'color' => 'Negro']);
 
-    $level = StockLevel::where('product_variant_id', $variant->id)->sole();
-    expect($level->mode)->toBe(StockMode::OnDemand)
-        ->and($level->quantity)->toBe(0)
+    expect(ProductStock::count())->toBe(0)
         ->and($variant->sku)->toBe('TEST-M-NEGRO')
         ->and($variant->price()->cents)->toBe($product->price_cents);
 });
@@ -75,7 +75,7 @@ it('la comisión propia del producto sustituye a la de la tienda solo si se rell
     expect($product->commission_bps)->toBe(3000);
 });
 
-it('genera de una vez todas las tallas y colores, con su venta limitada', function () {
+it('genera de una vez todas las tallas y colores, con inventario limitado del producto', function () {
     $store = Store::factory()->create(['subdomain' => 'gira']);
 
     Livewire::test(CreateProduct::class)
@@ -90,10 +90,8 @@ it('genera de una vez todas las tallas y colores, con su venta limitada', functi
             'generator' => [
                 'colors' => [['name' => 'negro', 'hex' => '#111111'], ['name' => 'Blanco', 'hex' => null]],
                 'sizes' => ['XL', 'S', 'M'],
-                'stock_mode' => StockMode::LimitedThenSoldOut->value,
-                'units' => 10,
-                'threshold' => 2,
             ],
+            'inventory' => ['status' => StockStatus::InStock->value, 'managed' => true, 'quantity' => 10, 'threshold' => 2],
         ])
         ->call('create')
         ->assertHasNoFormErrors();
@@ -102,8 +100,9 @@ it('genera de una vez todas las tallas y colores, con su venta limitada', functi
     expect($variants->map(fn ($v) => $v->color.' '.$v->size)->all())
         ->toBe(['Negro S', 'Negro M', 'Negro XL', 'Blanco S', 'Blanco M', 'Blanco XL'])
         ->and($variants->first()->sku)->toBe('GIRA-GI-01-S-NEGRO')
-        ->and(StockLevel::pluck('quantity')->unique()->all())->toBe([10])
-        ->and(StockLevel::first()->mode)->toBe(StockMode::LimitedThenSoldOut);
+        ->and(ProductStock::sole()->quantity)->toBe(10)
+        ->and(ProductStock::sole()->managed)->toBeTrue()
+        ->and(ProductStock::sole()->low_stock_threshold)->toBe(2);
 });
 
 it('al editar solo añade las combinaciones que faltan', function () {
@@ -137,4 +136,24 @@ it('no publica un artículo incompleto: lo guarda como borrador y explica qué f
 
     expect(Product::sole()->status)->toBe(ProductStatus::Draft)
         ->and(Product::sole()->variants()->count())->toBe(1);
+});
+
+it('la pestaña «Inventario» marca «Agotado» y el listado lo enseña como WooCommerce', function () {
+    $store = Store::factory()->create();
+    ActiveStore::set($store->id);
+    $product = Product::factory()->create(['store_id' => $store->id, 'name' => 'Gorra gira']);
+
+    Livewire::test(EditProduct::class, ['record' => $product->getRouteKey()])
+        ->assertSchemaStateSet(['inventory.status' => StockStatus::InStock->value, 'inventory.managed' => false])
+        ->fillForm(['inventory' => ['status' => StockStatus::OutOfStock->value, 'managed' => false]])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(ProductStock::sole()->status)->toBe(StockStatus::OutOfStock);
+    Livewire::test(ListProducts::class)->assertSee('Agotado');
+
+    Livewire::test(ListProducts::class)->callTableBulkAction('inStock', [$product]);
+    expect(ProductStock::sole()->status)->toBe(StockStatus::InStock);
+    Livewire::test(ListProducts::class)->callTableBulkAction('outOfStock', [$product]);
+    expect(ProductStock::sole()->status)->toBe(StockStatus::OutOfStock);
 });

@@ -38,9 +38,9 @@ Las filas del mismo artículo comparten el **modelo**. Los datos de producto se 
 | `descripcion` | no | producto | Texto de la ficha. Cada línea en blanco separa un párrafo. | |
 | `info_modelo` | no | producto | Información del modelo de las fotos. | `El modelo mide 1,80 m y lleva una M.` |
 | `plazo` | no | producto | Días de fabricación, en formato `mín-máx`. Por defecto, `5-7`. | `5-7` |
-| `venta` | no | variante | `bajo pedido` (por defecto), `limitada` (se agota) o `stock y bajo pedido`. | `limitada` |
-| `unidades` | no | variante | Unidades disponibles. Obligatoria si la venta es `limitada` o `stock y bajo pedido`. | `25` |
-| `aviso_stock` | no | variante | Número de unidades a partir del cual se avisa al fabricante. | `5` |
+| `venta` | no | producto (en sus filas) | `bajo pedido` (por defecto), `agotado` (no se vende por ahora) o `limitada` (con cantidad). ADR 0022. | `limitada` |
+| `unidades` | no | producto (en sus filas) | Con `limitada`: unidades del **producto entero**, entre todas sus tallas y colores. | `25` |
+| `aviso_stock` | no | producto (en sus filas) | Con `limitada`: umbral de pocas existencias. | `5` |
 | `personalizado` | no | producto | `si` cuando se fabrica con datos del cliente; no tiene derecho de desistimiento. | `no` |
 | `estado` | no | producto | `borrador`, `publicado` o `archivado`. Vacío: un artículo nuevo queda en borrador y uno que ya existe no cambia. | `publicado` |
 | `sku` | no | variante | Código propio de la variante. Vacío, se genera como `TIENDA-MODELO-TALLA-COLOR`. | |
@@ -159,7 +159,7 @@ La hoja manda, pero sin destruir nada:
 | Variante | Se identifica por `sku`. Las que ya no están en la hoja se **desactivan**, no se borran, porque pueden tener pedidos. |
 | Fotos | Las fotos del ZIP **sustituyen** a las del modelo. Un modelo que no tiene fotos en el ZIP conserva las suyas. |
 | Prendas | Las celdas vacías de la pestaña Prendas no cambian nada. Una prenda que sale en la pestaña Tallas recibe esa guía entera. |
-| Stock | Las `unidades` se aplican mientras la variante solo tenga altas iniciales, es decir, sin ventas, fabricación ni ajustes, o cuando cambia su modo de venta. Si hay stock vivo, la hoja no lo pisa: se avisa y se ajusta en *Productos → Inventario*. |
+| Inventario | Es del producto (ADR 0022). Si sus filas no coinciden, `agotado` manda sobre `limitada`, y esta sobre `bajo pedido`. Las `unidades` se aplican mientras el producto no tenga ventas; si las tiene, la hoja no las pisa: se avisa y se ajustan en la pestaña «Inventario» de la ficha. |
 | Colecciones y estado | Si la celda está vacía, no se cambian. |
 | Artículo eliminado | Si vuelve en la hoja, se recupera y se avisa. |
 

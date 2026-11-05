@@ -3,36 +3,41 @@
 namespace App\Modules\Inventory\Application;
 
 use App\Modules\Inventory\Contracts\StockMovementReason;
-use App\Modules\Inventory\Infrastructure\Models\StockLevel;
+use App\Modules\Inventory\Infrastructure\Models\ProductStock;
 use App\Modules\Inventory\Infrastructure\Models\StockMovement;
+use App\Modules\Inventory\Infrastructure\ProductsOfVariants;
 use App\Modules\Returns\Contracts\Events\ReturnReceived;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Piezas devueltas en buen estado → vuelven al stock de las variantes que lo llevan.
- * (Las «bajo pedido» no tienen stock: la pieza queda fuera del sistema.)
+ * Piezas devueltas en buen estado → vuelven al inventario de los productos que lo
+ * gestionan. (Las de productos sin límite quedan fuera del sistema.)
  */
 class RestockReturn
 {
+    public function __construct(private readonly ProductsOfVariants $products) {}
+
     public function handle(ReturnReceived $event): void
     {
         if (! $event->restock) {
             return;
         }
-        foreach ($event->lines as $line) {
-            DB::transaction(function () use ($event, $line): void {
+
+        foreach ($this->products->units($event->lines) as $productId => $units) {
+            DB::transaction(function () use ($event, $productId, $units): void {
                 $note = 'Devolución '.$event->reference;
-                $level = StockLevel::query()->where('product_variant_id', $line['variant_id'])->lockForUpdate()->first();
-                if ($level === null || ! $level->mode->tracksQuantity()
-                    || StockMovement::query()->where('product_variant_id', $line['variant_id'])->where('note', $note)->exists()) {
+                $stock = ProductStock::query()->where('product_id', $productId)->lockForUpdate()->first();
+                if ($stock === null || ! $stock->managed
+                    || StockMovement::query()->where('product_id', $productId)->where('note', $note)->exists()) {
                     return;
                 }
-                $level->quantity += $line['quantity'];
-                $level->save();
-                StockMovement::create([
-                    'product_variant_id' => $line['variant_id'],
-                    'delta' => $line['quantity'],
-                    'quantity_after' => $level->quantity,
+
+                $stock->quantity += $units;
+                $stock->save();
+                StockMovement::query()->create([
+                    'product_id' => $productId,
+                    'delta' => $units,
+                    'quantity_after' => $stock->quantity,
                     'reason' => StockMovementReason::Return,
                     'note' => $note,
                 ]);

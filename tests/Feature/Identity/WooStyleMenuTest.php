@@ -3,7 +3,6 @@
 use App\Filament\Pages\LegalTexts;
 use App\Filament\Resources\Orders\Pages\ListOrders;
 use App\Filament\Resources\SecurityEvents\Pages\ListSecurityEvents;
-use App\Filament\Resources\StockLevels\Pages\ListStockLevels;
 use App\Modules\Identity\Contracts\Role;
 use App\Modules\Identity\Infrastructure\Models\User;
 use App\Modules\Orders\Contracts\OrderStatus;
@@ -14,7 +13,7 @@ it('ordena el menú del panel como WooCommerce', function () {
 
     $this->actingAs($admin)->get('/admin')->assertOk()
         ->assertSeeInOrder(['Escritorio', 'Comercio', 'Pedidos', 'Clientes', 'Fabricación', 'Devoluciones', 'Facturas',
-            'Productos', 'Todos los productos', 'Categorías', 'Prendas base', 'Inventario',
+            'Productos', 'Todos los productos', 'Categorías', 'Prendas base',
             'Análisis', 'Informes', 'Tiendas', 'Artistas',
             'Ajustes', 'Datos de facturación', 'Zonas de envío', 'Transportistas', 'Textos legales',
             'Herramientas', 'Usuarios', 'Copias de seguridad', 'Registro de seguridad', 'Estado del sistema', 'Desarrollo'])
@@ -45,7 +44,6 @@ it('abre todas las pestañas y filtros de las listas del panel', function () {
     }
 
     Livewire::test(ListOrders::class)->filterTable('review')->assertOk();
-    Livewire::test(ListStockLevels::class)->filterTable('low')->filterTable('store', 1)->searchTable('x')->assertOk();
     Livewire::test(ListSecurityEvents::class)->filterTable('dates', ['from' => '2026-01-01', 'until' => '2026-12-31'])->assertOk();
     Livewire::test(LegalTexts::class)->filterTable('scope', 'market')->filterTable('state', 'draft')->assertOk();
 });

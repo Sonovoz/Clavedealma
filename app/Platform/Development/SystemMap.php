@@ -27,7 +27,6 @@ Clave de Alma (vendedor único)
 │   ├── Comercio ...... Pedidos · Clientes · Devoluciones · Facturas ................ superadmin
 │   │   └── Fabricación (sin datos del cliente) .................................. superadmin + fabricante
 │   ├── Productos ..... Todos los productos · Categorías · Prendas base (tienda activa)  superadmin + gestor
-│   │   └── Inventario ............................................................ superadmin + fabricante
 │   ├── Análisis ...... Informes ...................................................... superadmin
 │   ├── Tiendas ....... Artistas · Tiendas ........................................ superadmin
 │   ├── Ajustes ....... Datos de facturación · Zonas de envío · Transportistas · Textos legales
@@ -37,7 +36,7 @@ Clave de Alma (vendedor único)
 │   ├── Identity ..... usuarios, roles y cuentas de cliente
 │   ├── Stores ....... artistas y tiendas ─────────────── StoreDirectory
 │   ├── Catalog ...... prendas, productos, variantes, precios ─ VariantLookup · VariantCreated
-│   ├── Inventory .... stock y movimientos ─────────────── StockAvailability · StockShortage
+│   ├── Inventory .... inventario por producto ─────────── StockAvailability · StockShortage
 │   ├── Shipping ..... zonas, baremo, transportistas ───── ShippingQuoter · CarrierDirectory
 │   ├── Cart ......... cesta calculada en el servidor ──── PricedCart
 │   ├── Orders ....... pedido inmutable y sus pasos ────── OrderLookup · OrderPaid · OrderShipped · PaidOrderCancelled
@@ -60,7 +59,7 @@ Clave de Alma (vendedor único)
 Flujo de una venta
   Añadir → Cesta (PriceCart) → PlaceOrder (pendiente) → StartPayment → Stripe
     → HandleGatewayEvent → PaymentSucceeded → MarkOrderPaid → OrderPaid
-        ├── Inventory: RecordSale (descuenta stock / StockShortage)
+        ├── Inventory: RecordSale (descuenta inventario / StockShortage)
         ├── Orders: emails al cliente y al equipo
         └── Invoicing: factura simplificada + registro Veri*Factu
   → Fabricación → Listo → Enviado (OrderShipped: email) → Entregado

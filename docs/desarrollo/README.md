@@ -8,7 +8,7 @@ Hola, Diego. Esta guía explica cómo se ha construido cada parte del proyecto, 
 
 - **Clave de Alma es el único vendedor.** Cada artista tiene su tienda (`clavedealma.es/<artista>`), pero el cliente compra, paga y recibe la factura de Clave de Alma.
 - Hay **una sola cesta y un solo pago** para todas las tiendas.
-- Las piezas se **fabrican bajo pedido**, o salen de un stock limitado.
+- Las piezas se **fabrican bajo pedido**. Un producto se puede marcar «Agotado» o limitar a una cantidad (ADR 0022).
 - Clave de Alma elige el transportista y cobra el envío por peso.
 - Cada mes el artista cobra una comisión, por autofacturación (fase 6b).
 
@@ -71,7 +71,7 @@ Fuera de los módulos está la **capa exterior**, que pinta y conecta pero no de
 | **Identity** | Usuarios y roles: superadmin, gestor de catálogo, fabricante, artista y cliente | `User`, `Role`; `Gate::before` da todo al superadmin | `Role` |
 | **Stores** | Artistas y tiendas: diseño, comisión y estado | `Store`, `Artist`, `Subdomain` (clave de la dirección y palabras reservadas) | `StoreDirectory` → `StoreInfo`, `StoreStatus` |
 | **Catalog** | Prendas base, productos, variantes, fotos, colecciones e historial de precios | `PublicationCheck`, `GenerateVariants`, `ReferencePrice` (rebaja legal a 30 días), `SizeScale` | `VariantLookup` → `SellableVariant`, evento `VariantCreated` |
-| **Inventory** | Stock por variante y movimientos inmutables | `StockPolicy`, `AdjustStock`, `RecordSale`, `RestockCancelledSale`, `RestockReturn` | `StockAvailability`, evento `StockShortage` |
+| **Inventory** | Inventario por producto (estado, cantidad opcional) y movimientos inmutables | `StockPolicy`, `ConfigureStock`, `AdjustStock`, `RecordSale`, `RestockCancelledSale`, `RestockReturn` | `StockAvailability::productLimits`, `StockStatus`, evento `StockShortage` |
 | **Shipping** | Transportistas, destinos y baremo por peso | `ZoneResolver` (país + CP → zona), `WeightScale`, `QuoteShipping` | `ShippingQuoter`, `CarrierDirectory`, `ShippingZone` |
 | **Cart** | Cesta única en la sesión (variante → unidades) | `CartStore`, `PriceCart` (recalcula precio, stock y tienda) | `PricedCart`, `PricedLine` |
 | **Orders** | Pedido inmutable, sus pasos e historial | `PlaceOrder`, `MarkOrderPaid`, `AdvanceOrder`, `CancelPaidOrder`, `OrderFlow` | `OrderLookup`, `OrderStatus`, eventos `OrderPaid`, `OrderShipped`, `OrderCancelled`, `PaidOrderCancelled` |

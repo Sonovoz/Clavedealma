@@ -41,6 +41,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0019](adr/0019-registro-de-seguridad.md) | Registro de seguridad |
 | [0020](adr/0020-textos-legales.md) | Textos legales generados con los datos del sistema |
 | [0021](adr/0021-mi-cuenta.md) | «Mi cuenta»: cuenta opcional del cliente, como WooCommerce |
+| [0022](adr/0022-inventario-por-producto.md) | Inventario por producto, como WooCommerce |
 
 ## Orden de construcción
 
@@ -67,7 +68,6 @@ IA: el asistente SEO del panel ya está (ADR 0012, `docs/seo`). Más adelante, s
 | Comercio: pedidos, clientes, devoluciones y facturas (datos de clientes y cobros) | ✓ | — | — | — |
 | Comercio → Fabricación y su PDF (sin datos del cliente) | ✓ | — | ✓ | — |
 | Productos de la tienda elegida («Tienda: …»): todos los productos, categorías (colecciones), prendas base | ✓ | ✓ | — | — |
-| Productos → Inventario (stock) | ✓ | — | ✓ | — |
 | Análisis: informes y PDF de ventas | ✓ | — | — | — |
 | Tiendas: artistas y tiendas (datos fiscales) | ✓ | — | — | — |
 | Ajustes: datos de facturación, zonas de envío, transportistas y textos legales | ✓ | — | — | — |

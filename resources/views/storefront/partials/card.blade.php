@@ -7,6 +7,7 @@
         @if ($card['hover'])
             <img class="sf-card__hover" src="{{ $card['hover'] }}" alt="" loading="lazy" aria-hidden="true">
         @endif
+        @if ($card['sold_out'] ?? false)<span class="sf-soldout">Agotado</span>@endif
     </div>
     <h3 class="sf-card__name">{{ $card['name'] }}</h3>
     <div class="sf-card__row">

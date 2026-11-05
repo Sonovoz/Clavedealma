@@ -6,8 +6,7 @@ use App\Modules\Catalog\Contracts\ProductStatus;
 use App\Modules\Catalog\Infrastructure\Models\Product;
 use App\Modules\Identity\Contracts\Role;
 use App\Modules\Identity\Infrastructure\Models\User;
-use App\Modules\Inventory\Contracts\StockMode;
-use App\Modules\Inventory\Infrastructure\Models\StockLevel;
+use App\Modules\Inventory\Infrastructure\Models\ProductStock;
 use App\Modules\Orders\Application\AdvanceOrder;
 use App\Modules\Orders\Application\CancelPaidOrder;
 use App\Modules\Orders\Contracts\OrderStatus;
@@ -37,7 +36,7 @@ beforeEach(function () {
     $store = Store::factory()->create(['name' => 'Luna Bruma', 'status' => StoreStatus::Published]);
     $product = Product::factory()->create(['store_id' => $store->id, 'name' => 'La esencia', 'status' => ProductStatus::Published, 'price_cents' => 3000]);
     $this->variant = $product->variants()->create(['sku' => 'LB-01-M', 'size' => 'M', 'color' => 'Negro']);
-    StockLevel::where('product_variant_id', $this->variant->id)->update(['mode' => StockMode::LimitedThenOnDemand, 'quantity' => 1]);
+    ProductStock::query()->updateOrCreate(['product_id' => $this->variant->product_id], ['managed' => true, 'quantity' => 2]);
 
     Carrier::where('name', 'NACEX')->update(['tracking_url' => 'https://seguimiento.example/?n={codigo}']);
     $rate = ZoneRate::where('zone', ShippingZone::Peninsula)->sole();
@@ -80,15 +79,15 @@ it('avanza por los pasos, avisa al cliente al enviar y no deja saltarse ninguno'
 });
 
 it('cancelar un pedido pagado devuelve el importe, repone el stock y avisa al cliente', function () {
-    // De 2 piezas, 1 salió del stock y la otra iba bajo pedido.
-    expect(StockLevel::where('product_variant_id', $this->variant->id)->value('quantity'))->toBe(0);
+    // Las 2 piezas salieron de las 2 unidades del producto.
+    expect(ProductStock::where('product_id', $this->variant->product_id)->value('quantity'))->toBe(0);
 
     app(CancelPaidOrder::class)($this->order, 'Fallo en la tela', 'Admin');
 
     $order = $this->order->refresh();
     expect($order->status)->toBe(OrderStatus::Cancelled)
         ->and(app(Refunds::class)->refundedCents($order->id))->toBe(6500)
-        ->and(StockLevel::where('product_variant_id', $this->variant->id)->value('quantity'))->toBe(1);
+        ->and(ProductStock::where('product_id', $this->variant->product_id)->value('quantity'))->toBe(2);
     Mail::assertSent(OrderCancelledMail::class, fn ($m) => $m->hasTo('ana@example.com') && $m->reason === 'Fallo en la tela');
 
     $this->get(route('checkout.thanks', $order->token))->assertSee('te hemos devuelto 65,00 €');

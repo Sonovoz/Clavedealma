@@ -9,8 +9,8 @@ use App\Modules\Catalog\Infrastructure\Models\BaseGarment;
 use App\Modules\Catalog\Infrastructure\Models\Collection;
 use App\Modules\Catalog\Infrastructure\Models\Product;
 use App\Modules\Catalog\Infrastructure\Models\ProductVariant;
-use App\Modules\Inventory\Application\SetStockMode;
-use App\Modules\Inventory\Contracts\StockMode;
+use App\Modules\Inventory\Application\ConfigureStock;
+use App\Modules\Inventory\Contracts\StockStatus;
 use App\Modules\Stores\Infrastructure\Models\Store;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -30,7 +30,7 @@ use Throwable;
  * @phpstan-import-type SizeDraft from GarmentParser
  *
  * @phpstan-type Photo array{nombre: string, ruta: string, color: ?string, n: int}
- * @phpstan-type StockTask array{variant_id: int, existed: bool, sku: string, fila: int, venta: StockMode, unidades: ?int, aviso: ?int}
+ * @phpstan-type StockTask array{product_id: int, existed: bool, modelo: string, fila: int, venta: string, unidades: ?int, aviso: ?int}
  */
 class CatalogImporter
 {
@@ -58,7 +58,7 @@ class CatalogImporter
         private readonly RowParser $parser,
         private readonly GarmentParser $garmentParser,
         private readonly PublicationCheck $publicationCheck,
-        private readonly SetStockMode $setStockMode,
+        private readonly ConfigureStock $configureStock,
     ) {}
 
     public function import(string $sheetPath, ?PhotoSet $photos = null, bool $apply = false, ?int $userId = null, ?string $extension = null): ImportReport
@@ -386,6 +386,7 @@ class CatalogImporter
         }
 
         $changed = $this->saveVariants($product, $draft, $minPrice, $report) || $changed;
+        $this->stockTasks[] = $this->stockTask($product->id, ! $isNew, $draft, $report);
 
         if ($photos !== null) {
             $changed = $this->savePhotos($product, $store, $draft, $photos, $report) || $changed;
@@ -434,11 +435,6 @@ class CatalogImporter
                 $changed = true;
             }
             $variant->save();
-
-            $this->stockTasks[] = [
-                'variant_id' => $variant->id, 'existed' => $existed, 'sku' => $variant->sku, 'fila' => $row['fila'],
-                'venta' => $row['venta'], 'unidades' => $row['unidades'], 'aviso' => $row['aviso'],
-            ];
         }
 
         $missing = $product->variants()->where('active', true)->whereNotIn('sku', array_column($draft['variantes'], 'sku'))->pluck('sku');
@@ -497,17 +493,50 @@ class CatalogImporter
     }
 
     /**
-     * Modo y unidades de cada variante, con las mismas reglas que la ficha del panel (SetStockMode).
+     * Inventario del producto (ADR 0022) a partir de sus filas: «agotado» manda sobre
+     * «limitada», y esta sobre «bajo pedido». Las unidades son del producto entero.
+     *
+     * @param  ProductDraft  $draft
+     * @return StockTask
+     */
+    private function stockTask(int $productId, bool $existed, array $draft, ImportReport $report): array
+    {
+        $ventas = array_column($draft['variantes'], 'venta');
+        $venta = in_array('agotado', $ventas, true) ? 'agotado' : (in_array('limitada', $ventas, true) ? 'limitada' : 'bajo-pedido');
+        $unidades = array_values(array_unique(array_filter(array_column($draft['variantes'], 'unidades'), fn (?int $u): bool => $u !== null)));
+        if (count($unidades) > 1) {
+            $report->warning($draft['fila'], 'unidades', "El modelo {$draft['modelo']} tiene unidades distintas en sus filas; se usa {$unidades[0]} para el producto entero.");
+        }
+        $avisos = array_values(array_filter(array_column($draft['variantes'], 'aviso'), fn (?int $a): bool => $a !== null));
+
+        return [
+            'product_id' => $productId, 'existed' => $existed, 'modelo' => $draft['modelo'], 'fila' => $draft['fila'],
+            'venta' => $venta, 'unidades' => $unidades[0] ?? null, 'aviso' => $avisos[0] ?? null,
+        ];
+    }
+
+    /**
+     * Inventario de cada producto, con las mismas reglas que la ficha del panel (ConfigureStock):
+     * las unidades no pisan un inventario que ya tiene ventas.
      */
     private function checkStock(ImportReport $report, bool $simulate, ?int $userId): void
     {
         foreach ($this->stockTasks as $task) {
             if ($simulate && ! $task['existed']) {
-                continue; // la ficha de stock se crea al confirmar
+                continue; // el producto nace al confirmar
             }
-            $warning = ($this->setStockMode)($task['variant_id'], $task['venta'], $task['unidades'], $task['aviso'], $userId, $simulate);
+            $limited = $task['venta'] === 'limitada';
+            $warning = ($this->configureStock)(
+                $task['product_id'],
+                $task['venta'] === 'agotado' ? StockStatus::OutOfStock : StockStatus::InStock,
+                $limited,
+                $limited ? $task['unidades'] : null,
+                $limited ? $task['aviso'] : null,
+                userId: $userId,
+                simulate: $simulate,
+            );
             if ($warning !== null) {
-                $report->warning($task['fila'], 'unidades', "{$task['sku']} {$warning}");
+                $report->warning($task['fila'], 'unidades', "{$task['modelo']} {$warning}");
             }
         }
     }

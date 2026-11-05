@@ -38,7 +38,9 @@ class EditProduct extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        return $data + ['generator' => self::emptyGenerator()];
+        $product = $this->getRecord();
+
+        return $data + ['generator' => self::emptyGenerator(), 'inventory' => self::inventoryState($product instanceof Product ? $product : null)];
     }
 
     protected function mutateFormDataBeforeSave(array $data): array

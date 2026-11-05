@@ -6,8 +6,7 @@ use App\Modules\Catalog\Infrastructure\Models\Product;
 use App\Modules\Catalog\Infrastructure\Models\ProductVariant;
 use App\Modules\Identity\Contracts\Role;
 use App\Modules\Identity\Infrastructure\Models\User;
-use App\Modules\Inventory\Contracts\StockMode;
-use App\Modules\Inventory\Infrastructure\Models\StockLevel;
+use App\Modules\Inventory\Infrastructure\Models\ProductStock;
 use App\Modules\Inventory\Infrastructure\Models\StockMovement;
 use App\Modules\Orders\Contracts\OrderStatus;
 use App\Modules\Orders\Infrastructure\Mail\NewOrderAlert;
@@ -80,7 +79,7 @@ it('no deja comprar borradores, tiendas ocultas (salvo al equipo) ni variantes a
         ->postJson(route('cart.add'), ['variant_id' => $this->variant->id])->assertOk();
 
     $this->store->update(['status' => StoreStatus::Published]);
-    StockLevel::where('product_variant_id', $this->variant->id)->update(['mode' => StockMode::LimitedThenSoldOut, 'quantity' => 0]);
+    ProductStock::query()->updateOrCreate(['product_id' => $this->variant->product_id], ['managed' => true, 'quantity' => 0]);
     $this->postJson(route('cart.add'), ['variant_id' => $this->variant->id])->assertStatus(422)->assertJson(['message' => 'Agotado.']);
 });
 
@@ -100,7 +99,7 @@ it('calcula el envío por destino y no vende aún a Canarias', function () {
 });
 
 it('compra completa con pago simulado: pedido pagado, stock descontado, emails y cesta vacía', function () {
-    StockLevel::where('product_variant_id', $this->variant->id)->update(['mode' => StockMode::LimitedThenSoldOut, 'quantity' => 5]);
+    ProductStock::query()->updateOrCreate(['product_id' => $this->variant->product_id], ['managed' => true, 'quantity' => 5]);
 
     $order = comprar($this, $this->variant, 2);
     expect($order->status)->toBe(OrderStatus::PendingPayment)
@@ -122,7 +121,7 @@ it('compra completa con pago simulado: pedido pagado, stock descontado, emails y
 
     $order->refresh();
     expect($order->status)->toBe(OrderStatus::Paid)->and($order->paid_at)->not->toBeNull()
-        ->and(StockLevel::where('product_variant_id', $this->variant->id)->value('quantity'))->toBe(3)
+        ->and(ProductStock::where('product_id', $this->variant->product_id)->value('quantity'))->toBe(3)
         ->and(StockMovement::where('note', 'Pedido '.$order->reference)->value('delta'))->toBe(-2)
         ->and(Payment::where('order_id', $order->id)->sole()->status)->toBe(PaymentStatus::Succeeded);
 
@@ -134,7 +133,7 @@ it('compra completa con pago simulado: pedido pagado, stock descontado, emails y
 
     // Un segundo aviso del mismo cobro no descuenta otra vez.
     $this->post(route('checkout.simulate', $order->token), ['outcome' => 'ok'])->assertStatus(409);
-    expect(StockLevel::where('product_variant_id', $this->variant->id)->value('quantity'))->toBe(3);
+    expect(ProductStock::where('product_id', $this->variant->product_id)->value('quantity'))->toBe(3);
 });
 
 it('un pago rechazado deja el pedido esperando y se puede reintentar', function () {
@@ -155,7 +154,7 @@ it('envío gratis desde el importe del panel', function () {
 });
 
 it('si se agota mientras se paga, el segundo pedido queda «a revisar»', function () {
-    StockLevel::where('product_variant_id', $this->variant->id)->update(['mode' => StockMode::LimitedThenSoldOut, 'quantity' => 1]);
+    ProductStock::query()->updateOrCreate(['product_id' => $this->variant->product_id], ['managed' => true, 'quantity' => 1]);
 
     $first = comprar($this, $this->variant);
     session()->flush();
@@ -167,7 +166,7 @@ it('si se agota mientras se paga, el segundo pedido queda «a revisar»', functi
     expect($first->refresh()->review_reason)->toBeNull()
         ->and($second->refresh()->status)->toBe(OrderStatus::Paid)
         ->and($second->review_reason)->toContain('se agotó')
-        ->and(StockLevel::where('product_variant_id', $this->variant->id)->value('quantity'))->toBe(0);
+        ->and(ProductStock::where('product_id', $this->variant->product_id)->value('quantity'))->toBe(0);
 });
 
 it('los pedidos son inmutables', function () {
