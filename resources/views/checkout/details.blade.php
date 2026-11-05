@@ -122,6 +122,8 @@
                         <p class="co-fine">Cargando el pago seguro…</p>
                     </div>
                     <p class="co-fine">Los datos de pago los gestiona Stripe: Clave de Alma no los ve ni los guarda.</p>
+                @elseif ($methods !== [])
+                    @include('checkout.partials.methods')
                 @elseif ($gateway === 'fake')
                     <div class="co-test-box">
                         <p><strong>Pago simulado (modo de pruebas).</strong> No se cobra nada.</p>

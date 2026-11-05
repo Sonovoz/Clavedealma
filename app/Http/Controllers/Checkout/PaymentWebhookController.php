@@ -10,16 +10,19 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Avisos de Stripe (fuente de verdad del pago). Solo se aceptan con firma válida.
+ * Avisos de la pasarela (fuente de verdad del pago): Redsys (/webhooks/redsys) o Stripe
+ * (/webhooks/stripe). Solo se aceptan con firma válida y de la pasarela activa.
  */
 class PaymentWebhookController
 {
-    public function __invoke(Request $request, PaymentGateway $gateway, HandleGatewayEvent $handle): Response
+    public function __invoke(Request $request, PaymentGateway $gateway, HandleGatewayEvent $handle, string $provider): Response
     {
-        abort_unless($gateway->name() === 'stripe', 404);
+        abort_unless($gateway->name() === $provider, 404);
 
         try {
-            $event = $gateway->parseWebhook($request->getContent(), $request->header('Stripe-Signature'));
+            // Stripe firma el cuerpo tal cual; Redsys manda un formulario con su firma dentro.
+            $payload = $provider === 'stripe' ? $request->getContent() : http_build_query($request->post());
+            $event = $gateway->parseWebhook($payload, $request->header('Stripe-Signature'));
         } catch (InvalidWebhook $e) {
             Log::warning('Aviso de pago rechazado: '.$e->getMessage());
 

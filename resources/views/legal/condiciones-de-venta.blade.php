@@ -26,7 +26,11 @@ El contrato se hace en español y queda archivado: puedes consultarlo en cualqui
 
 ## 4. Pago
 
+@if ($gateway === 'stripe')
 El pago se hace de forma segura con **Stripe**, con tarjeta o con los demás métodos que se muestren al finalizar la compra. Los datos de la tarjeta los recoge Stripe y nunca llegan a nuestro servidor. El pedido se confirma cuando Stripe confirma el cobro.
+@else
+El pago se hace de forma segura en **Redsys**, la plataforma de pago de los bancos, con tarjeta de crédito o débito o con los demás métodos que se muestren al finalizar la compra (por ejemplo, Bizum). Los datos de la tarjeta los escribes en Redsys y nunca llegan a nuestro servidor. El pedido se confirma cuando Redsys confirma el cobro.
+@endif
 
 ## 5. Entrega
 

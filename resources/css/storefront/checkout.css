@@ -279,3 +279,11 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .co-updates li { border-left: 3px solid var(--ok); background: var(--bg); padding: 10px 14px; }
 .co-updates small { color: var(--muted); font: 400 11px/1 var(--f-mono); letter-spacing: .1em; }
 .co-updates p { margin: 6px 0 0; white-space: pre-line; }
+
+/* «Métodos de pago» como WooCommerce (ADR 0026): la descripción del elegido, debajo. */
+.co-methods { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.co-method { border-bottom: 1px solid var(--line); padding: 10px 0; }
+.co-method:last-child { border-bottom: 0; }
+.co-method__box { display: none; margin: 8px 0 0 28px; font-size: 13px; color: var(--muted, #9a9a9a); }
+.co-method:has(input:checked) .co-method__box { display: block; }
+.co-redirect { display: grid; gap: 16px; align-content: start; }

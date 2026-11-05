@@ -10,6 +10,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $order_id
  * @property string $provider
+ * @property ?string $method
  * @property ?string $provider_reference
  * @property int $amount_cents
  * @property string $currency

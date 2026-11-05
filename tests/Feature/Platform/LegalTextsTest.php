@@ -60,7 +60,8 @@ it('al guardar los datos fiscales genera los 5 textos de Clave de Alma y de cada
     expect($shipping)->toContain('Península')->toContain('4,95 €')->toContain('60,00 €')->toContain('no enviamos a Canarias');
 
     $cookies = LegalDocument::current(LegalPage::Cookies, null)->content;
-    expect($cookies)->toContain(config('session.cookie'))->toContain('__stripe_mid')->not->toContain('Google Analytics');
+    expect($cookies)->toContain(config('session.cookie'))->toContain('Redsys')->not->toContain('__stripe_mid')->not->toContain('Google Analytics')
+        ->and(LegalDocument::current(LegalPage::Privacy, null)->content)->toContain('Redsys y nuestro banco')->not->toContain('Stripe');
 
     $this->get(route('legal', 'condiciones-de-venta'))->assertOk()->assertSee('Derecho de desistimiento')->assertSee('Borrador pendiente de revisión');
     $this->get(Urls::legal($this->store, 'aviso-legal'))->assertOk()->assertSee('La tienda oficial de')->assertSee('Luna Bruma');

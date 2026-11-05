@@ -11,21 +11,27 @@ El recorrido copia el de WooCommerce, para que resulte familiar: los mismos paso
 | Ficha | `clavedealma.es/<tienda>/p/<artículo>` | Elige color, talla y cantidad y pulsa **Añadir al carrito**. El botón solo se activa con una variante disponible. |
 | Carrito | `/carrito` | Tabla con ×, precio, cantidad y subtotal, **Actualizar carrito** y «Totales del carrito» con **Calcular envío**. Si algo se ha agotado o ya no está a la venta, se avisa y no deja seguir. |
 | Finalizar compra | `/finalizar-compra` | Una sola página: *Detalles de facturación*, *Notas del pedido*, «Tu pedido», el pago y **Realizar el pedido**. El envío se calcula al escribir el código postal. Hay que aceptar las condiciones. |
-| Pagar el pedido | `/pedido/<código>/pagar` | Solo si hace falta: sin JavaScript, si Stripe no carga o desde «Volver al pago». Es la página «Pagar el pedido» de WooCommerce. |
+| Pago seguro | (tras «Realizar el pedido») | «Te llevamos a la página de pago segura de Redsys»: el navegador envía el cobro firmado a Redsys y el cliente paga allí con tarjeta o Bizum. |
+| Pagar el pedido | `/pedido/<código>/pagar` | Pedido ya creado que espera el pago: al volver de Redsys sin pagar (con el motivo) o desde «Elegir otro método de pago». Es la página «Pagar el pedido» de WooCommerce. |
 | Pedido recibido | `/pedido/<código>` | «Gracias. Tu pedido ha sido recibido.» con número, fecha, email, total y método de pago, más la dirección de envío. Si el pago aún no está confirmado, espera y se recarga sola. Después es la página del pedido del cliente (seguimiento, facturas y devoluciones). |
 
 `/pedido` redirige a `/finalizar-compra`.
 
 ### Cómo funciona «Realizar el pedido»
 
-1. **Con Stripe**, todo ocurre en la misma página:
+1. **Con Redsys** (la pasarela de Clave de Alma, ADR 0026), como el plugin de Redsys para WooCommerce:
+   1. En «Métodos de pago» el cliente elige **Tarjeta de crédito o débito** o **Bizum** (si el banco lo tiene activado en el TPV).
+   2. Al pulsar «Realizar el pedido», el servidor valida los datos, calcula el total y crea el pedido.
+   3. Después crea el cobro firmado y lo envía, en la página «Pago seguro», a la página de pago de Redsys.
+   4. El cliente paga en Redsys y vuelve a «Pedido recibido», o a «Pagar el pedido» si no paga.
+2. **Con Stripe** (apagado; se queda por si se vuelve a usar), todo ocurre en la misma página:
    1. El Payment Element de Stripe comprueba los datos de pago (`elements.submit()`).
    2. El navegador envía el formulario en JSON. El servidor valida los datos, calcula el total, crea el pedido y su cobro, y devuelve el `client_secret`.
    3. Stripe confirma el pago (`confirmPayment`) y lleva a «Pedido recibido».
 
    El importe que se cobra lo fija siempre el servidor. El que se pasa al Payment Element solo sirve para que Apple Pay o Google Pay enseñen la cifra.
-2. **Con el pago simulado**, la caja de pago tiene «Simular pago correcto» y «Simular pago rechazado». Si se rechaza, vuelve a «Finalizar compra» con el aviso.
-3. **Si el cliente pulsa otra vez** (tarjeta rechazada, error) con el mismo carrito y los mismos datos, se reutiliza el pedido que espera el pago. Si ha cambiado algo, el anterior se anula, y su cobro con él (`Orders\Application\CancelPendingOrder`), para que nunca haya dos pedidos pagables.
+3. **Con el pago simulado**, la caja de pago tiene «Simular pago correcto» y «Simular pago rechazado». Si se rechaza, vuelve a «Finalizar compra» con el aviso.
+4. **Si el cliente pulsa otra vez** (tarjeta rechazada, error) con el mismo carrito y los mismos datos, se reutiliza el pedido que espera el pago. Si ha cambiado algo, el anterior se anula, y su cobro con él (`Orders\Application\CancelPendingOrder`), para que nunca haya dos pedidos pagables.
 
 Ninguna página de compra se indexa (`noindex` y `robots.txt`).
 
@@ -91,7 +97,38 @@ Es el valor por defecto en local. «Finalizar compra» (y «Pagar el pedido») m
 
 **Nunca funciona en producción**: la aplicación se niega a arrancar el pago.
 
-### Stripe en modo test (`PAYMENT_DRIVER=stripe`)
+### Redsys (`PAYMENT_DRIVER=redsys`), la pasarela de Clave de Alma
+
+Redsys es el TPV virtual del banco. Se contrata con el banco, que da estos datos: **código de comercio (FUC)**, **terminal** y **clave secreta SHA-256**. Al banco hay que darle la **URL de notificación**, `https://<dominio>/webhooks/redsys`, y pedirle tres cosas:
+- Bizum, si se quiere.
+- «Parámetros en las URLs: Sí», para que el cliente traiga el resultado firmado al volver.
+- Apple Pay y Google Pay, si el banco los ofrece. Salen solos en la página de Redsys.
+
+1. En el `.env` del servidor (**nunca en GitHub ni en el chat**):
+
+   ```text
+   PAYMENT_DRIVER=redsys
+   REDSYS_MERCHANT_CODE=…
+   REDSYS_TERMINAL=1
+   REDSYS_SECRET_KEY=…
+   REDSYS_ENVIRONMENT=test
+   REDSYS_BIZUM=true
+   ```
+
+2. Ejecuta `php artisan config:clear`.
+3. **Pruebas** (`REDSYS_ENVIRONMENT=test`): no se cobra nada y los pedidos se marcan de prueba. Redsys publica un comercio de pruebas para cualquiera (compruébalo en su documentación): código `999008881`, terminal `1` y clave `sq7HjrUOBfKmC576ILgskD5srU870gJ7`. La tarjeta de prueba es `4548 8100 0000 0003`, caducidad `12/49`, CVV `123`.
+4. **Real** (`REDSYS_ENVIRONMENT=live`): solo cuando se venda de verdad, con los datos reales del banco.
+
+**Cómo se confirma el cobro**:
+- Por el **aviso firmado** que Redsys manda a `/webhooks/redsys` (la fuente de verdad).
+- Por el **resultado firmado** que trae el cliente al volver (`returnEvent`). Vale aunque el aviso no llegue, como en local (Herd): el aviso de Redsys no puede llegar a tu ordenador.
+- Los dos pasan por `HandleGatewayEvent`: se aplica una sola vez. Uno con la firma mal se ignora.
+
+**Devoluciones**: las cancelaciones y devoluciones del panel devuelven el dinero solas por la API REST de Redsys (operación 3, sobre el mismo número de pedido). Si Redsys la rechaza, no se da por hecha y el panel lo dice.
+
+**Números de pedido de Redsys**: Redsys no deja repetir uno, así que cada visita a su página lleva un número nuevo de 12 cifras (las 4 primeras, del pedido). Solo se cobra si el cliente paga allí. Si un mismo pedido se pagase dos veces (dos pestañas), queda «a revisar» para devolver uno desde el panel del TPV.
+
+### Stripe en modo test (`PAYMENT_DRIVER=stripe`, apagado)
 
 1. En [dashboard.stripe.com](https://dashboard.stripe.com), con el **modo de prueba** activado, entra en *Desarrolladores → Claves de API* y copia la clave publicable (`pk_test_…`) y la secreta (`sk_test_…`).
 2. En *Desarrolladores → Webhooks*, añade el endpoint `https://<tu-dominio>/webhooks/stripe` con los eventos `payment_intent.succeeded` y `payment_intent.payment_failed`. Copia el secreto de firma (`whsec_…`).
@@ -109,13 +146,13 @@ Es el valor por defecto en local. «Finalizar compra» (y «Pagar el pedido») m
 
 En local (Herd) el webhook de Stripe no puede llegar a tu ordenador. No pasa nada: al volver de Stripe, «Pedido recibido» pregunta a Stripe el estado del cobro y aplica el mismo proceso. Si quieres probar también el webhook, usa la CLI de Stripe: `stripe listen --forward-to clavedealma.test/webhooks/stripe`.
 
-**Métodos de pago**: el formulario de Stripe enseña los métodos activados en *Configuración → Métodos de pago* de vuestra cuenta (tarjeta, Apple Pay, Google Pay…). **Bizum no es un método nativo de Stripe**. Si es imprescindible, se añadirá otro driver (Redsys o MONEI) sin tocar la compra (ADR 0002).
+**Métodos de pago**: el formulario de Stripe enseña los métodos activados en *Configuración → Métodos de pago* de vuestra cuenta (tarjeta, Apple Pay, Google Pay…). **Bizum no es un método nativo de Stripe**: por eso la pasarela es Redsys (ADR 0026).
 
 **Seguridad**:
-- Los datos de la tarjeta los recoge Stripe en su propio formulario, así que nunca pasan por nuestro servidor (PCI SAQ A).
-- El pago solo se da por bueno cuando lo dice Stripe, por el webhook firmado o por la consulta al volver.
+- Los datos de la tarjeta los escribe el cliente en Redsys (o en el formulario de Stripe), así que nunca pasan por nuestro servidor (PCI SAQ A).
+- El pago solo se da por bueno cuando lo dice la pasarela: por el aviso firmado o por el resultado firmado al volver (Redsys), o por el webhook o la consulta (Stripe).
 - Cada aviso se aplica una sola vez.
-- Recargar la página de pago reutiliza el mismo cobro: nunca se cobra dos veces.
+- Con Stripe, recargar la página de pago reutiliza el mismo cobro. Con Redsys solo se cobra en su página, y un segundo cobro deja el pedido «a revisar».
 - Si el importe cobrado no coincide con el del pedido, el pedido queda pagado pero «a revisar».
 
 ## Emails
@@ -195,6 +232,6 @@ Solo lo ve el superadministrador. El gestor de catálogo no ve datos de clientes
 - [ ] Datos fiscales de Clave de Alma en el pie y en los emails. Las facturas llegan en la fase 6.
 - [ ] Decisión fiscal sobre Canarias, Ceuta y Melilla, y sobre el umbral de la UE (OSS).
 - [ ] Tarifas de envío reales en el panel.
-- [ ] Claves de Stripe en modo real (`pk_live_` / `sk_live_`) y su webhook, **solo en producción**.
+- [ ] TPV virtual de Redsys contratado con el banco (con Bizum) y sus datos reales con `REDSYS_ENVIRONMENT=live`, **solo en producción**. La URL de notificación, dada al banco.
 - [ ] Correo de salida (SMTP) configurado y probado.
 - [ ] Dirección de devoluciones (`RETURNS_ADDRESS`).

@@ -1,6 +1,6 @@
 # Clave de Alma · guía para agentes y desarrolladores
 
-Marketplace de ropa de artistas. **Clave de Alma es el vendedor único**: cada artista tiene una tienda interna en `clavedealma.es/<artista>`, pero el cliente compra, paga (Stripe: tarjeta, Bizum, Apple/Google Pay) y recibe la factura de Clave de Alma. Los artistas cobran una comisión mensual mediante autofacturación (Veri*Factu).
+Marketplace de ropa de artistas. **Clave de Alma es el vendedor único**: cada artista tiene una tienda interna en `clavedealma.es/<artista>`, pero el cliente compra, paga (Redsys, el TPV del banco: tarjeta y Bizum; ADR 0026) y recibe la factura de Clave de Alma. Los artistas cobran una comisión mensual mediante autofacturación (Veri*Factu).
 
 Documento de bases y arquitectura completa: ver `docs/README.md`. Cómo está hecho cada parte (también en el panel, *Desarrollo*): `docs/desarrollo/README.md`; mantenlo al día al añadir módulos o flujos. **Cada entrega añade su línea en `docs/desarrollo/historial.md`** (pestaña *Historial* de Desarrollo) y, si cambia la estructura, el árbol `App\Platform\Development\SystemMap`.
 
@@ -11,7 +11,7 @@ Documento de bases y arquitectura completa: ver `docs/README.md`. Cómo está he
 - Cada modelo que aparece en el panel tiene una política con **todas** sus acciones declaradas (`strictAuthorization`).
 - `Domain/` no depende de Laravel HTTP, Filament ni proveedores externos.
 - La interfaz (`app/Http`, `app/Filament`, `resources/views`) es la capa externa: no contiene reglas de negocio.
-- Servicios externos (Stripe, correo, transporte, Veri*Factu) siempre detrás de un contrato propio con driver.
+- Servicios externos (Redsys, correo, transporte, Veri*Factu) siempre detrás de un contrato propio con driver.
 - **Dinero en céntimos enteros** (`int`, `App\Support\Money`) y porcentajes en puntos básicos (`2500` = 25 %), nunca `float` (ADR 0005).
 - Los artículos reales entran por la ficha del panel (o, para cargas grandes, por el importador interno `catalogo:importar` del protocolo de `docs/protocolo`), con las mismas reglas (`PublicationCheck`, `ConfigureStock`); nunca a mano en el código ni en seeders con datos inventados.
 - En el panel el catálogo se trabaja siempre dentro de la **tienda activa** (`ActiveStore`, `ScopedToActiveStore`): productos, colecciones y prendas base son de una tienda (ADR 0010).

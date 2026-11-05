@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Modules\Orders\Contracts\CheckoutDetails;
+use App\Modules\Payments\Contracts\PaymentGateway;
 use App\Platform\Legal\LegalDocument;
 use App\Platform\Legal\LegalPage;
 use App\Storefront\Checkout\Countries;
@@ -32,6 +33,12 @@ class CheckoutRequest extends FormRequest
         if ($this->user() === null && $this->boolean('create_account')) {
             $rules['email'][] = 'unique:users,email';
             $rules['account_password'] = ['required', 'string', Password::min(8)];
+        }
+
+        // «Métodos de pago» (Redsys: tarjeta o Bizum), como en WooCommerce.
+        $methods = app(PaymentGateway::class)->methods();
+        if ($methods !== []) {
+            $rules['payment_method'] = ['required', Rule::in(array_keys($methods))];
         }
 
         return $rules;
@@ -75,6 +82,7 @@ class CheckoutRequest extends FormRequest
         return [
             'phone.regex' => 'Escribe un teléfono válido (solo números, con prefijo si es de fuera de España).',
             'postal_code.regex' => 'El código postal no tiene el formato de ese país.',
+            'payment_method.*' => 'Elige un método de pago.',
             'terms.accepted' => 'Para comprar tienes que aceptar las condiciones de venta y la política de privacidad.',
             'email.unique' => 'Ya hay una cuenta registrada con tu dirección de correo electrónico. Accede para continuar.',
         ];

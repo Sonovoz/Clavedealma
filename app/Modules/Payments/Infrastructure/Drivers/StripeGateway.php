@@ -38,6 +38,21 @@ class StripeGateway implements PaymentGateway
         return $this->publishable;
     }
 
+    public function methods(): array
+    {
+        return [];
+    }
+
+    public function testMode(): bool
+    {
+        return str_starts_with($this->secret, 'sk_test_');
+    }
+
+    public function returnEvent(array $query): ?GatewayEvent
+    {
+        return null;
+    }
+
     public function start(PaymentRequest $request): StartedPayment
     {
         if ($this->secret === '') {

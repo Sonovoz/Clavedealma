@@ -90,7 +90,10 @@ Route::get('/pedido/{token}/devolucion', [ReturnController::class, 'show'])->whe
 Route::post('/pedido/{token}/devolucion', [ReturnController::class, 'store'])->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:10,1')->name('returns.store');
 Route::get('/pedido/{token}/factura/{code}', [CheckoutController::class, 'invoice'])->where(['token' => '[A-Za-z0-9]{48}', 'code' => '[A-Za-z0-9\-]{3,30}'])->name('checkout.invoice');
 Route::get('/pedido/{token}', [CheckoutController::class, 'thanks'])->where('token', '[A-Za-z0-9]{48}')->name('checkout.thanks');
-Route::post('/webhooks/stripe', PaymentWebhookController::class)->name('payments.webhook.stripe');
+Route::post('/pedido/{token}/pagar', [CheckoutController::class, 'payStart'])->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:20,1')->name('checkout.pay.start');
+// Avisos de la pasarela (sin CSRF: los firma la pasarela). Redsys: la «URL de notificación» del TPV.
+Route::post('/webhooks/redsys', PaymentWebhookController::class)->defaults('provider', 'redsys')->name('payments.webhook.redsys');
+Route::post('/webhooks/stripe', PaymentWebhookController::class)->defaults('provider', 'stripe')->name('payments.webhook.stripe');
 
 // Textos legales de Clave de Alma; los de cada tienda en /<tienda>/legal/… (ADR 0020).
 $legalPages = array_map(fn (LegalPage $p): string => $p->value, LegalPage::cases());
