@@ -7,6 +7,7 @@ use App\Http\Controllers\Checkout\CartController;
 use App\Http\Controllers\Checkout\CheckoutController;
 use App\Http\Controllers\Checkout\PaymentWebhookController;
 use App\Http\Controllers\Checkout\ReturnController;
+use App\Http\Controllers\Panel\ArtistNoticeFileController;
 use App\Http\Controllers\Storefront\DesignAssetController;
 use App\Http\Controllers\Storefront\LegalController;
 use App\Http\Controllers\Storefront\MarketController;
@@ -39,6 +40,10 @@ Route::get('/_diseno/{design}/{file}', DesignAssetController::class)->name('stor
 // SEO: mapa del sitio y robots (docs/seo).
 Route::get('/sitemap.xml', [SitemapController::class, 'sitemap'])->name('seo.sitemap');
 Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('seo.robots');
+
+// Archivos privados de los avisos de artistas (ADR 0023): solo el artista y el superadmin.
+Route::get('/avisos-artistas/{notice}/archivo/{index}', ArtistNoticeFileController::class)
+    ->whereNumber(['notice', 'index'])->middleware('auth')->name('artist-notices.file');
 
 // «Mi cuenta» como WooCommerce (ADR 0021): cuenta opcional del cliente. Nunca se indexa.
 Route::prefix('mi-cuenta')->name('account.')->group(function (): void {

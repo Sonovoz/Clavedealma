@@ -1,6 +1,6 @@
 # Cómo está hecho Clave de Alma
 
-Hola, Diego. Esta guía explica cómo se ha construido cada parte del proyecto, dónde vive y qué reglas hay que respetar para que siga creciendo sin romperse. En el panel la tienes en **Desarrollo**, junto con el árbol del sistema, que se genera solo a partir del código. Las decisiones con su porqué están en los ADR (`docs/adr`, pestaña *Decisiones*).
+Hola, Diego. Esta guía explica cómo se ha construido cada parte del proyecto, dónde vive y qué reglas hay que respetar para que siga creciendo sin romperse. En el panel la tienes en **Desarrollo**, junto con el árbol del sistema, que se genera solo a partir del código. Las decisiones con su porqué están en los ADR (`docs/adr`, pestaña *Decisiones*), y lo que se ha ido entregando, en la pestaña *Historial* (`docs/desarrollo/historial.md`).
 
 ---
 
@@ -144,7 +144,7 @@ Fuera de los módulos está la **capa exterior**, que pinta y conecta pero no de
 - **Roles**:
   - el gestor de catálogo no ve clientes ni cobros;
   - el fabricante solo ve Fabricación e Inventario;
-  - el artista solo podrá consultar (fase 6b).
+  - el artista solo ve **Mis ventas** y **Avisos** (ADR 0023). Sus datos salen de `App\Platform\Artists\ArtistSales` (solo líneas de pedidos pagados y reales, nunca clientes) y `ArtistScope` decide qué artista ve cada uno.
 - Las **acciones con reglas** (enviar, cancelar, devolver) llaman a los casos de uso del módulo (`OrderActions`, `ProcessReturn`). El panel nunca escribe en las tablas por su cuenta.
 - **Menú como WooCommerce**: los grupos se declaran en `AdminPanelProvider` (Comercio, Productos, Análisis, Marketing, Tiendas, Ajustes, Herramientas), y cada recurso o página fija su `$navigationGroup` y su `$navigationSort`. Una pantalla nueva va al grupo donde estaría en WooCommerce. Los nombres son también los de WooCommerce: *Todos los productos*, *Categorías* (son las colecciones), *Inventario*, *Zonas de envío*, *Estado del sistema*. El recuadro «Estado de la tienda» del Escritorio es `App\Filament\Widgets\StoreStatusWidget`.
 - **«Mi cuenta»** (ADR 0021) vive en `app/Http/Controllers/Account` y `resources/views/account`. Para saber qué pedidos son de un cliente se usa siempre `App\Storefront\Account\CustomerOrders`: los suyos y, con el email confirmado, los de invitado con ese email. En el panel, `CustomerResource` (*Comercio → Clientes*).
@@ -178,6 +178,7 @@ Para añadir un proveedor se escribe otro driver del mismo contrato y se registr
 - **Cada cambio va en su rama y su pull request**, con la CI en verde (`.github/workflows/ci.yml`: Pest, Pint y Larastan sobre MariaDB).
 - **Idioma**: el código, las clases y las tablas en inglés; los textos de la interfaz, la documentación y los commits en español.
 - **Decisiones**: toda decisión técnica relevante se anota en un ADR nuevo en `docs/adr/`.
+- **Historial**: **cada entrega añade su línea** en `docs/desarrollo/historial.md` (pestaña *Historial*), en el mismo pull request. Si cambia cómo está hecho algo, se actualiza esta guía y, si toca, el árbol del sistema (`SystemMap`).
 - **Módulo nuevo**:
   1. Crea `app/Modules/X/{Contracts,Domain,Application,Infrastructure,Database}` y su `XServiceProvider`.
   2. Regístralo en `bootstrap/providers.php`.
@@ -199,10 +200,13 @@ Para añadir un proveedor se escribe otro driver del mismo contrato y se registr
 | PDF e informes | `docs/informes.md` |
 | Facturación y Veri*Factu | `docs/facturacion.md` |
 | Copias de seguridad | `docs/copias-de-seguridad.md` |
+| Historial de entregas | `docs/desarrollo/historial.md` |
 
 ## 14. Lo siguiente
 
-- **Fase 6b, liquidaciones a artistas**: autofactura mensual con retención, y panel de solo lectura para el artista.
+- **WooCommerce 4, cupones**: *Marketing → Cupones* y el campo de cupón en el carrito, con el IVA y la factura bien calculados.
+- **Panel como WooCommerce, 2.ª parte**: la ficha del pedido («Notas del pedido», «Acciones del pedido») y el listado y la ficha de productos.
+- **Fase 6b, liquidaciones a artistas**: autofactura mensual con retención, enlazada desde «Mis ventas» (que ya existe, ADR 0023).
 - **Driver `aeat` de Veri*Factu**, en cuanto esté el certificado.
 - **Fase 7**: centro de control para superadministradores.
 - **Antes del lanzamiento**:

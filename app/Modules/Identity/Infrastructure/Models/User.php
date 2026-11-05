@@ -60,6 +60,11 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->hasOne(CustomerAddress::class);
     }
 
+    public function isArtist(): bool
+    {
+        return $this->hasRole(Role::Artist->value);
+    }
+
     public function isCustomer(): bool
     {
         return $this->hasRole(Role::Customer->value);

@@ -28,7 +28,7 @@ final readonly class Subdomain
         'noticias', 'club', 'comunidad', 'novedades', 'rebajas', 'ofertas', 'regalos',
         'envios', 'devoluciones', 'legal', 'aviso-legal', 'privacidad', 'cookies',
         'condiciones', 'terminos', 'sobre-nosotros', 'quienes-somos', 'faq', 'prensa',
-        'empleo', 'factura', 'facturas',
+        'empleo', 'factura', 'facturas', 'avisos-artistas', 'avisos',
     ];
 
     public const PATTERN = '/^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$/';

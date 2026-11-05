@@ -24,11 +24,15 @@ use App\Modules\Returns\Infrastructure\Models\ReturnRequest;
 use App\Modules\Shipping\Infrastructure\Models\Carrier;
 use App\Modules\Shipping\Infrastructure\Models\RateBand;
 use App\Modules\Shipping\Infrastructure\Models\ZoneRate;
+use App\Modules\Stores\Contracts\Events\ArtistNoticeSent;
+use App\Modules\Stores\Contracts\Events\ArtistNoticeUpdated;
 use App\Modules\Stores\Infrastructure\Models\Artist;
+use App\Modules\Stores\Infrastructure\Models\ArtistNotice;
 use App\Modules\Stores\Infrastructure\Models\Store;
 use App\Platform\Ai\Drivers\NullTextGenerator;
 use App\Platform\Ai\Drivers\OpenAiCompatibleTextGenerator;
 use App\Platform\Ai\TextGenerator;
+use App\Platform\Artists\SendNoticeEmails;
 use App\Platform\Backup\Backup;
 use App\Platform\Legal\LegalDocument;
 use App\Platform\Legal\LegalGenerator;
@@ -36,9 +40,11 @@ use App\Platform\Pdf\DompdfRenderer;
 use App\Platform\Pdf\PdfRenderer;
 use App\Platform\Security\SecurityEvent;
 use App\Platform\Security\SecurityListeners;
+use App\Policies\ArtistNoticePolicy;
 use App\Policies\CatalogPolicy;
 use App\Policies\SuperadminOnlyPolicy;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -75,6 +81,11 @@ class AppServiceProvider extends ServiceProvider
         foreach ([BaseGarment::class, GarmentSize::class, Product::class, ProductVariant::class, ProductImage::class, Collection::class] as $model) {
             Gate::policy($model, CatalogPolicy::class);
         }
+
+        // Avisos de artistas (ADR 0023): cada artista los suyos; el superadmin, todos.
+        Gate::policy(ArtistNotice::class, ArtistNoticePolicy::class);
+        Event::listen(ArtistNoticeSent::class, [SendNoticeEmails::class, 'sent']);
+        Event::listen(ArtistNoticeUpdated::class, [SendNoticeEmails::class, 'updated']);
 
         // Registro de seguridad: accesos y cambios en las cuentas (las acciones del panel se anotan en cada acción).
         SecurityListeners::register();

@@ -7,11 +7,16 @@ it('redirige al login a quien no ha iniciado sesión', function () {
     $this->get('/admin')->assertRedirect('/admin/login');
 });
 
-it('deja entrar al panel a superadmin, fabricante y artista', function (Role $role) {
+it('deja entrar al panel a superadmin y fabricante', function (Role $role) {
     $user = User::factory()->withRole($role)->create();
 
     $this->actingAs($user)->get('/admin')->assertOk();
-})->with([Role::Superadmin, Role::Manufacturer, Role::Artist]);
+})->with([Role::Superadmin, Role::Manufacturer]);
+
+it('el artista entra a su escritorio «Mis ventas» (ADR 0023)', function () {
+    $this->actingAs(User::factory()->withRole(Role::Artist)->create())
+        ->get('/admin')->assertRedirect('/admin/mis-ventas');
+});
 
 it('no deja entrar al panel a un cliente', function () {
     $user = User::factory()->withRole(Role::Customer)->create();
