@@ -104,18 +104,8 @@ Redsys es el TPV virtual del banco. Se contrata con el banco, que da estos datos
 - «Parámetros en las URLs: Sí», para que el cliente traiga el resultado firmado al volver.
 - Apple Pay y Google Pay, si el banco los ofrece. Salen solos en la página de Redsys.
 
-1. En el `.env` del servidor (**nunca en GitHub ni en el chat**):
-
-   ```text
-   PAYMENT_DRIVER=redsys
-   REDSYS_MERCHANT_CODE=…
-   REDSYS_TERMINAL=1
-   REDSYS_SECRET_KEY=…
-   REDSYS_ENVIRONMENT=test
-   REDSYS_BIZUM=true
-   ```
-
-2. Ejecuta `php artisan config:clear`.
+1. **En el panel, *Ajustes → Pagos*** (ADR 0027), como en WooCommerce. Ahí están el estado del TPV, la URL de notificación para el banco y los **pasos para ponerlo en marcha**, que se marcan solos. Con «Editar datos del TPV» se escriben el código de comercio, el terminal y la clave secreta. La clave se guarda cifrada y cada cambio pide tu contraseña.
+2. El servidor solo necesita `PAYMENT_DRIVER=redsys` en el `.env`. Los datos del TPV también pueden ir ahí (`REDSYS_MERCHANT_CODE`, `REDSYS_TERMINAL`, `REDSYS_SECRET_KEY`, `REDSYS_ENVIRONMENT`, `REDSYS_BIZUM`; **nunca en GitHub ni en el chat**). Lo del panel manda.
 3. **Pruebas** (`REDSYS_ENVIRONMENT=test`): no se cobra nada y los pedidos se marcan de prueba. Redsys publica un comercio de pruebas para cualquiera (compruébalo en su documentación): código `999008881`, terminal `1` y clave `sq7HjrUOBfKmC576ILgskD5srU870gJ7`. La tarjeta de prueba es `4548 8100 0000 0003`, caducidad `12/49`, CVV `123`.
 4. **Real** (`REDSYS_ENVIRONMENT=live`): solo cuando se venda de verdad, con los datos reales del banco.
 

@@ -45,6 +45,7 @@ class RedsysGateway implements PaymentGateway
         private readonly bool $bizum = false,
         private readonly string $merchantName = 'Clave de Alma',
         private readonly ?string $notifyUrl = null,
+        private readonly bool $card = true,
     ) {}
 
     public function name(): string
@@ -59,7 +60,10 @@ class RedsysGateway implements PaymentGateway
 
     public function methods(): array
     {
-        return ['card' => 'Tarjeta de crédito o débito'] + ($this->bizum ? ['bizum' => 'Bizum'] : []);
+        $methods = ($this->card ? ['card' => 'Tarjeta de crédito o débito'] : []) + ($this->bizum ? ['bizum' => 'Bizum'] : []);
+
+        // Nunca sin ningún método: la tarjeta, como mínimo.
+        return $methods === [] ? ['card' => 'Tarjeta de crédito o débito'] : $methods;
     }
 
     public function testMode(): bool
