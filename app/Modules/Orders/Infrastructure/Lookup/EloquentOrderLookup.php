@@ -53,11 +53,13 @@ class EloquentOrderLookup implements OrderLookup
             lines: $order->lines->map(fn (OrderLine $l): OrderLineSummary => new OrderLineSummary(
                 $l->id, $l->product_variant_id, $l->sku, $l->product_name, $l->label(), $l->store_name,
                 $l->quantity, $l->unit_price_cents, $l->personalized, $l->image_path,
-                $l->vat_rate_bps, $l->total_cents,
+                $l->vat_rate_bps, $l->total_cents, $l->discount_cents,
             ))->values()->all(),
             paidAt: $order->paid_at?->toDateTimeImmutable(),
             shippingVatBps: PlaceOrder::SHIPPING_VAT_BPS,
             currency: $order->currency,
+            couponCode: $order->coupon_code,
+            discountCents: $order->discount_cents,
         );
     }
 }

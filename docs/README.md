@@ -43,6 +43,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0021](adr/0021-mi-cuenta.md) | «Mi cuenta»: cuenta opcional del cliente, como WooCommerce |
 | [0022](adr/0022-inventario-por-producto.md) | Inventario por producto, como WooCommerce |
 | [0023](adr/0023-portal-de-artistas.md) | Portal de artistas: «Mis ventas» y «Avisos» |
+| [0024](adr/0024-cupones.md) | Cupones, como WooCommerce |
 
 ## Orden de construcción
 
@@ -70,6 +71,7 @@ IA: el asistente SEO del panel ya está (ADR 0012, `docs/seo`). Más adelante, s
 | Comercio → Fabricación y su PDF (sin datos del cliente) | ✓ | — | ✓ | — |
 | Productos de la tienda elegida («Tienda: …»): todos los productos, categorías (colecciones), prendas base | ✓ | ✓ | — | — |
 | Análisis: informes y PDF de ventas | ✓ | — | — | — |
+| Marketing: cupones | ✓ | — | — | — |
 | Tiendas: artistas y tiendas (datos fiscales) | ✓ | — | — | — |
 | Mis ventas (escritorio del artista): sus ventas por producto y día, sin datos de clientes | ✓ (*Tiendas → Ventas por artista*) | — | — | ✓ |
 | Avisos: el artista los envía; el equipo los atiende | ✓ (*Tiendas → Avisos de artistas*) | — | — | ✓ (los suyos) |

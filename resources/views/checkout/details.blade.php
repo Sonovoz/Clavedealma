@@ -17,8 +17,26 @@
     @if (session('payment.error'))
         <p class="co-alert" role="alert">{{ session('payment.error') }}</p>
     @endif
+    @if (session('cart.error'))
+        <p class="co-alert" role="alert">{{ session('cart.error') }}</p>
+    @endif
+    @if (session('cart.updated'))
+        <p class="co-ok co-returning" role="status">{{ session('cart.updated') }}</p>
+    @endif
     @if ($customer === null)
         <p class="co-notice co-returning">¿Ya eres cliente? <a href="{{ route('account.show', ['volver' => 'finalizar-compra']) }}">Haz clic aquí para acceder</a></p>
+    @endif
+    @if (! $coupon)
+        {{-- «¿Tienes un cupón?», como en WooCommerce (ADR 0024). --}}
+        <details class="co-notice co-returning co-coupon-box" @if (session('cart.error')) open @endif>
+            <summary>¿Tienes un cupón? <span class="co-link">Haz clic aquí para introducir tu código</span></summary>
+            <form class="co-coupon" method="post" action="{{ route('cart.coupon') }}">
+                @csrf
+                <label class="co-sr" for="coupon_code">Código de cupón</label>
+                <input class="co-coupon__input" id="coupon_code" name="coupon_code" type="text" placeholder="Código de cupón" autocomplete="off" maxlength="40" required>
+                <button class="co-btn co-btn--ghost" type="submit">Aplicar cupón</button>
+            </form>
+        </details>
     @endif
 
     <form class="co-grid" method="post" action="{{ route('checkout.place') }}" novalidate
@@ -87,8 +105,12 @@
                 </tbody>
                 <tfoot>
                     <tr><th>Subtotal</th><td class="co-num">{{ $subtotal }}</td></tr>
+                    @if ($coupon)
+                        <tr class="co-review__coupon"><th>Cupón: {{ $coupon['code'] }} <small>{{ $coupon['label'] }}</small></th>
+                            <td class="co-num">{{ $coupon['amount'] }} <button class="co-link" form="co-coupon-remove" type="submit">[Quitar]</button></td></tr>
+                    @endif
                     <tr><th>Envío <small data-quote-zone></small></th><td class="co-num" data-quote-shipping>Escribe tu código postal</td></tr>
-                    <tr class="co-review__total"><th>Total</th><td class="co-num" data-quote-total>{{ $subtotal }}</td></tr>
+                    <tr class="co-review__total"><th>Total</th><td class="co-num" data-quote-total>{{ $totalWithoutShipping }}</td></tr>
                 </tfoot>
             </table>
             <p class="co-fine" data-quote-delivery>IVA incluido.</p>
@@ -126,4 +148,5 @@
             <a class="co-link" href="{{ route('cart.show') }}">Volver al carrito</a>
         </aside>
     </form>
+    <form class="co-hidden-form" id="co-coupon-remove" method="post" action="{{ route('cart.coupon.remove') }}">@csrf</form>
 @endsection

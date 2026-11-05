@@ -42,12 +42,17 @@ class RequestReturn
         }
 
         $refund = ReturnPolicy::refundCents(
-            array_map(fn ($l): array => ['id' => $l->id, 'quantity' => $l->quantity, 'unit_price_cents' => $l->unitPriceCents], $order->lines),
+            array_map(fn ($l): array => ['id' => $l->id, 'quantity' => $l->quantity, 'unit_price_cents' => $l->unitPriceCents, 'total_cents' => $l->totalCents], $order->lines),
             $this->options->alreadyReturned($order->id),
             $chosen,
             $order->shippingCents,
         );
-        $goods = array_sum(array_map(fn ($id, $q): int => $q * (int) $order->line((int) $id)?->unitPriceCents, array_keys($chosen), $chosen));
+        $goods = ReturnPolicy::refundCents(
+            array_map(fn ($l): array => ['id' => $l->id, 'quantity' => $l->quantity, 'unit_price_cents' => $l->unitPriceCents, 'total_cents' => $l->totalCents], $order->lines),
+            $this->options->alreadyReturned($order->id),
+            $chosen,
+            0,
+        );
 
         $return = DB::transaction(function () use ($order, $chosen, $reason, $comment, $refund, $goods): ReturnRequest {
             $return = ReturnRequest::query()->create([

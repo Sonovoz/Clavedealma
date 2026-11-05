@@ -8,6 +8,7 @@ Qué se ha ido construyendo, entrega a entrega, de la más reciente a la más an
 
 | Fecha | Entrega | PR | ADR |
 | --- | --- | --- | --- |
+| 05/11 | **WooCommerce 4, cupones**: *Marketing → Cupones* (porcentaje o fijo, envío gratis, fechas, gasto mínimo, tienda, excluir rebajas, límites), «Aplicar cupón» en el carrito y «¿Tienes un cupón?» al finalizar. El descuento se reparte en las líneas: IVA, factura, comisión y devoluciones cuadran al céntimo. | #32 | 0024 |
 | 05/11 | **Portal de artistas**: «Mis ventas» (ventas por producto y día, comisión estimada y comparación con el periodo anterior, sin datos de clientes) y «Avisos» al equipo con fotos o PDF, email y campana del panel. *Tiendas → Ventas por artista / Avisos de artistas* para el superadmin. Pestaña «Historial» en Desarrollo. | #31 | 0023 |
 | 05/11 | **Inventario por producto, como WooCommerce**: pestaña «Inventario» (Hay existencias / Agotado, ¿Gestionar inventario?, cantidad, umbral), columna y acciones masivas en el listado. Se quita *Productos → Inventario* y el stock por talla. | #30 | 0022 |
 | 05/11 | **WooCommerce 3, «Mi cuenta»**: cuenta opcional del cliente (Escritorio, Pedidos, Ver pedido, Facturas, Devoluciones, Direcciones, Detalles de la cuenta), «¿Crear una cuenta?» al comprar y *Comercio → Clientes*. | #29 | 0021 |

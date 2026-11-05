@@ -48,6 +48,7 @@ class EloquentVariantLookup implements VariantLookup
                 personalized: (bool) $product->getAttribute('personalized'),
                 imagePath: $image?->path,
                 onSale: $product->deleted_at === null && $product->status === ProductStatus::Published && (bool) $variant->getAttribute('active'),
+                onPromotion: $variant->discount() !== null,
             );
         }
 

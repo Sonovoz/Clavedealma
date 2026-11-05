@@ -16,6 +16,8 @@ use LogicException;
  *
  * @property int $id
  * @property ?int $user_id
+ * @property ?string $coupon_code
+ * @property int $discount_cents
  * @property ?string $reference
  * @property string $token
  * @property OrderStatus $status
@@ -78,6 +80,7 @@ class Order extends Model
             'shipping_free' => 'boolean',
             'terms_accepted_at' => 'datetime',
             'paid_at' => 'datetime',
+            'discount_cents' => 'integer',
             'cancelled_at' => 'datetime',
             'production_started_at' => 'datetime',
             'ready_at' => 'datetime',

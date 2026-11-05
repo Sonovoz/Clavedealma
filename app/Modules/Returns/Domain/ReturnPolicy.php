@@ -41,10 +41,12 @@ final class ReturnPolicy
     }
 
     /**
-     * Importe a devolver: las piezas devueltas y, si con esta devolución vuelve el pedido
-     * entero, también el envío pagado (art. 107 TRLGDCU). El envío de vuelta lo paga el cliente.
+     * Importe a devolver: lo que se pagó por las piezas devueltas y, si con esta devolución
+     * vuelve el pedido entero, también el envío pagado (art. 107 TRLGDCU). El envío de vuelta
+     * lo paga el cliente. Con cupón (ADR 0024) cuenta lo pagado de verdad: el total de la
+     * línea ya descontado, repartido por unidad sin perder ni ganar un céntimo.
      *
-     * @param  list<array{id: int, quantity: int, unit_price_cents: int}>  $lines
+     * @param  list<array{id: int, quantity: int, unit_price_cents: int, total_cents?: int}>  $lines
      * @param  array<int, int>  $alreadyReturned  línea → unidades en otras devoluciones no rechazadas
      * @param  array<int, int>  $thisReturn  línea → unidades de esta devolución
      */
@@ -54,8 +56,11 @@ final class ReturnPolicy
         $whole = true;
         foreach ($lines as $line) {
             $now = $thisReturn[$line['id']] ?? 0;
-            $amount += $now * $line['unit_price_cents'];
-            if (($alreadyReturned[$line['id']] ?? 0) + $now < $line['quantity']) {
+            $before = $alreadyReturned[$line['id']] ?? 0;
+            $paid = $line['total_cents'] ?? $line['unit_price_cents'] * $line['quantity'];
+            $qty = max(1, $line['quantity']);
+            $amount += intdiv($paid * min($qty, $before + $now), $qty) - intdiv($paid * min($qty, $before), $qty);
+            if ($before + $now < $line['quantity']) {
                 $whole = false;
             }
         }

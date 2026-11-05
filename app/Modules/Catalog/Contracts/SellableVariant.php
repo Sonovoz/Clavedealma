@@ -30,6 +30,8 @@ final readonly class SellableVariant
         public ?string $imagePath,
         /** Artículo publicado y variante activa. */
         public bool $onSale,
+        /** Rebajado ahora (por debajo del precio de referencia de 30 días): para los cupones. */
+        public bool $onPromotion = false,
     ) {}
 
     public function label(): string

@@ -24,6 +24,9 @@
         </tbody>
         <tfoot>
             <tr><th>Subtotal</th><td class="co-num">{{ $subtotal }}</td></tr>
+            @if ($discount ?? null)
+                <tr class="co-review__coupon"><th>Cupón: {{ $order->coupon_code }}</th><td class="co-num">{{ $discount }}</td></tr>
+            @endif
             <tr><th>Envío <small>· {{ $order->shipping_zone->label() }}</small></th><td class="co-num">{{ $shippingPrice }}</td></tr>
             <tr><th>Método de pago</th><td class="co-num">{{ $paymentMethod }}</td></tr>
             <tr class="co-review__total"><th>Total</th><td class="co-num">{{ $total }}</td></tr>

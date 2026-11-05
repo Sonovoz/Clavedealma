@@ -22,6 +22,7 @@ use LogicException;
  * @property ?string $size
  * @property ?string $color
  * @property int $unit_price_cents
+ * @property int $discount_cents
  * @property int $quantity
  * @property int $total_cents
  * @property int $vat_rate_bps
@@ -36,7 +37,7 @@ class OrderLine extends Model
 
     protected function casts(): array
     {
-        return ['personalized' => 'boolean'];
+        return ['personalized' => 'boolean', 'discount_cents' => 'integer'];
     }
 
     protected static function booted(): void

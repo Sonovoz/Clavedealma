@@ -77,6 +77,8 @@ Route::get('/mi-cuenta/verificar/{id}/{hash}', [AccountAuthController::class, 'v
 Route::get('/carrito', [CartController::class, 'show'])->name('cart.show');
 Route::post('/carrito', [CartController::class, 'add'])->middleware('throttle:60,1')->name('cart.add');
 Route::post('/carrito/actualizar', [CartController::class, 'update'])->middleware('throttle:60,1')->name('cart.update');
+Route::post('/carrito/cupon', [CartController::class, 'applyCoupon'])->middleware('throttle:20,1')->name('cart.coupon');
+Route::post('/carrito/cupon/quitar', [CartController::class, 'removeCoupon'])->name('cart.coupon.remove');
 // «Finalizar compra» como WooCommerce: datos, «Tu pedido» y pago en una sola página.
 Route::get('/finalizar-compra', [CheckoutController::class, 'show'])->name('checkout.show');
 Route::post('/finalizar-compra', [CheckoutController::class, 'place'])->middleware('throttle:10,1')->name('checkout.place');

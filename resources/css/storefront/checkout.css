@@ -261,3 +261,15 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .co-create:has(input[name="create_account"]:checked) .co-create__fields { display: grid; }
 .co-review__table th.co-num { text-align: right; }
 .co-returning { justify-content: flex-start; gap: 6px; }
+
+/* Cupones como WooCommerce (ADR 0024) */
+.co-coupon { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.co-coupon__input { min-width: 0; flex: 1 1 160px; max-width: 240px; padding: 11px 12px; border: 1px solid var(--line); background: var(--bg); font-size: 15px; border-radius: 0; text-transform: uppercase; }
+.co-coupon .co-btn--ghost { margin-top: 0; min-height: 44px; }
+.co-coupon-box { display: block; }
+.co-coupon-box summary { cursor: pointer; list-style: none; }
+.co-coupon-box summary::-webkit-details-marker { display: none; }
+.co-coupon-box .co-coupon { margin-top: 12px; }
+.co-totals__coupon dt small, .co-review__coupon th small { display: block; color: var(--muted); font-size: 12px; }
+.co-totals__coupon dd, .co-review__coupon td { color: var(--ok); }
+.co-hidden-form { display: none; }

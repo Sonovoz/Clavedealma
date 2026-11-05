@@ -30,6 +30,9 @@ final readonly class OrderSummary
         /** IVA del envío (el general). */
         public int $shippingVatBps = 2100,
         public string $currency = 'EUR',
+        /** Cupón usado (ADR 0024) y el descuento total, ya repartido en las líneas. */
+        public ?string $couponCode = null,
+        public int $discountCents = 0,
     ) {}
 
     public function line(int $id): ?OrderLineSummary

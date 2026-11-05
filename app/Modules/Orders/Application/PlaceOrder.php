@@ -4,6 +4,7 @@ namespace App\Modules\Orders\Application;
 
 use App\Modules\Cart\Contracts\PricedCart;
 use App\Modules\Orders\Contracts\CheckoutDetails;
+use App\Modules\Orders\Contracts\OrderDiscount;
 use App\Modules\Orders\Contracts\OrderStatus;
 use App\Modules\Orders\Domain\OrderTotals;
 use App\Modules\Orders\Infrastructure\Models\Order;
@@ -21,7 +22,7 @@ class PlaceOrder
     /** IVA del envío: el mismo tipo general que las prendas. */
     public const SHIPPING_VAT_BPS = 2100;
 
-    public function __invoke(PricedCart $cart, CheckoutDetails $details, ShippingQuote $shipping, bool $test = false): Order
+    public function __invoke(PricedCart $cart, CheckoutDetails $details, ShippingQuote $shipping, bool $test = false, ?OrderDiscount $discount = null): Order
     {
         if ($cart->isEmpty() || $cart->hasProblems()) {
             throw new InvalidArgumentException('El carrito ha cambiado: revísalo antes de pagar.');
@@ -30,6 +31,8 @@ class PlaceOrder
         $lines = [];
         foreach ($cart->buyableLines() as $line) {
             $v = $line->variant;
+            // Cupón (ADR 0024): el total de la línea ya lleva su parte del descuento.
+            $off = min($discount?->forVariant($v->variantId) ?? 0, $line->totalCents());
             $lines[] = [
                 'store_id' => $v->storeId,
                 'store_name' => $line->store->name,
@@ -41,8 +44,9 @@ class PlaceOrder
                 'size' => $v->size,
                 'color' => $v->color,
                 'unit_price_cents' => $v->unitPriceCents,
+                'discount_cents' => $off,
                 'quantity' => $line->quantity,
-                'total_cents' => $line->totalCents(),
+                'total_cents' => $line->totalCents() - $off,
                 'vat_rate_bps' => $v->vatRateBps,
                 'commission_bps' => $v->commissionBps ?? $line->store->commissionBps,
                 'weight_grams' => ($v->weightGrams ?? $cart->defaultWeightGrams) * $line->quantity,
@@ -52,8 +56,9 @@ class PlaceOrder
         }
 
         $totals = OrderTotals::compute($lines, $shipping->priceCents, self::SHIPPING_VAT_BPS);
+        $discountCents = array_sum(array_column($lines, 'discount_cents'));
 
-        return DB::transaction(function () use ($cart, $details, $shipping, $test, $lines, $totals): Order {
+        return DB::transaction(function () use ($cart, $details, $shipping, $test, $lines, $totals, $discount, $discountCents): Order {
             $order = Order::query()->create([
                 'token' => Str::random(48),
                 'status' => OrderStatus::PendingPayment,
@@ -80,6 +85,8 @@ class PlaceOrder
                 'weight_grams' => $cart->weightGrams(),
                 'terms_version' => $details->termsVersion,
                 'terms_accepted_at' => now(),
+                'coupon_code' => $discountCents > 0 || $discount !== null ? $discount?->code : null,
+                'discount_cents' => $discountCents,
             ] + $totals);
 
             $order->update(['reference' => OrderTotals::reference($order->id, (int) now()->format('Y'))]);

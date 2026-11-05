@@ -28,6 +28,7 @@ enum SecurityEventType: string implements HasLabel
     case Maintenance = 'maintenance';
     case LegalGenerated = 'legal_generated';
     case LegalApproved = 'legal_approved';
+    case CouponChanged = 'coupon_changed';
 
     public function label(): string
     {
@@ -54,6 +55,7 @@ enum SecurityEventType: string implements HasLabel
             self::Maintenance => 'Modo mantenimiento',
             self::LegalGenerated => 'Textos legales generados',
             self::LegalApproved => 'Texto legal revisado',
+            self::CouponChanged => 'Cupón creado o cambiado',
         };
     }
 

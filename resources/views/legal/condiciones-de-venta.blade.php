@@ -13,6 +13,7 @@ Estas condiciones se aplican a todas las compras hechas en Clave de Alma y en la
 - Cada pieza **se fabrica para ti cuando haces el pedido**, salvo las que se indican como disponibles en stock. El plazo de fabricación aparece en la ficha de cada pieza.
 - Los precios están en euros e **incluyen el IVA**. El coste del envío se indica antes de pagar, según el destino y el peso del pedido (ver [envíos y devoluciones](envios-y-devoluciones)).
 - Los precios rebajados muestran el precio más bajo de los 30 días anteriores a la rebaja.
+- **Cupones de descuento**: se aplican en el carrito según sus condiciones (fechas, gasto mínimo, tienda o límite de usos), que se indican al aplicarlo. No se canjean por dinero ni se acumulan con otro cupón en el mismo pedido. Si devuelves una pieza comprada con cupón, se reembolsa lo que pagaste por ella, con el descuento aplicado.
 
 ## 3. Cómo se compra
 

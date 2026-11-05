@@ -13,6 +13,8 @@ class CartStore
 {
     private const KEY = 'cart.lines';
 
+    private const COUPON = 'cart.coupon';
+
     public function __construct(private readonly Session $session) {}
 
     /**
@@ -35,7 +37,20 @@ class CartStore
 
     public function clear(): void
     {
-        $this->session->forget(self::KEY);
+        $this->session->forget([self::KEY, self::COUPON]);
+    }
+
+    /** Código del cupón aplicado al carrito (ADR 0024); se vuelve a comprobar siempre. */
+    public function coupon(): ?string
+    {
+        $code = $this->session->get(self::COUPON);
+
+        return is_string($code) && $code !== '' ? $code : null;
+    }
+
+    public function setCoupon(?string $code): void
+    {
+        $code === null ? $this->session->forget(self::COUPON) : $this->session->put(self::COUPON, mb_strtoupper(trim($code)));
     }
 
     public function count(): int
