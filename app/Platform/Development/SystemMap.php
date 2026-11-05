@@ -31,7 +31,7 @@ Clave de Alma (vendedor único)
 │   ├── Marketing ..... Cupones ....................................................... superadmin
 │   ├── Tiendas ....... Artistas · Tiendas · Ventas por artista · Avisos de artistas  superadmin
 │   ├── Mis ventas · Avisos (escritorio del artista, sin datos de clientes) ........ artista
-│   ├── Ajustes ....... Datos de facturación · Zonas de envío · Transportistas · Textos legales
+│   ├── Ajustes ....... Datos de facturación · Pagos (Redsys) · Zonas de envío · Transportistas · Textos legales
 │   └── Herramientas .. Usuarios · Copias · Registro de seguridad · Estado del sistema · Desarrollo
 │
 ├── Negocio (app/Modules, solo se hablan por Contracts y eventos)

@@ -150,6 +150,7 @@ Fuera de los módulos está la **capa exterior**, que pinta y conecta pero no de
 - Las **acciones con reglas** (enviar, cancelar, devolver) llaman a los casos de uso del módulo (`OrderActions`, `ProcessReturn`). El panel nunca escribe en las tablas por su cuenta.
 - **Menú como WooCommerce**: los grupos se declaran en `AdminPanelProvider` (Comercio, Productos, Análisis, Marketing, Tiendas, Ajustes, Herramientas), y cada recurso o página fija su `$navigationGroup` y su `$navigationSort`. Una pantalla nueva va al grupo donde estaría en WooCommerce. Los nombres son también los de WooCommerce: *Todos los productos*, *Categorías* (son las colecciones), *Inventario*, *Zonas de envío*, *Estado del sistema*. El recuadro «Estado de la tienda» del Escritorio es `App\Filament\Widgets\StoreStatusWidget`.
 - **«Mi cuenta»** (ADR 0021) vive en `app/Http/Controllers/Account` y `resources/views/account`. Para saber qué pedidos son de un cliente se usa siempre `App\Storefront\Account\CustomerOrders`: los suyos y, con el email confirmado, los de invitado con ese email. En el panel, `CustomerResource` (*Comercio → Clientes*).
+- **Ajustes → Pagos** (ADR 0027): `App\Filament\Pages\PaymentSettings` y `App\Platform\Payments\RedsysSettings`. Los datos del panel (tabla `settings`, la clave cifrada) se pasan a `config('payments.redsys')` antes de crear la pasarela (`beforeResolving` en `AppServiceProvider`). El aviso de Redsys apunta «Último aviso del banco».
 - **Estados del pedido**: en el panel se leen como en WooCommerce (`OrderStatus::label()`). *Procesando* agrupa los pagados sin enviar (`OrderStatus::processing()`), y *Completado* es el entregado. El valor guardado no cambia.
 - **Ficha del pedido** (ADR 0025): «Notas del pedido» lee `order_events`. «Añadir nota» llama a `Orders\Application\AddOrderNote`: la privada solo la ve el equipo, y la del cliente le llega por email (`OrderNoteMail`) y sale en «Actualizaciones del pedido» (`OrderPage`). «Acciones del pedido» llama a `ResendOrderEmails`. Cada apunte guarda su autor (`author`).
 - **Los PDF** se generan en `App\Platform\Documents\*`, con las plantillas en `resources/views/pdf/*`.
@@ -167,7 +168,7 @@ Para añadir un proveedor se escribe otro driver del mismo contrato y se registr
 
 ## 11. Seguridad
 
-- **Secretos** solo en el `.env` del servidor: datos del TPV de Redsys, IA, SMTP y certificados. **Nunca** en GitHub ni en el chat.
+- **Secretos** solo en el `.env` del servidor: IA, SMTP y certificados. La excepción es la clave del TPV de Redsys, que se escribe en *Ajustes → Pagos*: se guarda cifrada con la `APP_KEY`, nunca se muestra y cada cambio pide la contraseña (ADR 0027). **Nunca** en GitHub ni en el chat.
 - **Webhooks**: solo con firma válida, y cada aviso se aplica una vez.
 - **Pago**: la tarjeta no pasa por nuestro servidor (PCI SAQ A).
 - **Enlaces privados de cliente**: `/pedido/<token>` con 48 caracteres aleatorios.

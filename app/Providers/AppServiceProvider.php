@@ -17,6 +17,7 @@ use App\Modules\Invoicing\Infrastructure\Models\InvoiceLine;
 use App\Modules\Orders\Infrastructure\Models\Order;
 use App\Modules\Orders\Infrastructure\Models\OrderEvent;
 use App\Modules\Orders\Infrastructure\Models\OrderLine;
+use App\Modules\Payments\Contracts\PaymentGateway;
 use App\Modules\Payments\Infrastructure\Models\Payment;
 use App\Modules\Payments\Infrastructure\Models\Refund;
 use App\Modules\Promotions\Infrastructure\Models\Coupon;
@@ -38,6 +39,7 @@ use App\Platform\Artists\SendNoticeEmails;
 use App\Platform\Backup\Backup;
 use App\Platform\Legal\LegalDocument;
 use App\Platform\Legal\LegalGenerator;
+use App\Platform\Payments\RedsysSettings;
 use App\Platform\Pdf\DompdfRenderer;
 use App\Platform\Pdf\PdfRenderer;
 use App\Platform\Security\SecurityEvent;
@@ -69,6 +71,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Livewire::component('store-switcher', StoreSwitcher::class);
+
+        // Datos del TPV de Redsys escritos en «Ajustes → Pagos» (ADR 0027): antes de crear la pasarela.
+        $redsysApplied = false;
+        $this->app->beforeResolving(PaymentGateway::class, function () use (&$redsysApplied): void {
+            if (! $redsysApplied) {
+                $redsysApplied = true;
+                RedsysSettings::apply();
+            }
+        });
 
         // En desarrollo y en las pruebas, error ante consultas N+1 o atributos inexistentes.
         Model::shouldBeStrict($this->app->isLocal() || $this->app->runningUnitTests());

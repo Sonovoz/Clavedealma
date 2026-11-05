@@ -37,6 +37,7 @@ class PaymentsServiceProvider extends ServiceProvider
                     bizum: (bool) ($redsys['bizum'] ?? false),
                     merchantName: (string) ($redsys['merchant_name'] ?? 'Clave de Alma'),
                     notifyUrl: route('payments.webhook.redsys'),
+                    card: (bool) ($redsys['card'] ?? true),
                 );
             }
 

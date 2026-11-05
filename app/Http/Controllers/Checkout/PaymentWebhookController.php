@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Checkout;
 use App\Modules\Payments\Application\HandleGatewayEvent;
 use App\Modules\Payments\Contracts\InvalidWebhook;
 use App\Modules\Payments\Contracts\PaymentGateway;
+use App\Platform\Payments\RedsysSettings;
+use App\Platform\Settings\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
@@ -30,6 +32,10 @@ class PaymentWebhookController
         }
 
         $handle($gateway->name(), $event);
+        // «Último aviso del banco» en Ajustes → Pagos: confirma que la URL de notificación funciona.
+        if ($provider === 'redsys') {
+            Settings::put(RedsysSettings::LAST_NOTICE, now()->toIso8601String());
+        }
 
         return response('ok');
     }
