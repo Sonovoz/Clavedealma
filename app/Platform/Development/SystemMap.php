@@ -49,15 +49,16 @@ Clave de Alma (vendedor único)
 │
 ├── Plataforma (app/Platform, transversal)
 │   ├── IA (TextGenerator) · PDF (PdfRenderer) · Documentos · Importador de catálogo
-│   ├── Copias de seguridad (programadas) · Ajustes · Estado del sistema
-│   └── Registro de seguridad (accesos y acciones sensibles)
+│   ├── Copias de seguridad (programadas, también fuera del servidor) · Ajustes · Estado del sistema
+│   ├── Avisos de errores por email (Monitoring\ErrorAlerts)
+│   └── Registro de seguridad (accesos, dos pasos y acciones sensibles)
 │
 └── Servicios externos (siempre por contrato y driver)
     ├── Redsys ............ PaymentGateway (tarjeta y Bizum; Stripe, apagado)
     ├── IA (OpenAI o compatible) ... TextGenerator
     ├── AEAT Veri*Factu ... VerifactuSender (pendiente del certificado)
     ├── Correo (SMTP) ..... Laravel Mail
-    └── Almacenamiento .... disco local (Hostinger) o S3 (OVH)
+    └── Almacenamiento .... disco local; copias también en Object Storage de OVH (S3)
 
 Flujo de una venta
   Añadir → Cesta (PriceCart) → PlaceOrder (pendiente) → StartPayment → Redsys

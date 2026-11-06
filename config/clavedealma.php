@@ -64,10 +64,21 @@ return [
     'security' => [
         // Días que se conserva el registro de seguridad (guarda IPs: dato personal).
         'retention_days' => (int) env('SECURITY_LOG_DAYS', 365),
+        // Verificación en dos pasos del panel, obligatoria para el equipo (ADR 0028).
+        'two_factor_required' => (bool) env('TWO_FACTOR_REQUIRED', true),
+    ],
+
+    // Aviso por email de los errores de la web (App\Platform\Monitoring\ErrorAlerts).
+    'errors' => [
+        'alerts' => (bool) env('ERROR_ALERTS', false),
+        'email' => env('ERROR_ALERT_EMAIL'),
     ],
 
     'backups' => [
         'disk' => env('BACKUP_DISK', 'backups'),
+        // Además, una copia fuera del servidor (disco «backups_offsite»: Object Storage de OVH).
+        'offsite' => (bool) env('BACKUP_OFFSITE', false),
+        'offsite_disk' => 'backups_offsite',
         'timezone' => env('BACKUP_TIMEZONE', 'Europe/Madrid'),
     ],
 

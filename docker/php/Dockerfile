@@ -39,9 +39,10 @@ RUN npm run build
 FROM base AS runtime
 COPY --chown=www-data:www-data --from=vendor /var/www/html /var/www/html
 COPY --chown=www-data:www-data --from=assets /var/www/html/public/build ./public/build
-RUN rm -rf .env docker tests \
+RUN rm -rf .env docker tests public/storage \
     && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views \
-        storage/logs storage/app/public bootstrap/cache \
+        storage/logs storage/app/public storage/app/private bootstrap/cache \
+    && ln -s ../storage/app/public public/storage \
     && chown -R www-data:www-data storage bootstrap/cache
 USER www-data
 CMD ["php-fpm"]

@@ -24,7 +24,7 @@ Hola, Diego. Esta guía explica cómo se ha construido cada parte del proyecto, 
 | PDF | **dompdf**, por contrato propio |
 | QR de Veri*Factu | `bacon/bacon-qr-code` (SVG) |
 | Pruebas y calidad | **Pest 4**, Pint, **Larastan nivel 6** y pruebas de arquitectura |
-| Entornos | **Hostinger** (pruebas, drivers `database`) y **Docker en OVH** (producción: Redis, Meilisearch, S3). El mismo código en los dos (ADR 0004) |
+| Entornos | **Docker en un VPS de OVH** (el servidor elegido: Traefik con HTTPS, MariaDB, Redis, colas, tareas programadas y copias en Object Storage; guía en `docs/despliegue-docker.md`) y, como alternativa, **Hostinger** (drivers `database`). El mismo código en los dos (ADR 0004 y 0028) |
 
 ## 3. Arrancar en local
 
@@ -173,6 +173,9 @@ Para añadir un proveedor se escribe otro driver del mismo contrato y se registr
 - **Pago**: la tarjeta no pasa por nuestro servidor (PCI SAQ A).
 - **Enlaces privados de cliente**: `/pedido/<token>` con 48 caracteres aleatorios.
 - **Datos personales**: el fabricante no los ve y la IA nunca los recibe.
+- **Verificación en dos pasos** (ADR 0028): obligatoria para el equipo del panel (`User::mustUseTwoFactor`, `App\Http\Middleware\EnsureTwoFactorForStaff`), opcional para los artistas. Para quitarla a quien pierde el móvil: *Usuarios → Quitar dos pasos* o `php artisan usuarios:quitar-dos-pasos <email>`.
+- **Avisos de errores** (`App\Platform\Monitoring\ErrorAlerts`, desde `bootstrap/app.php`): email al equipo, como mucho uno por error y hora y 10 a la hora, sin datos de clientes ni SQL.
+- **Detrás de un proxy** (Traefik): `TRUSTED_PROXIES` para que la web sepa que va por HTTPS y vea la IP real.
 - **Registro de seguridad** (*Herramientas → Registro de seguridad*):
   - anota accesos, intentos fallidos, cambios de usuarios y roles, devoluciones de dinero, cancelaciones, datos fiscales y copias;
   - no se puede modificar y se purga a los 12 meses (`seguridad:purgar`).
@@ -196,7 +199,7 @@ Para añadir un proveedor se escribe otro driver del mismo contrato y se registr
 | --- | --- |
 | Bases y orden de fases | `docs/README.md` |
 | Instalación de pruebas en Hostinger | `docs/instalacion-hostinger.md` |
-| Producción con Docker en OVH | `docs/despliegue-docker.md` |
+| Instalación en OVH (VPS con Docker), paso a paso | `docs/despliegue-docker.md` |
 | Alta de artículos (hoja + fotos) | `docs/protocolo/README.md` |
 | Esquema de tienda | `docs/tiendas/README.md` |
 | SEO e IA | `docs/seo/README.md` |

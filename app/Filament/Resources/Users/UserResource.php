@@ -8,13 +8,16 @@ use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Modules\Identity\Contracts\Role;
 use App\Modules\Identity\Infrastructure\Models\User;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -103,6 +106,9 @@ class UserResource extends Resource
                     ->label('Rol')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => Role::tryFrom($state)?->label() ?? $state),
+                IconColumn::make('two_factor')->label('Dos pasos')->boolean()
+                    ->state(fn (User $record): bool => $record->hasTwoFactor())
+                    ->tooltip(fn (User $record): string => $record->hasTwoFactor() ? 'Verificación en dos pasos activada' : ($record->mustUseTwoFactor() ? 'La configurará al entrar (obligatoria)' : 'Sin activar (opcional)')),
                 TextColumn::make('created_at')->label('Alta')->date('d/m/Y')->sortable()->toggleable(),
             ])
             ->filters([
@@ -113,7 +119,23 @@ class UserResource extends Resource
                         ? $query->whereHas('roles', fn (Builder $roles) => $roles->where('name', $data['value']))
                         : $query),
             ])
-            ->recordActions([EditAction::make()])
+            ->recordActions([
+                EditAction::make(),
+                // Por si alguien pierde el móvil y sus códigos de recuperación (ADR 0028).
+                Action::make('resetTwoFactor')
+                    ->label('Quitar dos pasos')
+                    ->icon(Heroicon::OutlinedShieldExclamation)
+                    ->color('danger')
+                    ->visible(fn (User $record): bool => $record->hasTwoFactor())
+                    ->requiresConfirmation()
+                    ->modalHeading('Quitar la verificación en dos pasos')
+                    ->modalDescription(fn (User $record): string => 'Úsalo solo si '.$record->name.' ha perdido el móvil y los códigos de recuperación. Al volver a entrar tendrá que configurarla de nuevo. Queda en el registro de seguridad.')
+                    ->action(function (User $record): void {
+                        $record->saveAppAuthenticationSecret(null);
+                        $record->saveAppAuthenticationRecoveryCodes(null);
+                        Notification::make()->title('Verificación en dos pasos quitada')->success()->send();
+                    }),
+            ])
             ->defaultSort('name');
     }
 

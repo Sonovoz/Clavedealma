@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Modules\Identity\Infrastructure\Models\User;
 use App\Platform\ApplyUpdate;
+use App\Platform\Monitoring\ErrorAlerts;
 use App\Platform\Security\SecurityEventType;
 use App\Platform\Security\SecurityLog;
 use App\Platform\SystemStatus;
@@ -13,6 +14,8 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Str;
+use Throwable;
 use UnitEnum;
 
 /**
@@ -63,6 +66,8 @@ class System extends Page
             'storageWritable' => $status->storageIsWritable(),
             'maintenance' => $status->isInMaintenance(),
             'drivers' => $status->drivers(),
+            'errorAlerts' => ErrorAlerts::enabled(),
+            'errorEmail' => ErrorAlerts::recipient(),
         ];
     }
 
@@ -87,6 +92,22 @@ class System extends Page
                         ? $notification->title('La actualización terminó con errores')->danger()
                         : $notification->title('Actualización aplicada')->success();
                     $notification->send();
+                }),
+
+            Action::make('testErrorAlert')
+                ->label('Enviar un aviso de prueba')
+                ->icon(Heroicon::OutlinedBellAlert)
+                ->color('gray')
+                ->visible(fn (): bool => ErrorAlerts::enabled())
+                ->requiresConfirmation()
+                ->modalDescription(fn (): string => 'Envía a '.ErrorAlerts::recipient().' un email como el de un error, para comprobar que el correo del servidor funciona.')
+                ->action(function (): void {
+                    try {
+                        ErrorAlerts::test();
+                        Notification::make()->title('Aviso de prueba enviado')->body('Mira la bandeja de entrada (y la de spam) de '.ErrorAlerts::recipient().'.')->success()->send();
+                    } catch (Throwable $e) {
+                        Notification::make()->title('No se ha podido enviar')->body('Revisa el correo (MAIL_*) del .env: '.Str::limit($e->getMessage(), 200))->danger()->persistent()->send();
+                    }
                 }),
 
             Action::make('maintenanceOn')
