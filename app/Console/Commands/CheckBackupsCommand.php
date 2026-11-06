@@ -27,6 +27,12 @@ class CheckBackupsCommand extends Command
 
             return self::FAILURE;
         }
+        if (Backup::offsiteEnabled() && ! $last->isOffsite()) {
+            $createBackup->notify('La última copia no está fuera del servidor', 'La copia del '.$last->started_at->timezone((string) config('clavedealma.backups.timezone'))->format('d/m/Y H:i').' solo está en el servidor: '.($last->offsite_error ?? 'no se ha subido al Object Storage').'. Pulsa «Subir fuera» en Herramientas → Copias de seguridad.');
+            $this->warn('La última copia no está fuera del servidor.');
+
+            return self::FAILURE;
+        }
         $this->info('Copias al día.');
 
         return self::SUCCESS;

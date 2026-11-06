@@ -23,7 +23,9 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Throwable;
 use UnitEnum;
 
 /**
@@ -68,6 +70,8 @@ class Backups extends Page implements HasTable
             'schedule' => BackupSchedule::describe(),
             'enabled' => BackupSchedule::get()['enabled'],
             'disk' => (string) config('clavedealma.backups.disk'),
+            'offsite' => Backup::offsiteEnabled(),
+            'offsiteMissing' => Backup::offsiteEnabled() && $last !== null && ! $last->isOffsite() ? ($last->offsite_error ?? 'No se ha subido.') : null,
             'email' => BackupSchedule::notifyEmail(),
             'last' => $last === null ? null : $last->started_at->timezone($tz)->format('d/m/Y H:i'),
             'stale' => $last === null || $last->started_at->lt(BackupSchedule::staleAfter(now())),
@@ -101,6 +105,21 @@ class Backups extends Page implements HasTable
                     }),
                 TextColumn::make('trigger')->label('Origen')->formatStateUsing(fn (string $state): string => $state === 'scheduled' ? 'Programada' : 'Manual'),
                 TextColumn::make('size_bytes')->label('Tamaño')->formatStateUsing(fn (Backup $record): string => $record->size_bytes === null ? '—' : $record->sizeLabel())->alignEnd(),
+                TextColumn::make('offsite_at')->label('Fuera del servidor')
+                    ->visible(fn (): bool => Backup::offsiteEnabled())
+                    ->state(fn (Backup $record): string => match (true) {
+                        $record->status !== Backup::OK => '—',
+                        $record->isOffsite() => 'Subida',
+                        $record->offsite_error !== null => 'No se ha subido',
+                        default => 'Pendiente',
+                    })
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'Subida' => 'success',
+                        'No se ha subido' => 'danger',
+                        default => 'gray',
+                    })
+                    ->tooltip(fn (Backup $record): ?string => $record->offsite_error),
                 TextColumn::make('message')->label('Detalle')->wrap()->limit(120),
             ])
             ->recordActions([
@@ -110,20 +129,30 @@ class Backups extends Page implements HasTable
                     ->visible(fn (Backup $record): bool => $record->status === Backup::OK && $record->path !== null)
                     ->action(function (Backup $record): StreamedResponse {
                         SecurityLog::record(SecurityEventType::BackupDownloaded, 'Copia de seguridad descargada.', subject: 'Copia #'.$record->id);
+                        // Si en el servidor ya no está (por ejemplo, tras perderlo), desde fuera.
+                        $disk = Storage::disk($record->disk)->exists((string) $record->path) || ! $record->isOffsite() ? $record->disk : (string) $record->offsite_disk;
 
-                        return Storage::disk($record->disk)->download((string) $record->path);
+                        return Storage::disk($disk)->download((string) ($disk === $record->disk ? $record->path : $record->offsite_path));
+                    }),
+                Action::make('uploadOffsite')
+                    ->label('Subir fuera')
+                    ->icon(Heroicon::OutlinedCloudArrowUp)
+                    ->color('warning')
+                    ->visible(fn (Backup $record): bool => Backup::offsiteEnabled() && $record->status === Backup::OK && ! $record->isOffsite())
+                    ->action(function (Backup $record, CreateBackup $createBackup): void {
+                        $createBackup->uploadOffsite($record)
+                            ? Notification::make()->title('Copia subida fuera del servidor')->success()->send()
+                            : Notification::make()->title('No se ha podido subir')->body((string) $record->fresh()?->offsite_error)->danger()->persistent()->send();
                     }),
                 Action::make('delete')
                     ->label('Borrar')
                     ->icon(Heroicon::OutlinedTrash)
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->modalDescription('Se borra el archivo de la copia. No se puede deshacer.')
+                    ->modalDescription('Se borra el archivo de la copia, en el servidor y fuera. No se puede deshacer.')
                     ->visible(fn (Backup $record): bool => $record->status !== Backup::RUNNING)
                     ->action(function (Backup $record): void {
-                        if ($record->path !== null) {
-                            Storage::disk($record->disk)->delete($record->path);
-                        }
+                        CreateBackup::deleteFiles($record);
                         $record->delete();
                         SecurityLog::record(SecurityEventType::BackupDeleted, 'Copia de seguridad borrada.', subject: 'Copia #'.$record->id);
                         Notification::make()->title('Copia borrada')->success()->send();
@@ -148,6 +177,26 @@ class Backups extends Page implements HasTable
                     $backup->status === Backup::OK
                         ? Notification::make()->title('Copia hecha')->body("{$backup->sizeLabel()} · {$backup->message}")->success()->send()
                         : Notification::make()->title('La copia ha fallado')->body((string) $backup->message)->danger()->persistent()->send();
+                }),
+
+            Action::make('testOffsite')
+                ->label('Probar Object Storage')
+                ->icon(Heroicon::OutlinedSignal)
+                ->color('gray')
+                ->visible(fn (): bool => Backup::offsiteEnabled())
+                ->action(function (): void {
+                    $disk = Storage::disk((string) config('clavedealma.backups.offsite_disk'));
+                    $file = 'prueba-'.now()->format('YmdHis').'.txt';
+                    try {
+                        $disk->put($file, 'Prueba de conexión de Clave de Alma.');
+                        $ok = $disk->get($file) === 'Prueba de conexión de Clave de Alma.';
+                        $disk->delete($file);
+                        $ok
+                            ? Notification::make()->title('Object Storage funciona')->body('Se ha podido escribir, leer y borrar un archivo de prueba.')->success()->send()
+                            : Notification::make()->title('Object Storage no devuelve lo escrito')->danger()->persistent()->send();
+                    } catch (Throwable $e) {
+                        Notification::make()->title('No se puede conectar con Object Storage')->body(Str::limit($e->getMessage(), 300).' Revisa AWS_* y BACKUP_OFFSITE_BUCKET en el .env.')->danger()->persistent()->send();
+                    }
                 }),
 
             Action::make('schedule')

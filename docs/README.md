@@ -47,6 +47,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0025](adr/0025-panel-woo-pedido-y-productos.md) | Panel como WooCommerce: pedido y productos |
 | [0026](adr/0026-redsys.md) | Redsys como pasarela de pago (tarjeta y Bizum) |
 | [0027](adr/0027-ajustes-de-pago.md) | «Ajustes → Pagos»: el TPV de Redsys en el panel |
+| [0028](adr/0028-seguridad-del-servidor.md) | Seguridad del servidor: dos pasos, avisos de errores y copias fuera |
 
 ## Orden de construcción
 

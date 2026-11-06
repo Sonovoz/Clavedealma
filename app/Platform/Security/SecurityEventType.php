@@ -30,6 +30,7 @@ enum SecurityEventType: string implements HasLabel
     case LegalApproved = 'legal_approved';
     case CouponChanged = 'coupon_changed';
     case PaymentSettingsChanged = 'payment_settings_changed';
+    case TwoFactorChanged = 'two_factor_changed';
 
     public function label(): string
     {
@@ -58,6 +59,7 @@ enum SecurityEventType: string implements HasLabel
             self::LegalApproved => 'Texto legal revisado',
             self::CouponChanged => 'Cupón creado o cambiado',
             self::PaymentSettingsChanged => 'Ajustes de pago cambiados',
+            self::TwoFactorChanged => 'Verificación en dos pasos',
         };
     }
 
@@ -65,7 +67,7 @@ enum SecurityEventType: string implements HasLabel
     public function level(): string
     {
         return match ($this) {
-            self::LoginFailed, self::RoleChanged, self::PasswordChanged, self::PasswordReset, self::FiscalDataChanged, self::PaymentSettingsChanged, self::BackupDownloaded, self::UserDeleted => 'warning',
+            self::LoginFailed, self::RoleChanged, self::PasswordChanged, self::PasswordReset, self::FiscalDataChanged, self::PaymentSettingsChanged, self::TwoFactorChanged, self::BackupDownloaded, self::UserDeleted => 'warning',
             self::Lockout, self::BackupDeleted => 'danger',
             default => 'info',
         };

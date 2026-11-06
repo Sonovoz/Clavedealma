@@ -11,6 +11,10 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $disk
  * @property ?string $path
+ * @property ?string $offsite_disk
+ * @property ?string $offsite_path
+ * @property ?Carbon $offsite_at
+ * @property ?string $offsite_error
  * @property ?int $size_bytes
  * @property string $status
  * @property string $trigger
@@ -31,7 +35,18 @@ class Backup extends Model
 
     protected function casts(): array
     {
-        return ['size_bytes' => 'integer', 'started_at' => 'datetime', 'finished_at' => 'datetime'];
+        return ['size_bytes' => 'integer', 'started_at' => 'datetime', 'finished_at' => 'datetime', 'offsite_at' => 'datetime'];
+    }
+
+    /** Las copias se suben también fuera del servidor (BACKUP_OFFSITE). */
+    public static function offsiteEnabled(): bool
+    {
+        return (bool) config('clavedealma.backups.offsite');
+    }
+
+    public function isOffsite(): bool
+    {
+        return $this->offsite_at !== null && $this->offsite_path !== null;
     }
 
     public function sizeLabel(): string

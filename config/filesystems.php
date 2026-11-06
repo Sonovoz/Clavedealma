@@ -57,6 +57,22 @@ return [
             'report' => false,
         ],
 
+        // Copias de seguridad fuera del servidor (Object Storage de OVH, compatible con S3).
+        // Con «throw»: un fallo al subir se ve y se avisa, nunca se da por hecha.
+        'backups_offsite' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION', 'gra'),
+            'bucket' => env('BACKUP_OFFSITE_BUCKET', env('AWS_BUCKET')),
+            'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', true),
+            'root' => env('BACKUP_OFFSITE_FOLDER', 'copias'),
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

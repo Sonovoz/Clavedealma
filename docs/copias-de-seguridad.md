@@ -38,10 +38,16 @@ El botón **Hacer copia ahora** hace una copia al momento. Conviene usarlo antes
 
 ## Dónde se guardan
 
-- Por defecto, en el propio servidor, en `storage/app/backups`. Esa carpeta no es accesible desde Internet.
-- Una copia que solo está en el servidor no sirve si el servidor se pierde. Por eso:
-  - **En Hostinger:** descargad una copia de vez en cuando (botón **Descargar**) y guardadla fuera, en vuestro ordenador o en una nube.
-  - **En OVH:** con `BACKUP_DISK=s3` en el `.env` y las credenciales `AWS_*` del Object Storage, las copias se guardan fuera del servidor automáticamente.
+- **En el servidor**, en `storage/app/backups`. Esa carpeta no es accesible desde Internet.
+- **Y fuera del servidor**, en OVH (`BACKUP_OFFSITE=true`, ADR 0028). Cada copia se sube además al **Object Storage de OVH**: contenedor `BACKUP_OFFSITE_BUCKET`, carpeta `copias/`, con las credenciales `AWS_*`. Así, si el servidor se pierde, las copias siguen a salvo.
+  - En la tabla, la columna **Fuera del servidor** dice si cada copia se subió.
+  - Si una subida falla, la copia del servidor sigue siendo buena. Se avisa por email y se reintenta con **Subir fuera**.
+  - **Probar Object Storage** escribe, lee y borra un archivo de prueba para comprobar las credenciales.
+  - La revisión diaria también avisa si la última copia no está fuera.
+  - Al borrar una copia (a mano o por antigüedad) se borra en los dos sitios.
+  - **Descargar** baja la del servidor o, si ya no está, la de fuera.
+- **En Hostinger** (sin Object Storage): descargad una copia de vez en cuando (botón **Descargar**) y guardadla fuera, en vuestro ordenador o en una nube.
+- Guardad también **el `.env`** (sobre todo la `APP_KEY`) en un gestor de contraseñas. Sin la `APP_KEY` no se pueden leer la clave del TPV ni la verificación en dos pasos de una copia.
 
 ## Cómo restaurar
 
@@ -59,12 +65,14 @@ Restaurar sustituye los datos actuales por los de la copia, así que hacedlo con
 
 ### Docker / OVH
 
+En el VPS, dentro de la carpeta `clavedealma`, con la copia descargada del panel o del Object Storage:
+
 ```bash
 unzip copia-AAAA-MM-DD-HHMMSS.zip -d restaurar
-docker compose exec -T mariadb mariadb -u"$DB_USERNAME" -p"$DB_PASSWORD" "$DB_DATABASE" < restaurar/base-de-datos.sql
+docker compose exec -T db sh -c 'mariadb -u"$MARIADB_USER" -p"$MARIADB_PASSWORD" "$MARIADB_DATABASE"' < restaurar/base-de-datos.sql
 docker compose cp restaurar/archivos/public/. app:/var/www/html/storage/app/public/
 docker compose cp restaurar/archivos/private/. app:/var/www/html/storage/app/private/
-docker compose exec app php artisan optimize:clear
+docker compose exec app php artisan optimize
 ```
 
 ### Desde la consola, sin el panel

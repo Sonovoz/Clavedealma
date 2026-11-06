@@ -14,5 +14,8 @@ storage/framework/sessions/*
 storage/framework/views/*
 database/database.sqlite
 dist
-docs
 tests
+# Archivos subidos, copias y bases locales: nunca dentro de la imagen (van en volúmenes).
+storage/app
+*.sqlite
+# docs se queda: la página «Desarrollo» del panel lo lee.

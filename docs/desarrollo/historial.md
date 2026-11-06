@@ -8,6 +8,7 @@ Qué se ha ido construyendo, entrega a entrega, de la más reciente a la más an
 
 | Fecha | Entrega | PR | ADR |
 | --- | --- | --- | --- |
+| 06/11 | **Servidor OVH y seguridad**: instalación Docker revisada y probada de punta a punta (Traefik v3.6, HTTPS detrás del proxy, imagen limpia) con guía paso a paso; copias también fuera del servidor (Object Storage); avisos de errores por email; verificación en dos pasos obligatoria para el equipo del panel. | #36 | 0028 |
 | 05/11 | **Ajustes → Pagos**, como en WooCommerce: estado del TPV de Redsys, URL de notificación para el banco, pasos para ponerlo en marcha (se marcan solos), datos del TPV con la clave cifrada y contraseña en cada cambio, comercio de pruebas con un botón, «Pasar a cobros reales» y últimos cobros. | #35 | 0027 |
 | 05/11 | **Redsys como pasarela de pago**: «Métodos de pago» como en WooCommerce (Tarjeta de crédito o débito / Bizum), pago en la página segura de Redsys, aviso y vuelta firmados, devoluciones automáticas por su API y aviso de cobro doble. Stripe queda apagado. | #34 | 0026 |
 | 05/11 | **Panel como WooCommerce, 2.ª parte**: en el pedido, «Notas del pedido» (privadas o para el cliente, que le llegan por email y las ve en su pedido) y «Acciones del pedido» (reenviar emails, ver como el cliente, PDF). Listado de productos con imagen, SKU, categorías y filtros por categoría y estado del inventario. | #33 | 0025 |

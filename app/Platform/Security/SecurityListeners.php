@@ -34,7 +34,15 @@ final class SecurityListeners
             if ($u->wasChanged('password')) {
                 SecurityLog::record(SecurityEventType::PasswordChanged, 'Contraseña cambiada de '.$u->email.'.', subject: 'Usuario #'.$u->id);
             }
-            $fields = array_values(array_diff(array_keys($u->getChanges()), ['password', 'remember_token', 'updated_at']));
+            // Verificación en dos pasos (ADR 0028): activada, quitada o códigos de recuperación.
+            if ($u->wasChanged('app_authentication_secret')) {
+                SecurityLog::record(SecurityEventType::TwoFactorChanged, $u->hasTwoFactor()
+                    ? 'Verificación en dos pasos activada para '.$u->email.'.'
+                    : 'Verificación en dos pasos quitada a '.$u->email.'.', subject: 'Usuario #'.$u->id);
+            } elseif ($u->wasChanged('app_authentication_recovery_codes')) {
+                SecurityLog::record(SecurityEventType::TwoFactorChanged, 'Códigos de recuperación de '.$u->email.' usados o renovados.', subject: 'Usuario #'.$u->id);
+            }
+            $fields = array_values(array_diff(array_keys($u->getChanges()), ['password', 'remember_token', 'updated_at', 'app_authentication_secret', 'app_authentication_recovery_codes']));
             if ($fields !== []) {
                 SecurityLog::record(SecurityEventType::UserUpdated, 'Usuario '.$u->email.' modificado: '.implode(', ', $fields).'.', subject: 'Usuario #'.$u->id);
             }

@@ -1,6 +1,6 @@
 # Clave de Alma · producción y staging en OVH (Docker Compose)
 #
-# Uso:
+# Uso (guía completa, paso a paso: docs/despliegue-docker.md):
 #   cp .env.docker.example .env      # y rellenar claves
 #   docker compose up -d --build
 #   docker compose exec app php artisan migrate --force
@@ -25,11 +25,12 @@ x-app: &app
       condition: service_started
   volumes:
     - storage:/var/www/html/storage/app
+    - logs:/var/www/html/storage/logs
   networks: [internal]
 
 services:
   traefik:
-    image: traefik:v3.3
+    image: traefik:v3.6
     restart: unless-stopped
     command:
       - --providers.docker=true
@@ -75,6 +76,11 @@ services:
 
   app:
     <<: *app
+    healthcheck:
+      test: ["CMD-SHELL", "php artisan about --only=environment > /dev/null || exit 1"]
+      interval: 60s
+      timeout: 20s
+      retries: 3
 
   worker:
     <<: *app
@@ -109,8 +115,11 @@ services:
       - redis:/data
     networks: [internal]
 
+  # Búsqueda de productos: aún no se usa (la búsqueda va por la base de datos). Se arranca
+  # solo con «docker compose --profile busqueda up -d» cuando llegue.
   meilisearch:
     image: getmeili/meilisearch:v1.12
+    profiles: [busqueda]
     restart: unless-stopped
     environment:
       MEILI_ENV: production
@@ -121,6 +130,7 @@ services:
 
 volumes:
   storage:
+  logs:
   db:
   redis:
   meilisearch:

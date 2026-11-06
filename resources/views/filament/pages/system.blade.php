@@ -22,6 +22,7 @@
             <div style="{{ $row }}"><dt>Migraciones pendientes</dt><dd>{!! $pendingMigrations === 0 ? $ok(true, 'Ninguna') : $ok(false, '', (string) $pendingMigrations) !!}</dd></div>
             <div style="{{ $row }}"><dt>Carpetas con permiso de escritura</dt><dd>{!! $ok($storageWritable) !!}</dd></div>
             <div style="{{ $row }}"><dt>Enlace de archivos públicos (storage)</dt><dd>{!! $ok($storageLinked, 'Creado', 'Falta') !!}</dd></div>
+            <div style="{{ $row }}"><dt>Avisos de errores por email</dt><dd>{!! $errorAlerts ? $ok(true, 'Activados, a '.e($errorEmail)) : $ok(false, '', 'Desactivados (ERROR_ALERTS en el .env)') !!}</dd></div>
         </dl>
     </x-filament::section>
 

@@ -13,6 +13,8 @@ use App\Filament\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Products\Pages\EditProduct;
 use App\Filament\Resources\Products\Pages\ListProducts;
 use App\Filament\Support\InitialsAvatarProvider;
+use App\Http\Middleware\EnsureTwoFactorForStaff;
+use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -47,6 +49,15 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            // «Mi perfil»: nombre, contraseña y verificación en dos pasos.
+            ->profile(isSimple: false)
+            // Verificación en dos pasos con app autenticadora y códigos de recuperación (ADR 0028).
+            // Filament la exige a todos; EnsureTwoFactorForStaff solo al equipo (User::mustUseTwoFactor).
+            ->multiFactorAuthentication(
+                [AppAuthentication::make()->recoverable()->brandName('Clave de Alma')],
+                isRequired: true,
+            )
+            ->multiFactorAuthenticationRequiredMiddlewareName(EnsureTwoFactorForStaff::class)
             // Si a una política le falta una acción, error en lugar de permitirla.
             ->strictAuthorization()
             ->defaultAvatarProvider(InitialsAvatarProvider::class)
