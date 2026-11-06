@@ -39,6 +39,8 @@ use App\Platform\Artists\SendNoticeEmails;
 use App\Platform\Backup\Backup;
 use App\Platform\Legal\LegalDocument;
 use App\Platform\Legal\LegalGenerator;
+use App\Platform\Mail\SmtpSettings;
+use App\Platform\Minimedia\MinimediaStatement;
 use App\Platform\Payments\RedsysSettings;
 use App\Platform\Pdf\DompdfRenderer;
 use App\Platform\Pdf\PdfRenderer;
@@ -72,6 +74,15 @@ class AppServiceProvider extends ServiceProvider
     {
         Livewire::component('store-switcher', StoreSwitcher::class);
 
+        // Datos del correo SMTP escritos en «Ajustes → Correo» (ADR 0029): antes de crear el correo.
+        $smtpApplied = false;
+        $this->app->beforeResolving('mail.manager', function () use (&$smtpApplied): void {
+            if (! $smtpApplied) {
+                $smtpApplied = true;
+                SmtpSettings::apply();
+            }
+        });
+
         // Datos del TPV de Redsys escritos en «Ajustes → Pagos» (ADR 0027): antes de crear la pasarela.
         $redsysApplied = false;
         $this->app->beforeResolving(PaymentGateway::class, function () use (&$redsysApplied): void {
@@ -86,7 +97,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Artistas, tiendas, usuarios, envíos, pedidos y pagos: solo superadministradores
         // (el gestor de catálogo no ve datos de clientes ni de cobros).
-        foreach ([Artist::class, Store::class, User::class, Carrier::class, ZoneRate::class, RateBand::class, Backup::class, Order::class, OrderLine::class, OrderEvent::class, Payment::class, Refund::class, ReturnRequest::class, ReturnLine::class, Invoice::class, InvoiceLine::class, InvoiceIssuer::class, SecurityEvent::class, LegalDocument::class, Coupon::class, CouponRedemption::class] as $model) {
+        foreach ([Artist::class, Store::class, User::class, Carrier::class, ZoneRate::class, RateBand::class, Backup::class, Order::class, OrderLine::class, OrderEvent::class, Payment::class, Refund::class, ReturnRequest::class, ReturnLine::class, Invoice::class, InvoiceLine::class, InvoiceIssuer::class, SecurityEvent::class, LegalDocument::class, Coupon::class, CouponRedemption::class, MinimediaStatement::class] as $model) {
             Gate::policy($model, SuperadminOnlyPolicy::class);
         }
 

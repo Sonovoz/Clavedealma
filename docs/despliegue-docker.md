@@ -122,7 +122,7 @@ Abre el `.env` y rellena (`nano .env`; para guardar, *Ctrl+O*, *Intro* y *Ctrl+X
 | `APP_URL` / `APP_DOMAIN` | `https://clavedealma.es` / `clavedealma.es` |
 | `DB_PASSWORD`, `DB_ROOT_PASSWORD` | Dos contraseñas distintas de `openssl rand -hex 24` |
 | `SUPERADMIN_EMAIL`, `SUPERADMIN_PASSWORD` | Tu email y una contraseña larga para el primer acceso al panel |
-| `MAIL_USERNAME`, `MAIL_PASSWORD` | La cuenta de correo que envía los emails |
+| `MAIL_USERNAME`, `MAIL_PASSWORD` | La cuenta de correo que envía los emails. También se pueden escribir después en el panel, en *Ajustes → Correo* |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | Las claves del usuario S3 del Object Storage |
 | `AWS_DEFAULT_REGION`, `AWS_ENDPOINT` | La región del contenedor (por ejemplo `gra` y `https://s3.gra.io.cloud.ovh.net`) |
 | `BACKUP_OFFSITE_BUCKET` | El nombre del contenedor de las copias |
@@ -174,7 +174,9 @@ Ya no hace falta la contraseña inicial en el `.env`: vacía la línea `SUPERADM
    - escribe el código de 6 cifras;
    - **guarda los códigos de recuperación** en un sitio seguro: sirven si pierdes el móvil.
 3. Repasa el panel:
-   - *Herramientas → Estado del sistema*: todo en verde. Pulsa **Enviar un aviso de prueba** y comprueba que llega el email; así sabes que el correo funciona.
+   - *Ajustes → Correo*: comprueba el servidor SMTP y pulsa **Enviar email de prueba**.
+   - *Herramientas → Estado del sistema*: todo en verde. Pulsa **Enviar un aviso de prueba**.
+   - *Minimedia → Comisión Minimedia*: el porcentaje y el email del resumen mensual (6 % e `info@minimedia.es`).
    - *Herramientas → Copias de seguridad*: **Probar Object Storage** y **Hacer copia ahora**. La copia debe salir «Subida» en «Fuera del servidor».
    - *Ajustes → Pagos*: sigue los pasos de Redsys; mientras no tengas el TPV, usa «Usar el comercio de pruebas de Redsys».
    - *Ajustes → Datos de facturación*, *Zonas de envío* y *Textos legales*.
