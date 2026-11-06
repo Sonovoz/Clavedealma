@@ -31,7 +31,8 @@ Clave de Alma (vendedor único)
 │   ├── Marketing ..... Cupones ....................................................... superadmin
 │   ├── Tiendas ....... Artistas · Tiendas · Ventas por artista · Avisos de artistas  superadmin
 │   ├── Mis ventas · Avisos (escritorio del artista, sin datos de clientes) ........ artista
-│   ├── Ajustes ....... Datos de facturación · Pagos (Redsys) · Zonas de envío · Transportistas · Textos legales
+│   ├── Minimedia ..... Comisión Minimedia (6 %, cierre y email del día 1) ........... superadmin
+│   ├── Ajustes ....... Datos de facturación · Pagos (Redsys) · Correo (SMTP) · Zonas de envío · Transportistas · Textos legales
 │   └── Herramientas .. Usuarios · Copias · Registro de seguridad · Estado del sistema · Desarrollo
 │
 ├── Negocio (app/Modules, solo se hablan por Contracts y eventos)
@@ -50,14 +51,15 @@ Clave de Alma (vendedor único)
 ├── Plataforma (app/Platform, transversal)
 │   ├── IA (TextGenerator) · PDF (PdfRenderer) · Documentos · Importador de catálogo
 │   ├── Copias de seguridad (programadas, también fuera del servidor) · Ajustes · Estado del sistema
-│   ├── Avisos de errores por email (Monitoring\ErrorAlerts)
+│   ├── Avisos de errores por email (Monitoring\ErrorAlerts) · Correo SMTP (Mail\SmtpSettings)
+│   ├── Minimedia: comisión mensual y cierres (Minimedia\MinimediaCommission)
 │   └── Registro de seguridad (accesos, dos pasos y acciones sensibles)
 │
 └── Servicios externos (siempre por contrato y driver)
     ├── Redsys ............ PaymentGateway (tarjeta y Bizum; Stripe, apagado)
     ├── IA (OpenAI o compatible) ... TextGenerator
     ├── AEAT Veri*Factu ... VerifactuSender (pendiente del certificado)
-    ├── Correo (SMTP) ..... Laravel Mail
+    ├── Correo (SMTP) ..... Laravel Mail, datos en Ajustes → Correo
     └── Almacenamiento .... disco local; copias también en Object Storage de OVH (S3)
 
 Flujo de una venta

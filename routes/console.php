@@ -27,4 +27,8 @@ Schedule::command('pedidos:cancelar-caducados')->everyFifteenMinutes()->withoutO
 Schedule::command('verifactu:enviar')->hourly()->withoutOverlapping();
 
 // Registro de seguridad: se borra lo que pasa del plazo de conservación (RGPD).
+// Comisión de Minimedia (ADR 0029): el día 1 cierra y envía el mes anterior; si el email
+// falló, lo reintenta los días siguientes.
+Schedule::command('minimedia:cierre')->dailyAt('08:20')->timezone('Europe/Madrid')->withoutOverlapping();
+
 Schedule::command('seguridad:purgar')->dailyAt('03:40')->timezone('Europe/Madrid');

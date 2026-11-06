@@ -66,7 +66,7 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->databaseNotificationsPolling('60s')
             // Menú en el orden de WooCommerce (WordPress), para que resulte familiar.
-            ->navigationGroups(['Comercio', 'Productos', 'Análisis', 'Marketing', 'Tiendas', 'Ajustes', 'Herramientas'])
+            ->navigationGroups(['Comercio', 'Productos', 'Análisis', 'Marketing', 'Tiendas', 'Minimedia', 'Ajustes', 'Herramientas'])
             // Barra de desplazamiento fina y discreta en el menú lateral.
             ->renderHook(PanelsRenderHook::HEAD_END, fn (): View => view('filament.panel-styles'))
             // Selector «Tienda: X»: el catálogo se trabaja siempre dentro de una tienda.

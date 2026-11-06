@@ -48,6 +48,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0026](adr/0026-redsys.md) | Redsys como pasarela de pago (tarjeta y Bizum) |
 | [0027](adr/0027-ajustes-de-pago.md) | «Ajustes → Pagos»: el TPV de Redsys en el panel |
 | [0028](adr/0028-seguridad-del-servidor.md) | Seguridad del servidor: dos pasos, avisos de errores y copias fuera |
+| [0029](adr/0029-minimedia-y-correo-smtp.md) | Minimedia (comisión del 6 %) y correo por SMTP en todo el sitio |
 
 ## Orden de construcción
 

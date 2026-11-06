@@ -223,5 +223,5 @@ Solo lo ve el superadministrador. El gestor de catálogo no ve datos de clientes
 - [ ] Decisión fiscal sobre Canarias, Ceuta y Melilla, y sobre el umbral de la UE (OSS).
 - [ ] Tarifas de envío reales en el panel.
 - [ ] TPV virtual de Redsys contratado con el banco (con Bizum) y sus datos reales con `REDSYS_ENVIRONMENT=live`, **solo en producción**. La URL de notificación, dada al banco.
-- [ ] Correo de salida (SMTP) configurado y probado.
+- [ ] Correo de salida (SMTP) configurado en *Ajustes → Correo* y probado con «Enviar email de prueba».
 - [ ] Dirección de devoluciones (`RETURNS_ADDRESS`).

@@ -74,6 +74,12 @@ return [
         'email' => env('ERROR_ALERT_EMAIL'),
     ],
 
+    // Comisión de Minimedia sobre las ventas de todas las tiendas (ADR 0029). Se cambia en el panel.
+    'minimedia' => [
+        'rate_bps' => (int) env('MINIMEDIA_RATE_BPS', 600),
+        'email' => env('MINIMEDIA_EMAIL', 'info@minimedia.es'),
+    ],
+
     'backups' => [
         'disk' => env('BACKUP_DISK', 'backups'),
         // Además, una copia fuera del servidor (disco «backups_offsite»: Object Storage de OVH).
