@@ -125,6 +125,7 @@ Fuera de los módulos está la **capa exterior**, que pinta y conecta pero no de
 
 ## 8. La tienda pública
 
+- **Icono del sitio** (favicon, iOS y Android; también el del panel): la clave de sol del logo en blanco sobre el rojo de la marca. Se generan con `python3 scripts/generar-iconos.py` a partir de `resources/designs/matriz/logo.png` y se enlazan en `storefront/partials/icons` (dentro de la cabecera SEO común).
 - **Rutas**:
   - `clavedealma.es/<clave>` es la tienda (ADR 0013);
   - el subdominio y `/tienda/<clave>` redirigen con un 301;
