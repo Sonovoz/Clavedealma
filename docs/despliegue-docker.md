@@ -164,7 +164,7 @@ docker compose ps
 
 Abre `https://clavedealma.es/up` en el navegador: debe salir una página verde. El certificado puede tardar un par de minutos la primera vez.
 
-Para ver la tienda de ejemplo de Farruquito durante las pruebas (se crea **oculta**, con precios de ejemplo; solo funciona mientras `SEO_INDEXING=false`):
+Para abrir la tienda de ejemplo de Farruquito durante las pruebas (queda **publicada**, con precios de ejemplo; solo funciona mientras `SEO_INDEXING=false`). Para ocultarla después: panel → *Tiendas → Farruquito → Estado*, y no vuelvas a ejecutar este comando:
 
 ```bash
 docker compose exec app php artisan db:seed --class=FarruquitoSeeder --force
