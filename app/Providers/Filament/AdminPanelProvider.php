@@ -62,6 +62,8 @@ class AdminPanelProvider extends PanelProvider
             ->strictAuthorization()
             ->defaultAvatarProvider(InitialsAvatarProvider::class)
             ->brandName('Clave de Alma')
+            // El mismo icono que la web (public/favicon-*.png, scripts/generar-iconos.py).
+            ->favicon(asset('favicon-96x96.png'))
             // La campana: avisos nuevos de los artistas para los administradores (ADR 0023).
             ->databaseNotifications()
             ->databaseNotificationsPolling('60s')
