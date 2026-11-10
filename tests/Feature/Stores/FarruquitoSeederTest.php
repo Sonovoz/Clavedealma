@@ -43,3 +43,18 @@ it('se puede ejecutar dos veces sin duplicar nada', function () {
 
     expect([Product::count(), ProductVariant::count(), ProductStock::count()])->toBe($antes);
 });
+
+it('en el servidor solo se ejecuta en la fase de pruebas, nunca con la web lanzada', function () {
+    app()->detectEnvironment(fn (): string => 'production');
+
+    // Directo (sin db:seed, que en producción pide confirmación).
+    $seed = fn () => app(FarruquitoSeeder::class)->setContainer(app())->__invoke();
+
+    config()->set('clavedealma.seo.indexing', true);
+    $seed();
+    expect(Store::query()->where('subdomain', 'farruquito')->exists())->toBeFalse();
+
+    config()->set('clavedealma.seo.indexing', false);
+    $seed();
+    expect(Store::query()->where('subdomain', 'farruquito')->sole()->status)->toBe(StoreStatus::Hidden);
+});

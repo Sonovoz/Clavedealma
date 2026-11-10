@@ -8,6 +8,7 @@ use App\Modules\Stores\Infrastructure\Models\Artist;
 use App\Modules\Stores\Infrastructure\Models\Store;
 use App\Platform\CatalogImport\CatalogImporter;
 use App\Platform\CatalogImport\PhotoSet;
+use App\Storefront\Seo\SeoBuilder;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -24,7 +25,10 @@ use RuntimeException;
  *
  * PRECIOS, COMISIÓN, UNIDADES, COMPOSICIÓN y CUIDADOS son de ejemplo, para ver el sistema
  * funcionando. La guía de tallas queda vacía hasta tener las medidas reales.
- * Se puede ejecutar varias veces: no duplica nada. No se ejecuta en producción.
+ * Se puede ejecutar varias veces: no duplica nada.
+ *
+ * En el servidor solo durante la fase de pruebas (SEO_INDEXING=false): cuando la web está
+ * lanzada y Google la indexa, se niega, para que nunca entren datos de ejemplo en la tienda real.
  */
 class FarruquitoSeeder extends Seeder
 {
@@ -37,10 +41,13 @@ class FarruquitoSeeder extends Seeder
 
     public function run(CatalogImporter $importer): void
     {
-        if (app()->isProduction()) {
-            $this->command?->error('FarruquitoSeeder usa datos de ejemplo y no se ejecuta en producción.');
+        if (SeoBuilder::indexing()) {
+            $this->command?->error('FarruquitoSeeder usa datos de ejemplo: solo se ejecuta mientras la web está en pruebas (SEO_INDEXING=false), no con la web lanzada.');
 
             return;
+        }
+        if (app()->isProduction()) {
+            $this->command?->warn('Servidor en fase de pruebas: se crea la tienda Farruquito OCULTA con precios de ejemplo. Revísalos antes de publicarla.');
         }
 
         DB::transaction(function (): void {
