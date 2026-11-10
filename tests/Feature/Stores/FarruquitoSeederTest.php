@@ -6,16 +6,17 @@ use App\Modules\Catalog\Infrastructure\Models\ProductVariant;
 use App\Modules\Inventory\Infrastructure\Models\ProductStock;
 use App\Modules\Stores\Contracts\StoreStatus;
 use App\Modules\Stores\Infrastructure\Models\Store;
+use App\Storefront\Urls;
 use Database\Seeders\FarruquitoSeeder;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(fn () => Storage::fake('public'));
 
-it('crea la tienda Farruquito oculta con sus tres colecciones y 35 piezas', function () {
+it('crea la tienda Farruquito publicada (abierta por ahora) con sus tres colecciones y 35 piezas', function () {
     $this->seed(FarruquitoSeeder::class);
 
     $store = Store::where('subdomain', 'farruquito')->sole();
-    expect($store->status)->toBe(StoreStatus::Hidden)
+    expect($store->status)->toBe(StoreStatus::Published)
         ->and($store->artist->display_name)->toBe('Farruquito');
 
     $colecciones = Collection::where('store_id', $store->id)->withCount('products')->orderBy('position')->get();
@@ -56,5 +57,13 @@ it('en el servidor solo se ejecuta en la fase de pruebas, nunca con la web lanza
 
     config()->set('clavedealma.seo.indexing', false);
     $seed();
-    expect(Store::query()->where('subdomain', 'farruquito')->sole()->status)->toBe(StoreStatus::Hidden);
+    expect(Store::query()->where('subdomain', 'farruquito')->sole()->status)->toBe(StoreStatus::Published);
+
+    // Cualquiera la ve, sin entrar al panel.
+    $this->withoutVite()->get(Urls::home('farruquito'))->assertOk()->assertSee('Tres colecciones, un mismo origen');
+
+    // Si ya existía oculta, la abre.
+    Store::query()->where('subdomain', 'farruquito')->update(['status' => StoreStatus::Hidden]);
+    $seed();
+    expect(Store::query()->where('subdomain', 'farruquito')->sole()->status)->toBe(StoreStatus::Published);
 });

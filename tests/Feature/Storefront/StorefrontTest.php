@@ -93,6 +93,7 @@ it('el equipo puede previsualizar la ficha de un borrador; el público no', func
 it('la tienda Farruquito usa su diseño y sus imágenes no salen mientras está oculta', function () {
     $this->seed(FarruquitoSeeder::class);
     $store = Store::where('subdomain', 'farruquito')->sole();
+    $store->update(['status' => StoreStatus::Hidden]);
 
     expect($store->design)->toBe('farruquito');
     $this->get(Urls::designAsset('farruquito', 'retrato.webp'))->assertNotFound();
@@ -110,6 +111,7 @@ it('la tienda Farruquito usa su diseño y sus imágenes no salen mientras está 
 
 it('la matriz enseña las tiendas: el público solo las publicadas; el equipo también las ocultas', function () {
     $this->seed(FarruquitoSeeder::class);
+    Store::where('subdomain', 'farruquito')->update(['status' => StoreStatus::Hidden]);
     tiendaPublicada();
 
     $this->get('/')

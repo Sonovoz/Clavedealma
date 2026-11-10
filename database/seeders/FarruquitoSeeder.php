@@ -19,7 +19,8 @@ use RuntimeException;
  *
  *   php artisan db:seed --class=FarruquitoSeeder
  *
- * Crea el artista, la tienda (OCULTA) y las colecciones, y da de alta prendas base y
+ * Crea el artista, la tienda (PUBLICADA, abierta por ahora: decisión del 10/11/2026) y las
+ * colecciones, y da de alta prendas base y
  * artículos con el importador del protocolo, igual que se hará con los reales:
  * database/seeders/data/farruquito/articulos.xlsx (pestañas Artículos y Prendas) + fotos/.
  *
@@ -47,7 +48,7 @@ class FarruquitoSeeder extends Seeder
             return;
         }
         if (app()->isProduction()) {
-            $this->command?->warn('Servidor en fase de pruebas: se crea la tienda Farruquito OCULTA con precios de ejemplo. Revísalos antes de publicarla.');
+            $this->command?->warn('Servidor en fase de pruebas: la tienda Farruquito queda PUBLICADA con precios de ejemplo (sin Google y con Redsys en pruebas). Para ocultarla: panel → Tiendas → Farruquito → Estado.');
         }
 
         DB::transaction(function (): void {
@@ -59,13 +60,17 @@ class FarruquitoSeeder extends Seeder
             $store = Store::query()->firstOrCreate(['subdomain' => 'farruquito'], [
                 'artist_id' => $artist->id,
                 'name' => 'Farruquito',
-                'status' => StoreStatus::Hidden,
+                'status' => StoreStatus::Published,
                 'commission_bps' => 2500, // ejemplo: pendiente del acuerdo con el artista
                 'tagline' => 'Tienda oficial · Since 1982',
                 'bio' => 'Tienda oficial de Farruquito en Clave de Alma: colecciones On Stage, Artist Voice e Iconic.',
                 'design' => 'farruquito',
                 'theme' => ['genres' => ['flamenco']],
             ]);
+            // Abierta por ahora: si ya existía oculta (de una prueba anterior), se abre.
+            if ($store->status === StoreStatus::Hidden) {
+                $store->update(['status' => StoreStatus::Published]);
+            }
             if ($store->design === 'base') {
                 $store->update(['design' => 'farruquito', 'theme' => ['genres' => ['flamenco']] + (array) $store->theme]);
             }
@@ -87,7 +92,7 @@ class FarruquitoSeeder extends Seeder
         }
 
         $this->command?->info(sprintf(
-            'Tienda Farruquito (oculta): %d productos nuevos, %d actualizados, %d fotos.',
+            'Tienda Farruquito (publicada): %d productos nuevos, %d actualizados, %d fotos.',
             $report->summary['productos_nuevos'], $report->summary['productos_actualizados'], $report->summary['fotos'],
         ));
     }

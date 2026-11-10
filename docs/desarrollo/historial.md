@@ -8,6 +8,7 @@ Qué se ha ido construyendo, entrega a entrega, de la más reciente a la más an
 
 | Fecha | Entrega | PR | ADR |
 | --- | --- | --- | --- |
+| 10/11 | **Farruquito publicada**: la tienda de ejemplo queda abierta por ahora al crearla en el servidor de pruebas (y se abre si ya existía oculta). | #40 | — |
 | 10/11 | **Farruquito en el servidor de pruebas**: la tienda de ejemplo se puede crear en el servidor mientras la web está en pruebas (`SEO_INDEXING=false`); con la web lanzada se sigue negando. | #39 | — |
 | 10/11 | **Icono del sitio**: la clave de sol de la marca en blanco sobre el rojo, en todos los tamaños (pestaña, iOS, Android y panel), con el script que los genera desde el logo. | #38 | — |
 | 06/11 | **Minimedia y correo SMTP**: apartado *Minimedia* con la comisión del 6 % (sin IVA ni envío, menos lo devuelto), cierre mensual inmutable y resumen el día 1 a info@minimedia.es con PDF y CSV; *Ajustes → Correo* con el SMTP de toda la web (contraseña cifrada) y email de prueba. | #37 | 0029 |
