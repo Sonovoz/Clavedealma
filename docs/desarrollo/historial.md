@@ -9,6 +9,7 @@ Qué se ha ido construyendo, entrega a entrega, de la más reciente a la más an
 | Fecha | Entrega | PR | ADR |
 | --- | --- | --- | --- |
 | 10/11 | **Farruquito en el servidor de pruebas**: la tienda de ejemplo se puede crear en el servidor mientras la web está en pruebas (`SEO_INDEXING=false`); con la web lanzada se sigue negando. | #39 | — |
+| 10/11 | **Icono del sitio**: la clave de sol de la marca en blanco sobre el rojo, en todos los tamaños (pestaña, iOS, Android y panel), con el script que los genera desde el logo. | #38 | — |
 | 06/11 | **Minimedia y correo SMTP**: apartado *Minimedia* con la comisión del 6 % (sin IVA ni envío, menos lo devuelto), cierre mensual inmutable y resumen el día 1 a info@minimedia.es con PDF y CSV; *Ajustes → Correo* con el SMTP de toda la web (contraseña cifrada) y email de prueba. | #37 | 0029 |
 | 06/11 | **Servidor OVH y seguridad**: instalación Docker revisada y probada de punta a punta (Traefik v3.6, HTTPS detrás del proxy, imagen limpia) con guía paso a paso; copias también fuera del servidor (Object Storage); avisos de errores por email; verificación en dos pasos obligatoria para el equipo del panel. | #36 | 0028 |
 | 05/11 | **Ajustes → Pagos**, como en WooCommerce: estado del TPV de Redsys, URL de notificación para el banco, pasos para ponerlo en marcha (se marcan solos), datos del TPV con la clave cifrada y contraseña en cada cambio, comercio de pruebas con un botón, «Pasar a cobros reales» y últimos cobros. | #35 | 0027 |

@@ -23,3 +23,4 @@
 @foreach ($seo->jsonLd as $block)
     <script type="application/ld+json">{!! json_encode($block, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
 @endforeach
+@include('storefront.partials.icons')
