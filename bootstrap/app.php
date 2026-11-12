@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\RedirectToInstaller;
 use App\Platform\Monitoring\ErrorAlerts;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -13,6 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Sin instalar, todo va al instalador web (ADR 0030).
+        $middleware->prepend(RedirectToInstaller::class);
         // Detrás de Traefik (Docker/OVH) la web llega por HTTP desde el proxy: se confía en él
         // para saber que es HTTPS y la IP real del cliente. Solo si TRUSTED_PROXIES lo dice
         // (en Hostinger no hay proxy y nadie podría falsear la IP).

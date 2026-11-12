@@ -10,6 +10,9 @@ if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php'))
     require $maintenance;
 }
 
+// Primer arranque: sin vendor/ explica cómo instalarlo; sin .env lo crea para el instalador web.
+require __DIR__.'/../bootstrap/primer-arranque.php';
+
 // Register the Composer autoloader...
 require __DIR__.'/../vendor/autoload.php';
 

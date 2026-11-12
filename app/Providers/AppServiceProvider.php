@@ -37,6 +37,8 @@ use App\Platform\Ai\Drivers\OpenAiCompatibleTextGenerator;
 use App\Platform\Ai\TextGenerator;
 use App\Platform\Artists\SendNoticeEmails;
 use App\Platform\Backup\Backup;
+use App\Platform\Install\EnvFile;
+use App\Platform\Install\InstallState;
 use App\Platform\Legal\LegalDocument;
 use App\Platform\Legal\LegalGenerator;
 use App\Platform\Mail\SmtpSettings;
@@ -65,6 +67,10 @@ class AppServiceProvider extends ServiceProvider
             'openai' => new OpenAiCompatibleTextGenerator((array) config('ai.openai')),
             default => new NullTextGenerator,
         });
+
+        // Instalador web (ADR 0030): el .env y la marca «instalado».
+        $this->app->singleton(EnvFile::class, fn (): EnvFile => new EnvFile(base_path('.env')));
+        $this->app->singleton(InstallState::class, fn (): InstallState => new InstallState(storage_path('app/instalado')));
 
         // Documentos PDF del panel (fabricación, albaranes e informes).
         $this->app->bind(PdfRenderer::class, DompdfRenderer::class);

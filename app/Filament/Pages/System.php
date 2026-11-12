@@ -7,12 +7,14 @@ use App\Platform\ApplyUpdate;
 use App\Platform\Monitoring\ErrorAlerts;
 use App\Platform\Security\SecurityEventType;
 use App\Platform\Security\SecurityLog;
+use App\Platform\Settings\Settings;
 use App\Platform\SystemStatus;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 use Throwable;
@@ -67,6 +69,7 @@ class System extends Page
             'maintenance' => $status->isInMaintenance(),
             'drivers' => $status->drivers(),
             'errorAlerts' => ErrorAlerts::enabled(),
+            'scheduleLastRun' => ($last = Settings::get('schedule.last_run')) ? Carbon::parse((string) $last) : null,
             'errorEmail' => ErrorAlerts::recipient(),
         ];
     }
