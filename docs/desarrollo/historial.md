@@ -8,6 +8,7 @@ Qué se ha ido construyendo, entrega a entrega, de la más reciente a la más an
 
 | Fecha | Entrega | PR | ADR |
 | --- | --- | --- | --- |
+| 12/11 | **Instalador web y servidor PHP + MariaDB (OVH)**: al abrir la web sin instalar sale `/instalar`, que comprueba el servidor, pide la base de datos (nombre, usuario y contraseña) y crea el administrador. Tareas programadas por cron o por dirección secreta, con aviso en *Estado del sistema*. GitHub genera el paquete ZIP listo para subir. | #41 | 0030 |
 | 10/11 | **Farruquito publicada**: la tienda de ejemplo queda abierta por ahora al crearla en el servidor de pruebas (y se abre si ya existía oculta). | #40 | — |
 | 10/11 | **Farruquito en el servidor de pruebas**: la tienda de ejemplo se puede crear en el servidor mientras la web está en pruebas (`SEO_INDEXING=false`); con la web lanzada se sigue negando. | #39 | — |
 | 10/11 | **Icono del sitio**: la clave de sol de la marca en blanco sobre el rojo, en todos los tamaños (pestaña, iOS, Android y panel), con el script que los genera desde el logo. | #38 | — |
