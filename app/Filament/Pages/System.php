@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Modules\Identity\Infrastructure\Models\User;
 use App\Platform\ApplyUpdate;
+use App\Platform\Install\SampleStore;
 use App\Platform\Monitoring\ErrorAlerts;
 use App\Platform\Security\SecurityEventType;
 use App\Platform\Security\SecurityLog;
@@ -95,6 +96,24 @@ class System extends Page
                         ? $notification->title('La actualización terminó con errores')->danger()
                         : $notification->title('Actualización aplicada')->success();
                     $notification->send();
+                }),
+
+            Action::make('sampleStore')
+                ->label('Crear la tienda de ejemplo Farruquito')
+                ->icon(Heroicon::OutlinedBuildingStorefront)
+                ->color('gray')
+                ->visible(fn (): bool => SampleStore::available() && ! SampleStore::exists())
+                ->requiresConfirmation()
+                ->modalDescription('Crea la tienda Farruquito, PUBLICADA, con sus colecciones y artículos de ejemplo (precios de ejemplo). Solo mientras la web está en pruebas. Para ocultarla después: Tiendas → Farruquito → Estado.')
+                ->action(function (SampleStore $sampleStore): void {
+                    try {
+                        $sampleStore->create();
+                        SecurityLog::record(SecurityEventType::SampleStoreCreated, 'Tienda de ejemplo Farruquito creada y publicada.');
+                        Notification::make()->title('Tienda Farruquito creada')->body('Ya se ve en '.url('/'.SampleStore::KEY).'.')->success()->send();
+                    } catch (Throwable $e) {
+                        report($e);
+                        Notification::make()->title('No se ha podido crear la tienda')->body(Str::limit($e->getMessage(), 300))->danger()->persistent()->send();
+                    }
                 }),
 
             Action::make('testErrorAlert')

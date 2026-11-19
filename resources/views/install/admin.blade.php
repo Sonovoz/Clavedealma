@@ -20,6 +20,12 @@
         @error('password')<div class="error">{{ $message }}</div>@enderror
         <label for="password_confirmation">Repite la contraseña</label>
         <input id="password_confirmation" name="password_confirmation" type="password" required autocomplete="new-password" minlength="12">
+        @if ($sample)
+            <label style="display:flex;gap:8px;align-items:flex-start;font-weight:normal;margin-top:14px">
+                <input type="checkbox" name="sample_store" value="1" style="width:auto;margin-top:3px" @checked(old('sample_store', true))>
+                <span>Crear la tienda de ejemplo <strong>Farruquito</strong>, publicada, con precios de ejemplo (solo mientras la web está en pruebas). Se oculta en el panel: <em>Tiendas → Farruquito → Estado</em>.</span>
+            </label>
+        @endif
         <p class="muted" style="margin-top:10px">Al pulsar «Instalar» se crean las tablas, los roles y tu cuenta. Puede tardar un minuto.</p>
         <button class="btn" type="submit">Instalar</button>
     </form>

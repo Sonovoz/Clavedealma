@@ -111,11 +111,11 @@ Para comprobarlo, en el panel ve a *Herramientas → Estado del sistema → Tare
    - *Ajustes → Pagos* (Redsys);
    - *Ajustes → Datos de facturación*;
    - *Ajustes → Zonas de envío*.
-4. Para la tienda de ejemplo de Farruquito, en el VPS:
+4. **Tienda de ejemplo de Farruquito** (publicada, con precios de ejemplo; solo mientras la web está en pruebas):
+   - en el instalador, deja marcada la casilla «Crear la tienda de ejemplo Farruquito»;
+   - o después, en el panel: *Herramientas → Estado del sistema → Crear la tienda de ejemplo Farruquito*.
 
-```bash
-docker exec php-web php /var/www/html/artisan db:seed --class=FarruquitoSeeder --force
-```
+   Queda en `https://clavedealma.es/farruquito`. Para ocultarla: *Tiendas → Farruquito → Estado*.
 
 ## 8. Actualizar
 
@@ -130,6 +130,21 @@ Si se instaló a mano antes de existir el instalador, lo más rápido es empezar
 1. En phpMyAdmin, vacía la base de datos `clavedealma`: selecciona todas las tablas → *Eliminar*.
 2. En filebrowser, borra o renombra el `.env` de la carpeta de la web, y borra el archivo `storage/app/instalado` si existe.
 3. Sube el paquete nuevo (pasos 2 y 3) y abre la web: saldrá el instalador.
+
+## No recuerdo cómo entrar al panel
+
+- La dirección es `https://clavedealma.es/admin`. El usuario es el email que pusiste en el instalador (o `SUPERADMIN_EMAIL` del `.env`, si se instaló a mano).
+- Para poner una contraseña nueva (te la pide dos veces, sin que se vea en pantalla):
+
+```bash
+docker exec -it php-web php /var/www/html/artisan clavedealma:superadmin tu@email.es
+```
+
+- Si perdiste el móvil de la verificación en dos pasos:
+
+```bash
+docker exec php-web php /var/www/html/artisan usuarios:quitar-dos-pasos tu@email.es
+```
 
 ## Problemas frecuentes
 

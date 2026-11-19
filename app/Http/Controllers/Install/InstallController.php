@@ -6,6 +6,7 @@ use App\Platform\Install\DatabaseProbe;
 use App\Platform\Install\EnvFile;
 use App\Platform\Install\Requirements;
 use App\Platform\Install\RunInstall;
+use App\Platform\Install\SampleStore;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -79,10 +80,10 @@ class InstallController
             return redirect('/instalar/base-de-datos');
         }
 
-        return view('install.admin', ['url' => $this->env->get('APP_URL', url('/'))]);
+        return view('install.admin', ['url' => $this->env->get('APP_URL', url('/')), 'sample' => SampleStore::available()]);
     }
 
-    public function install(Request $request, RunInstall $run): RedirectResponse
+    public function install(Request $request, RunInstall $run, SampleStore $sampleStore): RedirectResponse
     {
         $data = $request->validate([
             'url' => ['required', 'url:http,https', 'max:190'],
@@ -99,9 +100,21 @@ class InstallController
             return back()->withInput($request->except('password', 'password_confirmation'))->withErrors(['install' => 'La instalación no ha terminado: '.$e->getMessage()]);
         }
 
+        // La tienda de ejemplo no detiene la instalación: si falla, se crea luego desde el panel.
+        $sample = null;
+        if ($request->boolean('sample_store') && SampleStore::available()) {
+            try {
+                $sampleStore->create();
+                $sample = true;
+            } catch (Throwable $e) {
+                report($e);
+                $sample = false;
+            }
+        }
+
         // La página final no puede ir en la sesión: al instalar, la sesión pasa de archivos a la
         // base de datos. Va en un archivo que se borra al verla (una sola vez).
-        file_put_contents(self::doneFile(), (string) json_encode(['email' => $data['email'], 'url' => rtrim($data['url'], '/'), 'token' => $token]));
+        file_put_contents(self::doneFile(), (string) json_encode(['email' => $data['email'], 'url' => rtrim($data['url'], '/'), 'token' => $token, 'sample' => $sample]));
 
         return redirect('/instalar/listo');
     }

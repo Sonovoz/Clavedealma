@@ -3,13 +3,18 @@
 use App\Filament\Pages\System;
 use App\Modules\Identity\Contracts\Role;
 use App\Modules\Identity\Infrastructure\Models\User;
+use App\Modules\Stores\Infrastructure\Models\Store;
 use App\Platform\Install\DatabaseProbe;
 use App\Platform\Install\EnvFile;
 use App\Platform\Install\InstallState;
 use App\Platform\Install\RunInstall;
+use App\Platform\Install\SampleStore;
+use App\Platform\Security\SecurityEvent;
+use App\Platform\Security\SecurityEventType;
 use App\Platform\Settings\Settings;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Artisan;
+use Livewire\Livewire;
 
 beforeEach(function () {
     $this->dir = sys_get_temp_dir().'/instalador-'.uniqid();
@@ -155,4 +160,50 @@ it('«Estado del sistema» avisa si las tareas programadas no corren', function 
     $this->get(System::getUrl())->assertSee('Nunca se han ejecutado');
     Settings::put('schedule.last_run', now()->toIso8601String());
     $this->get(System::getUrl())->assertSee('Funcionan: última vez');
+});
+
+it('el instalador ofrece crear la tienda de ejemplo Farruquito y la deja publicada', function () {
+    sinInstalar($this->dir);
+    config()->set('clavedealma.seo.indexing', false);
+    $this->env->set(['DB_DATABASE' => 'clavedealma']);
+    $marker = $this->dir.'/instalado';
+    app()->instance(RunInstall::class, new class($marker) extends RunInstall
+    {
+        public function __construct(private string $marker) {}
+
+        public function __invoke(array $data): string
+        {
+            touch($this->marker);
+
+            return str_repeat('a', 40);
+        }
+    });
+
+    $this->get('/instalar/administrador')->assertOk()->assertSee('Crear la tienda de ejemplo', false);
+    $this->post('/instalar/administrador', ['url' => 'https://clavedealma.es', 'name' => 'Ana', 'email' => 'ana@clavedealma.es',
+        'password' => 'una-clave-bien-larga', 'password_confirmation' => 'una-clave-bien-larga', 'sample_store' => '1'])->assertRedirect('/instalar/listo');
+
+    expect(SampleStore::exists())->toBeTrue();
+    $this->get('/instalar/listo')->assertSee('https://clavedealma.es/farruquito');
+    $this->get('/farruquito')->assertOk();
+});
+
+it('con la web lanzada (indexando) no se ofrece la tienda de ejemplo', function () {
+    config()->set('clavedealma.seo.indexing', true);
+
+    expect(SampleStore::available())->toBeFalse()
+        ->and(fn () => app(SampleStore::class)->create())->toThrow(RuntimeException::class);
+});
+
+it('«Estado del sistema» crea la tienda de ejemplo con un botón y lo anota', function () {
+    config()->set('clavedealma.seo.indexing', false);
+    Filament::setCurrentPanel('admin');
+    $this->actingAs(User::factory()->withRole(Role::Superadmin)->create());
+
+    Livewire::test(System::class)->assertActionVisible('sampleStore')
+        ->callAction('sampleStore')->assertNotified('Tienda Farruquito creada');
+
+    expect(Store::query()->where('subdomain', 'farruquito')->sole()->status->value)->toBe('published')
+        ->and(SecurityEvent::query()->where('type', SecurityEventType::SampleStoreCreated)->count())->toBe(1);
+    Livewire::test(System::class)->assertActionHidden('sampleStore');
 });

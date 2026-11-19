@@ -3,6 +3,11 @@
     <h1>¡Instalado!</h1>
     <p>Ya puedes entrar al panel con <strong>{{ $email }}</strong> y tu contraseña. Al entrar, te pedirá configurar la verificación en dos pasos con una app del móvil.</p>
     <p><a class="btn" href="{{ $url }}/admin" style="margin-top:4px">Entrar al panel</a></p>
+    @if (($sample ?? null) === true)
+        <p class="alert ok" role="status">La tienda de ejemplo está publicada: <a href="{{ $url }}/farruquito">{{ $url }}/farruquito</a>.</p>
+    @elseif (($sample ?? null) === false)
+        <p class="alert err" role="alert">La tienda de ejemplo no se ha podido crear. Créala desde el panel: <em>Herramientas → Estado del sistema → Crear la tienda de ejemplo Farruquito</em>.</p>
+    @endif
 
     <h2 style="font-size:1.1rem;margin-top:28px">Un último paso: las tareas programadas</h2>
     <p>Las copias de seguridad, el resumen de Minimedia del día 1 y la anulación de pedidos sin pagar necesitan que algo despierte a la web <strong>cada minuto</strong>. Elige una de las dos formas:</p>

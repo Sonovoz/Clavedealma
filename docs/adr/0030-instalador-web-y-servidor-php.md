@@ -43,6 +43,8 @@ Lo hace `InstallController`, en cuatro pasos:
    - genera `CRON_TOKEN`.
 4. **Listo**: la línea del cron y la dirección secreta. Se ven una sola vez.
 
+Mientras la web está en pruebas (`SEO_INDEXING=false`), el paso 3 ofrece crear la **tienda de ejemplo Farruquito**, publicada (`App\Platform\Install\SampleStore`, que usa `FarruquitoSeeder`). Si falla, la instalación sigue y se crea luego con el botón de *Estado del sistema*, que queda anotado en el registro de seguridad.
+
 Seguridad del asistente:
 - Instalado (marca `storage/app/instalado` o tablas ya creadas), **todo `/instalar` da 404**. Nadie puede volver a configurar la base de datos desde la web aunque falle.
 - Las rutas tienen límite de peticiones.
