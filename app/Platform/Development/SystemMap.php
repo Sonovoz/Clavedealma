@@ -53,7 +53,7 @@ Clave de Alma (vendedor único)
 │   ├── Copias de seguridad (programadas, también fuera del servidor) · Ajustes · Estado del sistema
 │   ├── Avisos de errores por email (Monitoring\ErrorAlerts) · Correo SMTP (Mail\SmtpSettings)
 │   ├── Minimedia: comisión mensual y cierres (Minimedia\MinimediaCommission)
-│   ├── Registro de seguridad (accesos, dos pasos y acciones sensibles)
+│   ├── Registro de seguridad (accesos, dos pasos y acciones sensibles) · Recuperar acceso (/recuperar-acceso)
 │   └── Instalador web /instalar (Install\RunInstall) · cron por URL secreta (/cron/<token>)
 │
 └── Servicios externos (siempre por contrato y driver)

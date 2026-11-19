@@ -134,7 +134,13 @@ Si se instaló a mano antes de existir el instalador, lo más rápido es empezar
 ## No recuerdo cómo entrar al panel
 
 - La dirección es `https://clavedealma.es/admin`. El usuario es el email que pusiste en el instalador (o `SUPERADMIN_EMAIL` del `.env`, si se instaló a mano).
-- Para poner una contraseña nueva (te la pide dos veces, sin que se vea en pantalla):
+- **Sin línea de comandos** (ADR 0031):
+  1. Edita el `.env` de la web (botón «.env» del panel del servidor, o FileBrowser).
+  2. Añade una línea con una clave que te inventes, de 20 caracteres o más. Por ejemplo `RECUPERAR_ACCESO=` seguido de una frase larga sin espacios.
+  3. Guarda y abre `https://clavedealma.es/recuperar-acceso`.
+  4. Escribe esa clave, tu email y una contraseña nueva.
+  5. La clave sirve una vez y se borra sola del `.env`. Al entrar, el panel te pide configurar otra vez la verificación en dos pasos.
+- **Con línea de comandos**, para poner una contraseña nueva (te la pide dos veces, sin que se vea en pantalla):
 
 ```bash
 docker exec -it php-web php /var/www/html/artisan clavedealma:superadmin tu@email.es

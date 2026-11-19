@@ -34,6 +34,7 @@ enum SecurityEventType: string implements HasLabel
     case MinimediaChanged = 'minimedia_changed';
     case MailSettingsChanged = 'mail_settings_changed';
     case SampleStoreCreated = 'sample_store_created';
+    case AccessRecovered = 'access_recovered';
 
     public function label(): string
     {
@@ -66,6 +67,7 @@ enum SecurityEventType: string implements HasLabel
             self::MinimediaChanged => 'Minimedia: ajustes o envío',
             self::MailSettingsChanged => 'Ajustes de correo cambiados',
             self::SampleStoreCreated => 'Tienda de ejemplo creada',
+            self::AccessRecovered => 'Acceso recuperado (clave del .env)',
         };
     }
 
@@ -74,7 +76,7 @@ enum SecurityEventType: string implements HasLabel
     {
         return match ($this) {
             self::LoginFailed, self::RoleChanged, self::PasswordChanged, self::PasswordReset, self::FiscalDataChanged, self::PaymentSettingsChanged, self::TwoFactorChanged, self::MinimediaChanged, self::MailSettingsChanged, self::BackupDownloaded, self::UserDeleted => 'warning',
-            self::Lockout, self::BackupDeleted => 'danger',
+            self::Lockout, self::BackupDeleted, self::AccessRecovered => 'danger',
             default => 'info',
         };
     }
