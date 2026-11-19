@@ -8,6 +8,7 @@ Qué se ha ido construyendo, entrega a entrega, de la más reciente a la más an
 
 | Fecha | Entrega | PR | ADR |
 | --- | --- | --- | --- |
+| 19/11 | **Recuperar el acceso, arreglo**: si las tablas se crearon sin los roles (`migrate` sin `--seed`), se crean al poner la contraseña, en vez de dar error. | #43 | 0031 |
 | 19/11 | **Recuperar el acceso al panel**: con una clave de un solo uso en el `.env` (`RECUPERAR_ACCESO`), `/recuperar-acceso` pone una contraseña nueva sin línea de comandos. | #42 | 0031 |
 | 12/11 | **Instalador web y servidor PHP + MariaDB (OVH)**: al abrir la web sin instalar sale `/instalar`, que comprueba el servidor, pide la base de datos (nombre, usuario y contraseña) y crea el administrador. Opción de crear la tienda de ejemplo Farruquito publicada (en el instalador o con un botón en *Estado del sistema*). Tareas programadas por cron o por dirección secreta, con aviso en *Estado del sistema*. GitHub genera el paquete ZIP listo para subir. | #41 | 0030 |
 | 10/11 | **Farruquito publicada**: la tienda de ejemplo queda abierta por ahora al crearla en el servidor de pruebas (y se abre si ya existía oculta). | #40 | — |

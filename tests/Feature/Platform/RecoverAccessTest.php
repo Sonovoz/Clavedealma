@@ -6,6 +6,8 @@ use App\Platform\Install\EnvFile;
 use App\Platform\Security\SecurityEvent;
 use App\Platform\Security\SecurityEventType;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role as RoleModel;
+use Spatie\Permission\PermissionRegistrar;
 
 beforeEach(function () {
     $this->file = sys_get_temp_dir().'/recuperar-'.uniqid().'.env';
@@ -50,7 +52,10 @@ it('con la clave del .env pone una contraseña nueva, quita los dos pasos y la c
     $this->get('/recuperar-acceso')->assertNotFound();
 });
 
-it('si el email no existe, crea un superadministrador con él', function () use ($clave) {
+it('si el email no existe, crea un superadministrador con él (aunque falten los roles)', function () use ($clave) {
+    // Tablas creadas sin «--seed»: no hay roles.
+    RoleModel::query()->delete();
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
     $this->env->set(['RECUPERAR_ACCESO' => $clave]);
 
     $this->post('/recuperar-acceso', ['key' => $clave, 'email' => 'nuevo@clavedealma.es', 'password' => 'contraseña-nueva-larga', 'password_confirmation' => 'contraseña-nueva-larga'])->assertOk();

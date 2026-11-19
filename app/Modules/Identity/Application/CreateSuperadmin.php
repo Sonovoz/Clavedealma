@@ -3,7 +3,9 @@
 namespace App\Modules\Identity\Application;
 
 use App\Modules\Identity\Contracts\Role;
+use App\Modules\Identity\Database\Seeders\RolesSeeder;
 use App\Modules\Identity\Infrastructure\Models\User;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 /**
@@ -17,14 +19,19 @@ class CreateSuperadmin
             throw new InvalidArgumentException('La contraseña del superadministrador debe tener al menos 12 caracteres.');
         }
 
-        $user = User::query()->firstOrNew(['email' => $email]);
-        $user->name = $name;
-        $user->password = $password;
-        $user->email_verified_at ??= now();
-        $user->save();
+        return DB::transaction(function () use ($name, $email, $password): User {
+            // Los roles pueden faltar si las tablas se crearon sin «--seed» (es idempotente).
+            (new RolesSeeder)->run();
 
-        $user->assignRole(Role::Superadmin->value);
+            $user = User::query()->firstOrNew(['email' => $email]);
+            $user->name = $name;
+            $user->password = $password;
+            $user->email_verified_at ??= now();
+            $user->save();
 
-        return $user;
+            $user->assignRole(Role::Superadmin->value);
+
+            return $user;
+        });
     }
 }
