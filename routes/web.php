@@ -7,6 +7,8 @@ use App\Http\Controllers\Checkout\CartController;
 use App\Http\Controllers\Checkout\CheckoutController;
 use App\Http\Controllers\Checkout\PaymentWebhookController;
 use App\Http\Controllers\Checkout\ReturnController;
+use App\Http\Controllers\CronController;
+use App\Http\Controllers\Install\InstallController;
 use App\Http\Controllers\Panel\ArtistNoticeFileController;
 use App\Http\Controllers\Storefront\DesignAssetController;
 use App\Http\Controllers\Storefront\LegalController;
@@ -24,6 +26,19 @@ use Illuminate\Support\Facades\Route;
 | El patrón de la clave excluye las palabras reservadas (admin, livewire, carrito…).
 */
 $key = Subdomain::routePattern();
+
+// Instalador web (ADR 0030): solo existe mientras la web no está instalada (RedirectToInstaller).
+Route::prefix('instalar')->middleware('throttle:30,1')->group(function (): void {
+    Route::get('/', [InstallController::class, 'requirements']);
+    Route::get('/base-de-datos', [InstallController::class, 'database']);
+    Route::post('/base-de-datos', [InstallController::class, 'saveDatabase']);
+    Route::get('/administrador', [InstallController::class, 'admin']);
+    Route::post('/administrador', [InstallController::class, 'install']);
+    Route::get('/listo', [InstallController::class, 'done']);
+});
+
+// Tareas programadas desde fuera (ADR 0030): un cron externo llama a esta dirección cada minuto.
+Route::get('/cron/{token}', CronController::class)->where('token', '[A-Za-z0-9]{20,100}')->middleware('throttle:6,1')->name('cron');
 
 Route::domain('{store}.'.config('clavedealma.domain'))
     ->where(['store' => $key])

@@ -1,0 +1,38 @@
+# Paquete para el servidor (ADR 0030): un ZIP con todo listo (vendor/, estilos compilados y
+# archivos del panel) para subirlo a un servidor PHP sin Composer ni Node. Se genera con cada
+# cambio en main y a mano desde Actions → «Paquete para el servidor» → Run workflow.
+# Se descarga en la ejecución, en «Artifacts». Guía: docs/instalacion-servidor.md
+name: Paquete para el servidor
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  paquete:
+    name: Paquete ZIP
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: intl, zip, gd, bcmath, pdo_mysql
+          tools: composer:v2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Generar el ZIP
+        run: bash scripts/build-zip.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clavedealma-servidor
+          path: dist/*.zip
+          retention-days: 30

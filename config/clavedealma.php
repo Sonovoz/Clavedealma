@@ -74,6 +74,9 @@ return [
         'email' => env('ERROR_ALERT_EMAIL'),
     ],
 
+    // Clave de la dirección /cron/<token> para lanzar las tareas programadas desde fuera (ADR 0030).
+    'cron_token' => env('CRON_TOKEN', ''),
+
     // Comisión de Minimedia sobre las ventas de todas las tiendas (ADR 0029). Se cambia en el panel.
     'minimedia' => [
         'rate_bps' => (int) env('MINIMEDIA_RATE_BPS', 600),

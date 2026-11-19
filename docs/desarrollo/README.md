@@ -24,7 +24,7 @@ Hola, Diego. Esta guía explica cómo se ha construido cada parte del proyecto, 
 | PDF | **dompdf**, por contrato propio |
 | QR de Veri*Factu | `bacon/bacon-qr-code` (SVG) |
 | Pruebas y calidad | **Pest 4**, Pint, **Larastan nivel 6** y pruebas de arquitectura |
-| Entornos | **Docker en un VPS de OVH** (el servidor elegido: Traefik con HTTPS, MariaDB, Redis, colas, tareas programadas y copias en Object Storage; guía en `docs/despliegue-docker.md`) y, como alternativa, **Hostinger** (drivers `database`). El mismo código en los dos (ADR 0004 y 0028) |
+| Entornos | **VPS de OVH con contenedores propios** (el servidor elegido: `php-web` con PHP 8.3, MariaDB 10.11, Redis y Nginx Proxy Manager para el HTTPS). Se instala con el **instalador web** `/instalar` y el paquete ZIP que genera GitHub (ADR 0030, `docs/instalacion-servidor.md`). Alternativas: la imagen Docker propia (`docs/despliegue-docker.md`, ADR 0028) y **Hostinger** (drivers `database`). El mismo código en todos (ADR 0004) |
 
 ## 3. Arrancar en local
 
@@ -156,6 +156,11 @@ Fuera de los módulos está la **capa exterior**, que pinta y conecta pero no de
 - **Ajustes → Pagos** (ADR 0027): `App\Filament\Pages\PaymentSettings` y `App\Platform\Payments\RedsysSettings`. Los datos del panel (tabla `settings`, la clave cifrada) se pasan a `config('payments.redsys')` antes de crear la pasarela (`beforeResolving` en `AppServiceProvider`). El aviso de Redsys apunta «Último aviso del banco».
 - **Estados del pedido**: en el panel se leen como en WooCommerce (`OrderStatus::label()`). *Procesando* agrupa los pagados sin enviar (`OrderStatus::processing()`), y *Completado* es el entregado. El valor guardado no cambia.
 - **Ficha del pedido** (ADR 0025): «Notas del pedido» lee `order_events`. «Añadir nota» llama a `Orders\Application\AddOrderNote`: la privada solo la ve el equipo, y la del cliente le llega por email (`OrderNoteMail`) y sale en «Actualizaciones del pedido» (`OrderPage`). «Acciones del pedido» llama a `ResendOrderEmails`. Cada apunte guarda su autor (`author`).
+- **Instalación y tareas programadas** (ADR 0030):
+  - `bootstrap/primer-arranque.php` (desde `public/index.php`, antes de Laravel) avisa si falta `vendor/` y, sin `.env`, lo crea desde `.env.servidor.example` con una `APP_KEY` nueva. Mientras no hay instalación usa caché y sesiones en archivos.
+  - El asistente (`App\Http\Controllers\Install\InstallController`, vistas `resources/views/install/*`) usa `App\Platform\Install\{Requirements, DatabaseProbe, RunInstall, InstallState}`. Lo instalado se marca con `storage/app/instalado`.
+  - Las tareas programadas se lanzan con el cron del servidor (`schedule:run`) o con la dirección secreta `/cron/<CRON_TOKEN>` (`App\Http\Controllers\CronController`). La tarea `latido` apunta cada minuto la hora, y *Estado del sistema* avisa si se paran.
+  - El paquete para el servidor lo hace `scripts/build-zip.sh` y lo publica la acción de GitHub «Paquete para el servidor» (`.github/workflows/paquete.yml`), en *Artifacts*.
 - **Los PDF** se generan en `App\Platform\Documents\*`, con las plantillas en `resources/views/pdf/*`.
 
 ## 10. Servicios externos, siempre por contrato
@@ -177,6 +182,7 @@ Para añadir un proveedor se escribe otro driver del mismo contrato y se registr
 - **Enlaces privados de cliente**: `/pedido/<token>` con 48 caracteres aleatorios.
 - **Datos personales**: el fabricante no los ve y la IA nunca los recibe.
 - **Verificación en dos pasos** (ADR 0028): obligatoria para el equipo del panel (`User::mustUseTwoFactor`, `App\Http\Middleware\EnsureTwoFactorForStaff`), opcional para los artistas. Para quitarla a quien pierde el móvil: *Usuarios → Quitar dos pasos* o `php artisan usuarios:quitar-dos-pasos <email>`.
+- **Instalador web** (ADR 0030): mientras no hay instalación, `App\Http\Middleware\RedirectToInstaller` lleva todo a `/instalar`; después, `/instalar` da 404. Escribe la base de datos en el `.env` (`App\Platform\Install\EnvFile`) y nunca la muestra.
 - **Avisos de errores** (`App\Platform\Monitoring\ErrorAlerts`, desde `bootstrap/app.php`): email al equipo, como mucho uno por error y hora y 10 a la hora, sin datos de clientes ni SQL.
 - **Detrás de un proxy** (Traefik): `TRUSTED_PROXIES` para que la web sepa que va por HTTPS y vea la IP real.
 - **Registro de seguridad** (*Herramientas → Registro de seguridad*):
@@ -202,7 +208,8 @@ Para añadir un proveedor se escribe otro driver del mismo contrato y se registr
 | --- | --- |
 | Bases y orden de fases | `docs/README.md` |
 | Instalación de pruebas en Hostinger | `docs/instalacion-hostinger.md` |
-| Instalación en OVH (VPS con Docker), paso a paso | `docs/despliegue-docker.md` |
+| Instalación en el servidor OVH (PHP 8.3 + MariaDB, instalador web) | `docs/instalacion-servidor.md` |
+| Instalación con la imagen Docker propia (alternativa) | `docs/despliegue-docker.md` |
 | Alta de artículos (hoja + fotos) | `docs/protocolo/README.md` |
 | Esquema de tienda | `docs/tiendas/README.md` |
 | SEO e IA | `docs/seo/README.md` |

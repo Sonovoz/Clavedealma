@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Schedule;
 
 // Copias de seguridad: frecuencia y hora elegidas en el panel (Administración → Copias de seguridad).
 if (Settings::ready()) {
+    // Latido: «Estado del sistema» dice cuándo corrieron las tareas por última vez (ADR 0030).
+    Schedule::call(fn () => Settings::put('schedule.last_run', now()->toIso8601String()))->everyMinute()->name('latido');
+
     Schedule::command('copias:crear --programada')
         ->cron(BackupSchedule::cron())
         ->timezone((string) config('clavedealma.backups.timezone'))

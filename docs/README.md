@@ -6,7 +6,8 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 
 - [**Cómo está hecho (para desarrolladores)**](desarrollo/README.md). También en el panel: *Desarrollo*
 - [Instalación de pruebas en Hostinger](instalacion-hostinger.md)
-- [Despliegue con Docker en OVH](despliegue-docker.md)
+- [**Instalación en el servidor OVH (PHP 8.3 + MariaDB) con el instalador web**](instalacion-servidor.md)
+- [Despliegue con Docker en OVH (imagen propia, alternativa)](despliegue-docker.md)
 - [Prototipos de diseño: matriz y tienda Farruquito](diseno/README.md)
 - [Protocolo de alta de artículos: hoja, fotos e importación](protocolo/README.md)
 - [Esquema de tienda: diseño propio y pasarela común](tiendas/README.md)
@@ -49,6 +50,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0027](adr/0027-ajustes-de-pago.md) | «Ajustes → Pagos»: el TPV de Redsys en el panel |
 | [0028](adr/0028-seguridad-del-servidor.md) | Seguridad del servidor: dos pasos, avisos de errores y copias fuera |
 | [0029](adr/0029-minimedia-y-correo-smtp.md) | Minimedia (comisión del 6 %) y correo por SMTP en todo el sitio |
+| [0030](adr/0030-instalador-web-y-servidor-php.md) | Instalador web y servidor PHP 8.3 + MariaDB (OVH) |
 
 ## Orden de construcción
 

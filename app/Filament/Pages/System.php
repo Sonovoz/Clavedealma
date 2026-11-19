@@ -4,15 +4,18 @@ namespace App\Filament\Pages;
 
 use App\Modules\Identity\Infrastructure\Models\User;
 use App\Platform\ApplyUpdate;
+use App\Platform\Install\SampleStore;
 use App\Platform\Monitoring\ErrorAlerts;
 use App\Platform\Security\SecurityEventType;
 use App\Platform\Security\SecurityLog;
+use App\Platform\Settings\Settings;
 use App\Platform\SystemStatus;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 use Throwable;
@@ -67,6 +70,7 @@ class System extends Page
             'maintenance' => $status->isInMaintenance(),
             'drivers' => $status->drivers(),
             'errorAlerts' => ErrorAlerts::enabled(),
+            'scheduleLastRun' => ($last = Settings::get('schedule.last_run')) ? Carbon::parse((string) $last) : null,
             'errorEmail' => ErrorAlerts::recipient(),
         ];
     }
@@ -92,6 +96,24 @@ class System extends Page
                         ? $notification->title('La actualización terminó con errores')->danger()
                         : $notification->title('Actualización aplicada')->success();
                     $notification->send();
+                }),
+
+            Action::make('sampleStore')
+                ->label('Crear la tienda de ejemplo Farruquito')
+                ->icon(Heroicon::OutlinedBuildingStorefront)
+                ->color('gray')
+                ->visible(fn (): bool => SampleStore::available() && ! SampleStore::exists())
+                ->requiresConfirmation()
+                ->modalDescription('Crea la tienda Farruquito, PUBLICADA, con sus colecciones y artículos de ejemplo (precios de ejemplo). Solo mientras la web está en pruebas. Para ocultarla después: Tiendas → Farruquito → Estado.')
+                ->action(function (SampleStore $sampleStore): void {
+                    try {
+                        $sampleStore->create();
+                        SecurityLog::record(SecurityEventType::SampleStoreCreated, 'Tienda de ejemplo Farruquito creada y publicada.');
+                        Notification::make()->title('Tienda Farruquito creada')->body('Ya se ve en '.url('/'.SampleStore::KEY).'.')->success()->send();
+                    } catch (Throwable $e) {
+                        report($e);
+                        Notification::make()->title('No se ha podido crear la tienda')->body(Str::limit($e->getMessage(), 300))->danger()->persistent()->send();
+                    }
                 }),
 
             Action::make('testErrorAlert')

@@ -33,6 +33,7 @@ enum SecurityEventType: string implements HasLabel
     case TwoFactorChanged = 'two_factor_changed';
     case MinimediaChanged = 'minimedia_changed';
     case MailSettingsChanged = 'mail_settings_changed';
+    case SampleStoreCreated = 'sample_store_created';
 
     public function label(): string
     {
@@ -64,6 +65,7 @@ enum SecurityEventType: string implements HasLabel
             self::TwoFactorChanged => 'Verificación en dos pasos',
             self::MinimediaChanged => 'Minimedia: ajustes o envío',
             self::MailSettingsChanged => 'Ajustes de correo cambiados',
+            self::SampleStoreCreated => 'Tienda de ejemplo creada',
         };
     }
 

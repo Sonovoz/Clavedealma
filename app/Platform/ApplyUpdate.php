@@ -21,6 +21,8 @@ class ApplyUpdate
             'Migraciones pendientes' => ['migrate', ['--force' => true]],
             'Limpiar cachés' => ['optimize:clear', []],
             'Enlace de storage' => ['storage:link', []],
+            // Estilos y JavaScript del panel (no van en GitHub): sin ellos no se puede entrar.
+            'Archivos del panel' => ['filament:assets', []],
         ];
 
         // Cachear configuración y rutas solo fuera de las pruebas automáticas.

@@ -29,7 +29,7 @@ Resultado: `dist/clavedealma-<versión>-<fecha>.zip`. Incluye `vendor/` y los re
    ```
 
    El programador procesa también las colas (driver `database`). Y hace las **copias de seguridad** a la hora elegida en el panel ([copias de seguridad](copias-de-seguridad.md)): sin este cron no se hacen solas.
-8. Crear las tablas y el superadministrador con un cron de una sola ejecución (no hay instalador web, a propósito):
+8. Crear las tablas y el superadministrador. Lo más fácil es el **instalador web** (ADR 0030): sin `.env`, al abrir la web sale `/instalar`, que pide la base de datos y crea el administrador (ver [instalación en el servidor](instalacion-servidor.md), paso 5). Si se prefiere a mano, con un cron de una sola ejecución:
 
    ```text
    cd /home/<usuario>/clavedealma && php artisan migrate --force --seed
