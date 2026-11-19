@@ -51,6 +51,7 @@ El documento de bases del proyecto (modelo de negocio, decisiones, arquitectura 
 | [0028](adr/0028-seguridad-del-servidor.md) | Seguridad del servidor: dos pasos, avisos de errores y copias fuera |
 | [0029](adr/0029-minimedia-y-correo-smtp.md) | Minimedia (comisión del 6 %) y correo por SMTP en todo el sitio |
 | [0030](adr/0030-instalador-web-y-servidor-php.md) | Instalador web y servidor PHP 8.3 + MariaDB (OVH) |
+| [0031](adr/0031-recuperar-acceso.md) | Recuperar el acceso al panel con una clave del `.env` |
 
 ## Orden de construcción
 

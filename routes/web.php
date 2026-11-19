@@ -10,6 +10,7 @@ use App\Http\Controllers\Checkout\ReturnController;
 use App\Http\Controllers\CronController;
 use App\Http\Controllers\Install\InstallController;
 use App\Http\Controllers\Panel\ArtistNoticeFileController;
+use App\Http\Controllers\Recovery\RecoverAccessController;
 use App\Http\Controllers\Storefront\DesignAssetController;
 use App\Http\Controllers\Storefront\LegalController;
 use App\Http\Controllers\Storefront\MarketController;
@@ -35,6 +36,12 @@ Route::prefix('instalar')->middleware('throttle:30,1')->group(function (): void 
     Route::get('/administrador', [InstallController::class, 'admin']);
     Route::post('/administrador', [InstallController::class, 'install']);
     Route::get('/listo', [InstallController::class, 'done']);
+});
+
+// Recuperar el acceso al panel con la clave RECUPERAR_ACCESO del .env (ADR 0031).
+Route::middleware('throttle:5,1')->group(function (): void {
+    Route::get('/recuperar-acceso', [RecoverAccessController::class, 'show']);
+    Route::post('/recuperar-acceso', [RecoverAccessController::class, 'store']);
 });
 
 // Tareas programadas desde fuera (ADR 0030): un cron externo llama a esta dirección cada minuto.

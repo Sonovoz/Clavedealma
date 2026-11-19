@@ -20,7 +20,7 @@ final readonly class Subdomain
         'static', 'cdn', 'assets', 'media', 'status', 'clavedealma',
         // Rutas del sistema
         'livewire', 'storage', 'build', 'filament', 'sitemap', 'robots', 'favicon', 'login',
-        'logout', 'register', 'password', 'webhook', 'webhooks', 'stripe', 'health', 'instalar', 'cron',
+        'logout', 'register', 'password', 'webhook', 'webhooks', 'stripe', 'health', 'instalar', 'cron', 'recuperar-acceso',
         // Páginas del market (presentes y futuras)
         'tienda', 'tiendas', 'artistas', 'artista', 'coleccion', 'colecciones', 'producto',
         'productos', 'buscar', 'busqueda', 'carrito', 'cesta', 'checkout', 'finalizar-compra', 'pago', 'pagos',

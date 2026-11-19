@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <title>Instalación · Clave de Alma</title>
+    <title>{{ $title ?? 'Instalación' }} · Clave de Alma</title>
     <link rel="icon" href="/favicon.ico">
     <style>
         :root { color-scheme: dark; --bg:#070707; --card:#121110; --line:#2a2826; --text:#e8e4de; --muted:#9a948d; --red:#d4141c; --ok:#3fb950; --warn:#e3a008; }
@@ -46,11 +46,13 @@
 <body>
 <main>
     <div class="brand"><img src="/favicon-96x96.png" alt=""><strong>Clave de Alma</strong></div>
+    @if ($step > 0)
     <ol class="steps" aria-label="Pasos">
         @foreach (['Servidor', 'Base de datos', 'Administrador', 'Listo'] as $i => $label)
             <li class="{{ $step === $i + 1 ? 'on' : '' }}">{{ $i + 1 }}. {{ $label }}</li>
         @endforeach
     </ol>
+    @endif
     <div class="card">@yield('content')</div>
 </main>
 </body>

@@ -182,6 +182,7 @@ Para añadir un proveedor se escribe otro driver del mismo contrato y se registr
 - **Enlaces privados de cliente**: `/pedido/<token>` con 48 caracteres aleatorios.
 - **Datos personales**: el fabricante no los ve y la IA nunca los recibe.
 - **Verificación en dos pasos** (ADR 0028): obligatoria para el equipo del panel (`User::mustUseTwoFactor`, `App\Http\Middleware\EnsureTwoFactorForStaff`), opcional para los artistas. Para quitarla a quien pierde el móvil: *Usuarios → Quitar dos pasos* o `php artisan usuarios:quitar-dos-pasos <email>`.
+- **Recuperar el acceso** (ADR 0031): `App\Platform\Security\RecoverAccess` y `/recuperar-acceso`. Solo con la clave `RECUPERAR_ACCESO` del `.env`; se usa una vez y queda en el registro de seguridad.
 - **Instalador web** (ADR 0030): mientras no hay instalación, `App\Http\Middleware\RedirectToInstaller` lleva todo a `/instalar`; después, `/instalar` da 404. Escribe la base de datos en el `.env` (`App\Platform\Install\EnvFile`) y nunca la muestra.
 - **Avisos de errores** (`App\Platform\Monitoring\ErrorAlerts`, desde `bootstrap/app.php`): email al equipo, como mucho uno por error y hora y 10 a la hora, sin datos de clientes ni SQL.
 - **Detrás de un proxy** (Traefik): `TRUSTED_PROXIES` para que la web sepa que va por HTTPS y vea la IP real.
